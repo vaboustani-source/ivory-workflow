@@ -14,6 +14,7 @@ import { Route as PortalRouteImport } from './routes/portal'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StudioIndexRouteImport } from './routes/studio.index'
+import { Route as StudioClientsIndexRouteImport } from './routes/studio.clients.index'
 
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
@@ -40,6 +41,11 @@ const StudioIndexRoute = StudioIndexRouteImport.update({
   path: '/',
   getParentRoute: () => StudioRoute,
 } as any)
+const StudioClientsIndexRoute = StudioClientsIndexRouteImport.update({
+  id: '/clients/',
+  path: '/clients/',
+  getParentRoute: () => StudioRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,12 +53,14 @@ export interface FileRoutesByFullPath {
   '/portal': typeof PortalRoute
   '/studio': typeof StudioRouteWithChildren
   '/studio/': typeof StudioIndexRoute
+  '/studio/clients/': typeof StudioClientsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/portal': typeof PortalRoute
   '/studio': typeof StudioIndexRoute
+  '/studio/clients': typeof StudioClientsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -61,13 +69,27 @@ export interface FileRoutesById {
   '/portal': typeof PortalRoute
   '/studio': typeof StudioRouteWithChildren
   '/studio/': typeof StudioIndexRoute
+  '/studio/clients/': typeof StudioClientsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/portal' | '/studio' | '/studio/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/portal'
+    | '/studio'
+    | '/studio/'
+    | '/studio/clients/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/portal' | '/studio'
-  id: '__root__' | '/' | '/login' | '/portal' | '/studio' | '/studio/'
+  to: '/' | '/login' | '/portal' | '/studio' | '/studio/clients'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/portal'
+    | '/studio'
+    | '/studio/'
+    | '/studio/clients/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -114,15 +136,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioIndexRouteImport
       parentRoute: typeof StudioRoute
     }
+    '/studio/clients/': {
+      id: '/studio/clients/'
+      path: '/clients'
+      fullPath: '/studio/clients/'
+      preLoaderRoute: typeof StudioClientsIndexRouteImport
+      parentRoute: typeof StudioRoute
+    }
   }
 }
 
 interface StudioRouteChildren {
   StudioIndexRoute: typeof StudioIndexRoute
+  StudioClientsIndexRoute: typeof StudioClientsIndexRoute
 }
 
 const StudioRouteChildren: StudioRouteChildren = {
   StudioIndexRoute: StudioIndexRoute,
+  StudioClientsIndexRoute: StudioClientsIndexRoute,
 }
 
 const StudioRouteWithChildren =
