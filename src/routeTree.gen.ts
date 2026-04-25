@@ -9,38 +9,343 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StudioRouteImport } from './routes/studio'
+import { Route as PortalRouteImport } from './routes/portal'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StudioIndexRouteImport } from './routes/studio.index'
+import { Route as StudioTasksRouteImport } from './routes/studio.tasks'
+import { Route as StudioSettingsRouteImport } from './routes/studio.settings'
+import { Route as StudioResourcesRouteImport } from './routes/studio.resources'
+import { Route as StudioPipelineRouteImport } from './routes/studio.pipeline'
+import { Route as StudioMessagesRouteImport } from './routes/studio.messages'
+import { Route as StudioInvoicesRouteImport } from './routes/studio.invoices'
+import { Route as StudioGalleriesRouteImport } from './routes/studio.galleries'
+import { Route as StudioCalendarRouteImport } from './routes/studio.calendar'
+import { Route as StudioApprovalQueueRouteImport } from './routes/studio.approval-queue'
+import { Route as StudioClientsIndexRouteImport } from './routes/studio.clients.index'
+import { Route as StudioSettingsWorkflowRouteImport } from './routes/studio.settings.workflow'
+import { Route as StudioSettingsTeamRouteImport } from './routes/studio.settings.team'
+import { Route as StudioSettingsResourcesRouteImport } from './routes/studio.settings.resources'
+import { Route as StudioSettingsProfileRouteImport } from './routes/studio.settings.profile'
+import { Route as StudioSettingsIntegrationsRouteImport } from './routes/studio.settings.integrations'
+import { Route as StudioSettingsEmailTemplatesRouteImport } from './routes/studio.settings.email-templates'
+import { Route as StudioSettingsCalendarRouteImport } from './routes/studio.settings.calendar'
+import { Route as StudioSettingsActivityLogRouteImport } from './routes/studio.settings.activity-log'
+import { Route as StudioClientsIdRouteImport } from './routes/studio.clients.$id'
 
+const StudioRoute = StudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudioIndexRoute = StudioIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioTasksRoute = StudioTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioSettingsRoute = StudioSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioResourcesRoute = StudioResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioPipelineRoute = StudioPipelineRouteImport.update({
+  id: '/pipeline',
+  path: '/pipeline',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioMessagesRoute = StudioMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioInvoicesRoute = StudioInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioGalleriesRoute = StudioGalleriesRouteImport.update({
+  id: '/galleries',
+  path: '/galleries',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioCalendarRoute = StudioCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioApprovalQueueRoute = StudioApprovalQueueRouteImport.update({
+  id: '/approval-queue',
+  path: '/approval-queue',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioClientsIndexRoute = StudioClientsIndexRouteImport.update({
+  id: '/clients/',
+  path: '/clients/',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioSettingsWorkflowRoute = StudioSettingsWorkflowRouteImport.update({
+  id: '/workflow',
+  path: '/workflow',
+  getParentRoute: () => StudioSettingsRoute,
+} as any)
+const StudioSettingsTeamRoute = StudioSettingsTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => StudioSettingsRoute,
+} as any)
+const StudioSettingsResourcesRoute = StudioSettingsResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => StudioSettingsRoute,
+} as any)
+const StudioSettingsProfileRoute = StudioSettingsProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => StudioSettingsRoute,
+} as any)
+const StudioSettingsIntegrationsRoute =
+  StudioSettingsIntegrationsRouteImport.update({
+    id: '/integrations',
+    path: '/integrations',
+    getParentRoute: () => StudioSettingsRoute,
+  } as any)
+const StudioSettingsEmailTemplatesRoute =
+  StudioSettingsEmailTemplatesRouteImport.update({
+    id: '/email-templates',
+    path: '/email-templates',
+    getParentRoute: () => StudioSettingsRoute,
+  } as any)
+const StudioSettingsCalendarRoute = StudioSettingsCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => StudioSettingsRoute,
+} as any)
+const StudioSettingsActivityLogRoute =
+  StudioSettingsActivityLogRouteImport.update({
+    id: '/activity-log',
+    path: '/activity-log',
+    getParentRoute: () => StudioSettingsRoute,
+  } as any)
+const StudioClientsIdRoute = StudioClientsIdRouteImport.update({
+  id: '/clients/$id',
+  path: '/clients/$id',
+  getParentRoute: () => StudioRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/portal': typeof PortalRoute
+  '/studio': typeof StudioRouteWithChildren
+  '/studio/approval-queue': typeof StudioApprovalQueueRoute
+  '/studio/calendar': typeof StudioCalendarRoute
+  '/studio/galleries': typeof StudioGalleriesRoute
+  '/studio/invoices': typeof StudioInvoicesRoute
+  '/studio/messages': typeof StudioMessagesRoute
+  '/studio/pipeline': typeof StudioPipelineRoute
+  '/studio/resources': typeof StudioResourcesRoute
+  '/studio/settings': typeof StudioSettingsRouteWithChildren
+  '/studio/tasks': typeof StudioTasksRoute
+  '/studio/': typeof StudioIndexRoute
+  '/studio/clients/$id': typeof StudioClientsIdRoute
+  '/studio/settings/activity-log': typeof StudioSettingsActivityLogRoute
+  '/studio/settings/calendar': typeof StudioSettingsCalendarRoute
+  '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
+  '/studio/settings/integrations': typeof StudioSettingsIntegrationsRoute
+  '/studio/settings/profile': typeof StudioSettingsProfileRoute
+  '/studio/settings/resources': typeof StudioSettingsResourcesRoute
+  '/studio/settings/team': typeof StudioSettingsTeamRoute
+  '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
+  '/studio/clients/': typeof StudioClientsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/portal': typeof PortalRoute
+  '/studio/approval-queue': typeof StudioApprovalQueueRoute
+  '/studio/calendar': typeof StudioCalendarRoute
+  '/studio/galleries': typeof StudioGalleriesRoute
+  '/studio/invoices': typeof StudioInvoicesRoute
+  '/studio/messages': typeof StudioMessagesRoute
+  '/studio/pipeline': typeof StudioPipelineRoute
+  '/studio/resources': typeof StudioResourcesRoute
+  '/studio/settings': typeof StudioSettingsRouteWithChildren
+  '/studio/tasks': typeof StudioTasksRoute
+  '/studio': typeof StudioIndexRoute
+  '/studio/clients/$id': typeof StudioClientsIdRoute
+  '/studio/settings/activity-log': typeof StudioSettingsActivityLogRoute
+  '/studio/settings/calendar': typeof StudioSettingsCalendarRoute
+  '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
+  '/studio/settings/integrations': typeof StudioSettingsIntegrationsRoute
+  '/studio/settings/profile': typeof StudioSettingsProfileRoute
+  '/studio/settings/resources': typeof StudioSettingsResourcesRoute
+  '/studio/settings/team': typeof StudioSettingsTeamRoute
+  '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
+  '/studio/clients': typeof StudioClientsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/portal': typeof PortalRoute
+  '/studio': typeof StudioRouteWithChildren
+  '/studio/approval-queue': typeof StudioApprovalQueueRoute
+  '/studio/calendar': typeof StudioCalendarRoute
+  '/studio/galleries': typeof StudioGalleriesRoute
+  '/studio/invoices': typeof StudioInvoicesRoute
+  '/studio/messages': typeof StudioMessagesRoute
+  '/studio/pipeline': typeof StudioPipelineRoute
+  '/studio/resources': typeof StudioResourcesRoute
+  '/studio/settings': typeof StudioSettingsRouteWithChildren
+  '/studio/tasks': typeof StudioTasksRoute
+  '/studio/': typeof StudioIndexRoute
+  '/studio/clients/$id': typeof StudioClientsIdRoute
+  '/studio/settings/activity-log': typeof StudioSettingsActivityLogRoute
+  '/studio/settings/calendar': typeof StudioSettingsCalendarRoute
+  '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
+  '/studio/settings/integrations': typeof StudioSettingsIntegrationsRoute
+  '/studio/settings/profile': typeof StudioSettingsProfileRoute
+  '/studio/settings/resources': typeof StudioSettingsResourcesRoute
+  '/studio/settings/team': typeof StudioSettingsTeamRoute
+  '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
+  '/studio/clients/': typeof StudioClientsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/portal'
+    | '/studio'
+    | '/studio/approval-queue'
+    | '/studio/calendar'
+    | '/studio/galleries'
+    | '/studio/invoices'
+    | '/studio/messages'
+    | '/studio/pipeline'
+    | '/studio/resources'
+    | '/studio/settings'
+    | '/studio/tasks'
+    | '/studio/'
+    | '/studio/clients/$id'
+    | '/studio/settings/activity-log'
+    | '/studio/settings/calendar'
+    | '/studio/settings/email-templates'
+    | '/studio/settings/integrations'
+    | '/studio/settings/profile'
+    | '/studio/settings/resources'
+    | '/studio/settings/team'
+    | '/studio/settings/workflow'
+    | '/studio/clients/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/portal'
+    | '/studio/approval-queue'
+    | '/studio/calendar'
+    | '/studio/galleries'
+    | '/studio/invoices'
+    | '/studio/messages'
+    | '/studio/pipeline'
+    | '/studio/resources'
+    | '/studio/settings'
+    | '/studio/tasks'
+    | '/studio'
+    | '/studio/clients/$id'
+    | '/studio/settings/activity-log'
+    | '/studio/settings/calendar'
+    | '/studio/settings/email-templates'
+    | '/studio/settings/integrations'
+    | '/studio/settings/profile'
+    | '/studio/settings/resources'
+    | '/studio/settings/team'
+    | '/studio/settings/workflow'
+    | '/studio/clients'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/portal'
+    | '/studio'
+    | '/studio/approval-queue'
+    | '/studio/calendar'
+    | '/studio/galleries'
+    | '/studio/invoices'
+    | '/studio/messages'
+    | '/studio/pipeline'
+    | '/studio/resources'
+    | '/studio/settings'
+    | '/studio/tasks'
+    | '/studio/'
+    | '/studio/clients/$id'
+    | '/studio/settings/activity-log'
+    | '/studio/settings/calendar'
+    | '/studio/settings/email-templates'
+    | '/studio/settings/integrations'
+    | '/studio/settings/profile'
+    | '/studio/settings/resources'
+    | '/studio/settings/team'
+    | '/studio/settings/workflow'
+    | '/studio/clients/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoginRoute: typeof LoginRoute
+  PortalRoute: typeof PortalRoute
+  StudioRoute: typeof StudioRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/studio': {
+      id: '/studio'
+      path: '/studio'
+      fullPath: '/studio'
+      preLoaderRoute: typeof StudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,12 +353,223 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/studio/': {
+      id: '/studio/'
+      path: '/'
+      fullPath: '/studio/'
+      preLoaderRoute: typeof StudioIndexRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/tasks': {
+      id: '/studio/tasks'
+      path: '/tasks'
+      fullPath: '/studio/tasks'
+      preLoaderRoute: typeof StudioTasksRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/settings': {
+      id: '/studio/settings'
+      path: '/settings'
+      fullPath: '/studio/settings'
+      preLoaderRoute: typeof StudioSettingsRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/resources': {
+      id: '/studio/resources'
+      path: '/resources'
+      fullPath: '/studio/resources'
+      preLoaderRoute: typeof StudioResourcesRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/pipeline': {
+      id: '/studio/pipeline'
+      path: '/pipeline'
+      fullPath: '/studio/pipeline'
+      preLoaderRoute: typeof StudioPipelineRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/messages': {
+      id: '/studio/messages'
+      path: '/messages'
+      fullPath: '/studio/messages'
+      preLoaderRoute: typeof StudioMessagesRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/invoices': {
+      id: '/studio/invoices'
+      path: '/invoices'
+      fullPath: '/studio/invoices'
+      preLoaderRoute: typeof StudioInvoicesRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/galleries': {
+      id: '/studio/galleries'
+      path: '/galleries'
+      fullPath: '/studio/galleries'
+      preLoaderRoute: typeof StudioGalleriesRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/calendar': {
+      id: '/studio/calendar'
+      path: '/calendar'
+      fullPath: '/studio/calendar'
+      preLoaderRoute: typeof StudioCalendarRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/approval-queue': {
+      id: '/studio/approval-queue'
+      path: '/approval-queue'
+      fullPath: '/studio/approval-queue'
+      preLoaderRoute: typeof StudioApprovalQueueRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/clients/': {
+      id: '/studio/clients/'
+      path: '/clients'
+      fullPath: '/studio/clients/'
+      preLoaderRoute: typeof StudioClientsIndexRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/settings/workflow': {
+      id: '/studio/settings/workflow'
+      path: '/workflow'
+      fullPath: '/studio/settings/workflow'
+      preLoaderRoute: typeof StudioSettingsWorkflowRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
+    '/studio/settings/team': {
+      id: '/studio/settings/team'
+      path: '/team'
+      fullPath: '/studio/settings/team'
+      preLoaderRoute: typeof StudioSettingsTeamRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
+    '/studio/settings/resources': {
+      id: '/studio/settings/resources'
+      path: '/resources'
+      fullPath: '/studio/settings/resources'
+      preLoaderRoute: typeof StudioSettingsResourcesRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
+    '/studio/settings/profile': {
+      id: '/studio/settings/profile'
+      path: '/profile'
+      fullPath: '/studio/settings/profile'
+      preLoaderRoute: typeof StudioSettingsProfileRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
+    '/studio/settings/integrations': {
+      id: '/studio/settings/integrations'
+      path: '/integrations'
+      fullPath: '/studio/settings/integrations'
+      preLoaderRoute: typeof StudioSettingsIntegrationsRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
+    '/studio/settings/email-templates': {
+      id: '/studio/settings/email-templates'
+      path: '/email-templates'
+      fullPath: '/studio/settings/email-templates'
+      preLoaderRoute: typeof StudioSettingsEmailTemplatesRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
+    '/studio/settings/calendar': {
+      id: '/studio/settings/calendar'
+      path: '/calendar'
+      fullPath: '/studio/settings/calendar'
+      preLoaderRoute: typeof StudioSettingsCalendarRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
+    '/studio/settings/activity-log': {
+      id: '/studio/settings/activity-log'
+      path: '/activity-log'
+      fullPath: '/studio/settings/activity-log'
+      preLoaderRoute: typeof StudioSettingsActivityLogRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
+    '/studio/clients/$id': {
+      id: '/studio/clients/$id'
+      path: '/clients/$id'
+      fullPath: '/studio/clients/$id'
+      preLoaderRoute: typeof StudioClientsIdRouteImport
+      parentRoute: typeof StudioRoute
+    }
   }
 }
 
+interface StudioSettingsRouteChildren {
+  StudioSettingsActivityLogRoute: typeof StudioSettingsActivityLogRoute
+  StudioSettingsCalendarRoute: typeof StudioSettingsCalendarRoute
+  StudioSettingsEmailTemplatesRoute: typeof StudioSettingsEmailTemplatesRoute
+  StudioSettingsIntegrationsRoute: typeof StudioSettingsIntegrationsRoute
+  StudioSettingsProfileRoute: typeof StudioSettingsProfileRoute
+  StudioSettingsResourcesRoute: typeof StudioSettingsResourcesRoute
+  StudioSettingsTeamRoute: typeof StudioSettingsTeamRoute
+  StudioSettingsWorkflowRoute: typeof StudioSettingsWorkflowRoute
+}
+
+const StudioSettingsRouteChildren: StudioSettingsRouteChildren = {
+  StudioSettingsActivityLogRoute: StudioSettingsActivityLogRoute,
+  StudioSettingsCalendarRoute: StudioSettingsCalendarRoute,
+  StudioSettingsEmailTemplatesRoute: StudioSettingsEmailTemplatesRoute,
+  StudioSettingsIntegrationsRoute: StudioSettingsIntegrationsRoute,
+  StudioSettingsProfileRoute: StudioSettingsProfileRoute,
+  StudioSettingsResourcesRoute: StudioSettingsResourcesRoute,
+  StudioSettingsTeamRoute: StudioSettingsTeamRoute,
+  StudioSettingsWorkflowRoute: StudioSettingsWorkflowRoute,
+}
+
+const StudioSettingsRouteWithChildren = StudioSettingsRoute._addFileChildren(
+  StudioSettingsRouteChildren,
+)
+
+interface StudioRouteChildren {
+  StudioApprovalQueueRoute: typeof StudioApprovalQueueRoute
+  StudioCalendarRoute: typeof StudioCalendarRoute
+  StudioGalleriesRoute: typeof StudioGalleriesRoute
+  StudioInvoicesRoute: typeof StudioInvoicesRoute
+  StudioMessagesRoute: typeof StudioMessagesRoute
+  StudioPipelineRoute: typeof StudioPipelineRoute
+  StudioResourcesRoute: typeof StudioResourcesRoute
+  StudioSettingsRoute: typeof StudioSettingsRouteWithChildren
+  StudioTasksRoute: typeof StudioTasksRoute
+  StudioIndexRoute: typeof StudioIndexRoute
+  StudioClientsIdRoute: typeof StudioClientsIdRoute
+  StudioClientsIndexRoute: typeof StudioClientsIndexRoute
+}
+
+const StudioRouteChildren: StudioRouteChildren = {
+  StudioApprovalQueueRoute: StudioApprovalQueueRoute,
+  StudioCalendarRoute: StudioCalendarRoute,
+  StudioGalleriesRoute: StudioGalleriesRoute,
+  StudioInvoicesRoute: StudioInvoicesRoute,
+  StudioMessagesRoute: StudioMessagesRoute,
+  StudioPipelineRoute: StudioPipelineRoute,
+  StudioResourcesRoute: StudioResourcesRoute,
+  StudioSettingsRoute: StudioSettingsRouteWithChildren,
+  StudioTasksRoute: StudioTasksRoute,
+  StudioIndexRoute: StudioIndexRoute,
+  StudioClientsIdRoute: StudioClientsIdRoute,
+  StudioClientsIndexRoute: StudioClientsIndexRoute,
+}
+
+const StudioRouteWithChildren =
+  StudioRoute._addFileChildren(StudioRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoginRoute: LoginRoute,
+  PortalRoute: PortalRoute,
+  StudioRoute: StudioRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
