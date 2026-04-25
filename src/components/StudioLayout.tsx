@@ -8,7 +8,15 @@ import {
 import { useAuth } from "@/lib/auth";
 import { firstName } from "@/lib/dates";
 
-const NAV_ITEMS = [
+type NavItem = {
+  label: string;
+  to: string;
+  icon: typeof Home;
+  exact?: boolean;
+  matchPrefix?: string;
+};
+
+const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", to: "/studio", icon: Home, exact: true },
   { label: "Clients", to: "/studio/clients", icon: Users },
   { label: "Approval Queue", to: "/studio/approval-queue", icon: Inbox },
@@ -20,16 +28,16 @@ const NAV_ITEMS = [
   { label: "Invoices", to: "/studio/invoices", icon: Receipt },
   { label: "Resources", to: "/studio/resources", icon: BookOpen },
   { label: "Settings", to: "/studio/settings/team", icon: Settings, matchPrefix: "/studio/settings" },
-] as const;
+];
 
 export function StudioLayout({ children }: { children: ReactNode }) {
   const { profile, signOut } = useAuth();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
 
-  const isActive = (item: typeof NAV_ITEMS[number]) => {
+  const isActive = (item: NavItem) => {
     if (item.exact) return location.pathname === item.to;
-    if ("matchPrefix" in item && item.matchPrefix) return location.pathname.startsWith(item.matchPrefix);
+    if (item.matchPrefix) return location.pathname.startsWith(item.matchPrefix);
     return location.pathname === item.to || location.pathname.startsWith(item.to + "/");
   };
 
