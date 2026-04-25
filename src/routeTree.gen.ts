@@ -26,8 +26,12 @@ import { Route as StudioApprovalQueueRouteImport } from './routes/studio.approva
 import { Route as StudioClientsIndexRouteImport } from './routes/studio.clients.index'
 import { Route as StudioSettingsWorkflowRouteImport } from './routes/studio.settings.workflow'
 import { Route as StudioSettingsTeamRouteImport } from './routes/studio.settings.team'
+import { Route as StudioSettingsResourcesRouteImport } from './routes/studio.settings.resources'
 import { Route as StudioSettingsProfileRouteImport } from './routes/studio.settings.profile'
+import { Route as StudioSettingsIntegrationsRouteImport } from './routes/studio.settings.integrations'
 import { Route as StudioSettingsEmailTemplatesRouteImport } from './routes/studio.settings.email-templates'
+import { Route as StudioSettingsCalendarRouteImport } from './routes/studio.settings.calendar'
+import { Route as StudioSettingsActivityLogRouteImport } from './routes/studio.settings.activity-log'
 import { Route as StudioClientsIdRouteImport } from './routes/studio.clients.$id'
 
 const StudioRoute = StudioRouteImport.update({
@@ -115,15 +119,37 @@ const StudioSettingsTeamRoute = StudioSettingsTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => StudioSettingsRoute,
 } as any)
+const StudioSettingsResourcesRoute = StudioSettingsResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => StudioSettingsRoute,
+} as any)
 const StudioSettingsProfileRoute = StudioSettingsProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => StudioSettingsRoute,
 } as any)
+const StudioSettingsIntegrationsRoute =
+  StudioSettingsIntegrationsRouteImport.update({
+    id: '/integrations',
+    path: '/integrations',
+    getParentRoute: () => StudioSettingsRoute,
+  } as any)
 const StudioSettingsEmailTemplatesRoute =
   StudioSettingsEmailTemplatesRouteImport.update({
     id: '/email-templates',
     path: '/email-templates',
+    getParentRoute: () => StudioSettingsRoute,
+  } as any)
+const StudioSettingsCalendarRoute = StudioSettingsCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => StudioSettingsRoute,
+} as any)
+const StudioSettingsActivityLogRoute =
+  StudioSettingsActivityLogRouteImport.update({
+    id: '/activity-log',
+    path: '/activity-log',
     getParentRoute: () => StudioSettingsRoute,
   } as any)
 const StudioClientsIdRoute = StudioClientsIdRouteImport.update({
@@ -148,8 +174,12 @@ export interface FileRoutesByFullPath {
   '/studio/tasks': typeof StudioTasksRoute
   '/studio/': typeof StudioIndexRoute
   '/studio/clients/$id': typeof StudioClientsIdRoute
+  '/studio/settings/activity-log': typeof StudioSettingsActivityLogRoute
+  '/studio/settings/calendar': typeof StudioSettingsCalendarRoute
   '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
+  '/studio/settings/integrations': typeof StudioSettingsIntegrationsRoute
   '/studio/settings/profile': typeof StudioSettingsProfileRoute
+  '/studio/settings/resources': typeof StudioSettingsResourcesRoute
   '/studio/settings/team': typeof StudioSettingsTeamRoute
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
   '/studio/clients/': typeof StudioClientsIndexRoute
@@ -169,8 +199,12 @@ export interface FileRoutesByTo {
   '/studio/tasks': typeof StudioTasksRoute
   '/studio': typeof StudioIndexRoute
   '/studio/clients/$id': typeof StudioClientsIdRoute
+  '/studio/settings/activity-log': typeof StudioSettingsActivityLogRoute
+  '/studio/settings/calendar': typeof StudioSettingsCalendarRoute
   '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
+  '/studio/settings/integrations': typeof StudioSettingsIntegrationsRoute
   '/studio/settings/profile': typeof StudioSettingsProfileRoute
+  '/studio/settings/resources': typeof StudioSettingsResourcesRoute
   '/studio/settings/team': typeof StudioSettingsTeamRoute
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
   '/studio/clients': typeof StudioClientsIndexRoute
@@ -192,8 +226,12 @@ export interface FileRoutesById {
   '/studio/tasks': typeof StudioTasksRoute
   '/studio/': typeof StudioIndexRoute
   '/studio/clients/$id': typeof StudioClientsIdRoute
+  '/studio/settings/activity-log': typeof StudioSettingsActivityLogRoute
+  '/studio/settings/calendar': typeof StudioSettingsCalendarRoute
   '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
+  '/studio/settings/integrations': typeof StudioSettingsIntegrationsRoute
   '/studio/settings/profile': typeof StudioSettingsProfileRoute
+  '/studio/settings/resources': typeof StudioSettingsResourcesRoute
   '/studio/settings/team': typeof StudioSettingsTeamRoute
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
   '/studio/clients/': typeof StudioClientsIndexRoute
@@ -216,8 +254,12 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/studio/'
     | '/studio/clients/$id'
+    | '/studio/settings/activity-log'
+    | '/studio/settings/calendar'
     | '/studio/settings/email-templates'
+    | '/studio/settings/integrations'
     | '/studio/settings/profile'
+    | '/studio/settings/resources'
     | '/studio/settings/team'
     | '/studio/settings/workflow'
     | '/studio/clients/'
@@ -237,8 +279,12 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/studio'
     | '/studio/clients/$id'
+    | '/studio/settings/activity-log'
+    | '/studio/settings/calendar'
     | '/studio/settings/email-templates'
+    | '/studio/settings/integrations'
     | '/studio/settings/profile'
+    | '/studio/settings/resources'
     | '/studio/settings/team'
     | '/studio/settings/workflow'
     | '/studio/clients'
@@ -259,8 +305,12 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/studio/'
     | '/studio/clients/$id'
+    | '/studio/settings/activity-log'
+    | '/studio/settings/calendar'
     | '/studio/settings/email-templates'
+    | '/studio/settings/integrations'
     | '/studio/settings/profile'
+    | '/studio/settings/resources'
     | '/studio/settings/team'
     | '/studio/settings/workflow'
     | '/studio/clients/'
@@ -394,6 +444,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioSettingsTeamRouteImport
       parentRoute: typeof StudioSettingsRoute
     }
+    '/studio/settings/resources': {
+      id: '/studio/settings/resources'
+      path: '/resources'
+      fullPath: '/studio/settings/resources'
+      preLoaderRoute: typeof StudioSettingsResourcesRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
     '/studio/settings/profile': {
       id: '/studio/settings/profile'
       path: '/profile'
@@ -401,11 +458,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioSettingsProfileRouteImport
       parentRoute: typeof StudioSettingsRoute
     }
+    '/studio/settings/integrations': {
+      id: '/studio/settings/integrations'
+      path: '/integrations'
+      fullPath: '/studio/settings/integrations'
+      preLoaderRoute: typeof StudioSettingsIntegrationsRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
     '/studio/settings/email-templates': {
       id: '/studio/settings/email-templates'
       path: '/email-templates'
       fullPath: '/studio/settings/email-templates'
       preLoaderRoute: typeof StudioSettingsEmailTemplatesRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
+    '/studio/settings/calendar': {
+      id: '/studio/settings/calendar'
+      path: '/calendar'
+      fullPath: '/studio/settings/calendar'
+      preLoaderRoute: typeof StudioSettingsCalendarRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
+    '/studio/settings/activity-log': {
+      id: '/studio/settings/activity-log'
+      path: '/activity-log'
+      fullPath: '/studio/settings/activity-log'
+      preLoaderRoute: typeof StudioSettingsActivityLogRouteImport
       parentRoute: typeof StudioSettingsRoute
     }
     '/studio/clients/$id': {
@@ -419,15 +497,23 @@ declare module '@tanstack/react-router' {
 }
 
 interface StudioSettingsRouteChildren {
+  StudioSettingsActivityLogRoute: typeof StudioSettingsActivityLogRoute
+  StudioSettingsCalendarRoute: typeof StudioSettingsCalendarRoute
   StudioSettingsEmailTemplatesRoute: typeof StudioSettingsEmailTemplatesRoute
+  StudioSettingsIntegrationsRoute: typeof StudioSettingsIntegrationsRoute
   StudioSettingsProfileRoute: typeof StudioSettingsProfileRoute
+  StudioSettingsResourcesRoute: typeof StudioSettingsResourcesRoute
   StudioSettingsTeamRoute: typeof StudioSettingsTeamRoute
   StudioSettingsWorkflowRoute: typeof StudioSettingsWorkflowRoute
 }
 
 const StudioSettingsRouteChildren: StudioSettingsRouteChildren = {
+  StudioSettingsActivityLogRoute: StudioSettingsActivityLogRoute,
+  StudioSettingsCalendarRoute: StudioSettingsCalendarRoute,
   StudioSettingsEmailTemplatesRoute: StudioSettingsEmailTemplatesRoute,
+  StudioSettingsIntegrationsRoute: StudioSettingsIntegrationsRoute,
   StudioSettingsProfileRoute: StudioSettingsProfileRoute,
+  StudioSettingsResourcesRoute: StudioSettingsResourcesRoute,
   StudioSettingsTeamRoute: StudioSettingsTeamRoute,
   StudioSettingsWorkflowRoute: StudioSettingsWorkflowRoute,
 }
