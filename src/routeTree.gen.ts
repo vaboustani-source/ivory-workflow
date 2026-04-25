@@ -14,7 +14,9 @@ import { Route as PortalRouteImport } from './routes/portal'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StudioIndexRouteImport } from './routes/studio.index'
+import { Route as StudioSettingsRouteImport } from './routes/studio.settings'
 import { Route as StudioClientsIndexRouteImport } from './routes/studio.clients.index'
+import { Route as StudioSettingsTeamRouteImport } from './routes/studio.settings.team'
 import { Route as StudioClientsIdRouteImport } from './routes/studio.clients.$id'
 
 const StudioRoute = StudioRouteImport.update({
@@ -42,10 +44,20 @@ const StudioIndexRoute = StudioIndexRouteImport.update({
   path: '/',
   getParentRoute: () => StudioRoute,
 } as any)
+const StudioSettingsRoute = StudioSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => StudioRoute,
+} as any)
 const StudioClientsIndexRoute = StudioClientsIndexRouteImport.update({
   id: '/clients/',
   path: '/clients/',
   getParentRoute: () => StudioRoute,
+} as any)
+const StudioSettingsTeamRoute = StudioSettingsTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => StudioSettingsRoute,
 } as any)
 const StudioClientsIdRoute = StudioClientsIdRouteImport.update({
   id: '/clients/$id',
@@ -58,16 +70,20 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/portal': typeof PortalRoute
   '/studio': typeof StudioRouteWithChildren
+  '/studio/settings': typeof StudioSettingsRouteWithChildren
   '/studio/': typeof StudioIndexRoute
   '/studio/clients/$id': typeof StudioClientsIdRoute
+  '/studio/settings/team': typeof StudioSettingsTeamRoute
   '/studio/clients/': typeof StudioClientsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/portal': typeof PortalRoute
+  '/studio/settings': typeof StudioSettingsRouteWithChildren
   '/studio': typeof StudioIndexRoute
   '/studio/clients/$id': typeof StudioClientsIdRoute
+  '/studio/settings/team': typeof StudioSettingsTeamRoute
   '/studio/clients': typeof StudioClientsIndexRoute
 }
 export interface FileRoutesById {
@@ -76,8 +92,10 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/portal': typeof PortalRoute
   '/studio': typeof StudioRouteWithChildren
+  '/studio/settings': typeof StudioSettingsRouteWithChildren
   '/studio/': typeof StudioIndexRoute
   '/studio/clients/$id': typeof StudioClientsIdRoute
+  '/studio/settings/team': typeof StudioSettingsTeamRoute
   '/studio/clients/': typeof StudioClientsIndexRoute
 }
 export interface FileRouteTypes {
@@ -87,16 +105,20 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/studio'
+    | '/studio/settings'
     | '/studio/'
     | '/studio/clients/$id'
+    | '/studio/settings/team'
     | '/studio/clients/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
     | '/portal'
+    | '/studio/settings'
     | '/studio'
     | '/studio/clients/$id'
+    | '/studio/settings/team'
     | '/studio/clients'
   id:
     | '__root__'
@@ -104,8 +126,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/studio'
+    | '/studio/settings'
     | '/studio/'
     | '/studio/clients/$id'
+    | '/studio/settings/team'
     | '/studio/clients/'
   fileRoutesById: FileRoutesById
 }
@@ -153,12 +177,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioIndexRouteImport
       parentRoute: typeof StudioRoute
     }
+    '/studio/settings': {
+      id: '/studio/settings'
+      path: '/settings'
+      fullPath: '/studio/settings'
+      preLoaderRoute: typeof StudioSettingsRouteImport
+      parentRoute: typeof StudioRoute
+    }
     '/studio/clients/': {
       id: '/studio/clients/'
       path: '/clients'
       fullPath: '/studio/clients/'
       preLoaderRoute: typeof StudioClientsIndexRouteImport
       parentRoute: typeof StudioRoute
+    }
+    '/studio/settings/team': {
+      id: '/studio/settings/team'
+      path: '/team'
+      fullPath: '/studio/settings/team'
+      preLoaderRoute: typeof StudioSettingsTeamRouteImport
+      parentRoute: typeof StudioSettingsRoute
     }
     '/studio/clients/$id': {
       id: '/studio/clients/$id'
@@ -170,13 +208,27 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface StudioSettingsRouteChildren {
+  StudioSettingsTeamRoute: typeof StudioSettingsTeamRoute
+}
+
+const StudioSettingsRouteChildren: StudioSettingsRouteChildren = {
+  StudioSettingsTeamRoute: StudioSettingsTeamRoute,
+}
+
+const StudioSettingsRouteWithChildren = StudioSettingsRoute._addFileChildren(
+  StudioSettingsRouteChildren,
+)
+
 interface StudioRouteChildren {
+  StudioSettingsRoute: typeof StudioSettingsRouteWithChildren
   StudioIndexRoute: typeof StudioIndexRoute
   StudioClientsIdRoute: typeof StudioClientsIdRoute
   StudioClientsIndexRoute: typeof StudioClientsIndexRoute
 }
 
 const StudioRouteChildren: StudioRouteChildren = {
+  StudioSettingsRoute: StudioSettingsRouteWithChildren,
   StudioIndexRoute: StudioIndexRoute,
   StudioClientsIdRoute: StudioClientsIdRoute,
   StudioClientsIndexRoute: StudioClientsIndexRoute,
