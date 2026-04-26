@@ -239,6 +239,47 @@ function Row({ label, value, valueClass = "" }: { label: string; value: string; 
   );
 }
 
+function AddressRow({ client }: { client: ClientDetailRow }) {
+  const parts = [client.venue_street, client.venue_city, client.venue_state, client.venue_postal_code].filter(Boolean) as string[];
+  if (parts.length === 0) {
+    // Fall back to legacy single-field address if present.
+    if (client.venue_address) {
+      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(client.venue_address)}`;
+      return (
+        <div className="flex justify-between items-center py-2 border-b border-border last:border-0">
+          <span className="text-xs uppercase tracking-wider text-muted-foreground">Address</span>
+          <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-foreground underline decoration-muted-foreground/40 hover:decoration-primary">
+            {client.venue_address}
+          </a>
+        </div>
+      );
+    }
+    return (
+      <div className="flex justify-between items-center py-2 border-b border-border last:border-0">
+        <span className="text-xs uppercase tracking-wider text-muted-foreground">Address</span>
+        <span className="text-sm text-foreground">—</span>
+      </div>
+    );
+  }
+  const fullAddress = [
+    client.venue_name,
+    client.venue_street,
+    [client.venue_city, client.venue_state].filter(Boolean).join(", "),
+    client.venue_postal_code,
+  ].filter(Boolean).join(", ");
+  const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
+  return (
+    <div className="flex justify-between items-start gap-4 py-2 border-b border-border last:border-0">
+      <span className="text-xs uppercase tracking-wider text-muted-foreground pt-0.5">Address</span>
+      <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-foreground text-right underline decoration-muted-foreground/40 hover:decoration-primary">
+        {client.venue_street && <>{client.venue_street}<br /></>}
+        {(client.venue_city || client.venue_state) && (
+          <>{[client.venue_city, client.venue_state].filter(Boolean).join(", ")}{client.venue_postal_code ? ` ${client.venue_postal_code}` : ""}</>
+        )}
+      </a>
+    </div>
+  );
+
 function PersonBlock({ name, email, phone }: { name: string; email: string | null; phone: string | null }) {
   return (
     <div>
