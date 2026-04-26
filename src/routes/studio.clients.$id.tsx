@@ -24,6 +24,10 @@ interface ClientDetailRow {
   wedding_date: string | null;
   venue_name: string | null;
   venue_address: string | null;
+  venue_street: string | null;
+  venue_city: string | null;
+  venue_state: string | null;
+  venue_postal_code: string | null;
   guest_count: number | null;
   package_price: number | null;
   status: string;
@@ -57,7 +61,7 @@ function ClientDetail() {
     const [{ data }, openCount, doneCount] = await Promise.all([
       supabase.from("clients").select(`
         id, couple_name_1, couple_name_2, primary_email, secondary_email, phone,
-        wedding_date, venue_name, venue_address, guest_count, package_price, status,
+        wedding_date, venue_name, venue_address, venue_street, venue_city, venue_state, venue_postal_code, guest_count, package_price, status,
         last_contacted_at, portal_invited_at, portal_first_login_at,
         package:packages(name),
         photographer:profiles!clients_photographer_id_fkey(full_name),
@@ -158,7 +162,7 @@ function ClientDetail() {
               <Card title="Wedding details">
                 <Row label="Date" value={client.wedding_date ? shortDate(client.wedding_date) : "—"} />
                 <Row label="Venue" value={client.venue_name ?? "—"} />
-                <Row label="Address" value={client.venue_address ?? "—"} />
+                <AddressRow client={client} />
                 <Row label="Guest count" value={client.guest_count?.toString() ?? "—"} />
                 <Row label="Package" value={client.package?.name ?? "—"} />
                 <Row label="Investment" value={client.package_price ? `$${Number(client.package_price).toLocaleString()}` : "—"} />
