@@ -86,7 +86,10 @@ Deno.serve(async (req) => {
       if (p.last_read_at && new Date(p.last_read_at).getTime() > tenMinAgo) { skipped.push(p.user_id + ":recently_read"); continue; }
       if (!p.user?.email) { skipped.push(p.user_id + ":no_email"); continue; }
 
-      const subject = `New message from ${senderName} — Stories by Victoria`;
+      const isMentioned = mentionedIds.has(p.user_id);
+      const subject = isMentioned
+        ? `${senderName} mentioned you — Stories by Victoria`
+        : `New message from ${senderName} — Stories by Victoria`;
       const html = `<!doctype html><html><body style="font-family: Georgia, serif; background:#F5EDE6; padding:32px; color:#2A1A1F;">
   <div style="max-width:560px; margin:0 auto; background:#fff; padding:32px; border-top:3px solid #B8924A;">
     <p style="font-style: italic; font-size:20px; color:#6B1F2A; margin:0 0 16px;">A new message from ${senderName}</p>
