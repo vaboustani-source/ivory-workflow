@@ -29,12 +29,13 @@ Deno.serve(async (_req) => {
   await admin.from("profiles").update({ role: "studio_manager", full_name: "Margaux Chen" }).eq("id", margauxId);
 
   // 2. Reassign Isabella Moreau
-  const { error: re, count } = await admin
+  const { data: upd, error: re } = await admin
     .from("clients")
-    .update({ manager_id: margauxId }, { count: "exact" })
-    .eq("couple_name_1", "Isabella Moreau");
-  if (re) return new Response(JSON.stringify({ step: "reassign", error: re.message }), { status: 500 });
-  log.reassigned = count;
+    .update({ manager_id: margauxId })
+    .eq("couple_name_1", "Isabella Moreau")
+    .select("id");
+  if (re) return new Response(JSON.stringify({ step: "reassign", error: re.message, margauxId }), { status: 500 });
+  log.reassigned = upd?.length ?? 0;
 
   // 3. Seed proposal for Amelia & Liam (skip if one already exists)
   const ameliaId = "e4b3202c-35f0-4aad-87af-d926b0e89a6f";
