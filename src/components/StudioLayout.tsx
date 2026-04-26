@@ -117,12 +117,26 @@ export function StudioLayout({ children }: { children: ReactNode }) {
         .lt("created_at", sevenDaysAgo);
       (oldDrafts.data ?? []).forEach((r) => { if (inScope(r.client_id)) attentionIds.add(r.client_id!); });
 
+      // Unread messages: count of conversations where current user is participant
+      // and last_message_at > participant's last_read_at (or last_read_at is null and last_message_at exists)
+      let unreadMessages = 0;
+      const { data: parts } = await supabase
+        .from("conversation_participants")
+        .select("conversation_id, last_read_at, conversation:conversations(last_message_at)")
+        .eq("user_id", effectiveUserId);
+      (parts ?? []).forEach((p: any) => {
+        const lm = p.conversation?.last_message_at;
+        if (!lm) return;
+        if (!p.last_read_at || new Date(lm) > new Date(p.last_read_at)) unreadMessages += 1;
+      });
+
       if (!cancelled) {
         setBadges({
           approval: approval.count ?? 0,
           tasks: tasks.count ?? 0,
           sales: sales.count ?? 0,
           production: attentionIds.size,
+          messages: unreadMessages,
         });
       }
     };
