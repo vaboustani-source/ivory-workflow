@@ -1,0 +1,1 @@
+UPDATE public.clients SET booked_at = created_at WHERE status = 'booked' AND booked_at IS NULL;
