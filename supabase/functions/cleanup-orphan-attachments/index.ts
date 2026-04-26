@@ -10,7 +10,7 @@ const corsHeaders = {
 
 const BUCKET = "message-attachments";
 
-async function listAll(supabase: ReturnType<typeof createClient>, prefix: string): Promise<string[]> {
+async function listAll(supabase: any, prefix: string): Promise<string[]> {
   // Recursively list all object paths under prefix using offset-based pagination.
   const out: string[] = [];
   const stack: string[] = [prefix];
