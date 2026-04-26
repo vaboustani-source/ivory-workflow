@@ -2,3 +2,6 @@ project_id = "fnukusqocwfxzyogsuuc"
 
 [functions.seed-margaux]
 verify_jwt = false
+
+[functions.send-message-notification]
+verify_jwt = true
