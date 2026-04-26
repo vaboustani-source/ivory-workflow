@@ -1,7 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
-  Home, Users, Inbox, KanbanSquare, MessageCircle, Calendar,
+  Home, Users, Inbox, KanbanSquare, Workflow, MessageCircle, Calendar,
   CheckSquare, Image, Receipt, BookOpen, Settings, Bell, Search,
   LogOut, Menu, X, ChevronDown, Eye,
 } from "lucide-react";
@@ -17,14 +17,15 @@ type NavItem = {
   icon: typeof Home;
   exact?: boolean;
   matchPrefix?: string;
-  badgeKey?: "approval" | "tasks" | "pipeline";
+  badgeKey?: "approval" | "tasks" | "sales" | "production";
 };
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", to: "/studio", icon: Home, exact: true },
   { label: "Clients", to: "/studio/clients", icon: Users },
   { label: "Approval Queue", to: "/studio/approval-queue", icon: Inbox, badgeKey: "approval" },
-  { label: "Pipeline", to: "/studio/pipeline", icon: KanbanSquare, badgeKey: "pipeline" },
+  { label: "Sales Pipeline", to: "/studio/pipeline/sales", icon: KanbanSquare, badgeKey: "sales" },
+  { label: "Production Pipeline", to: "/studio/pipeline/production", icon: Workflow, badgeKey: "production" },
   { label: "Messages", to: "/studio/messages", icon: MessageCircle },
   { label: "Calendar", to: "/studio/calendar", icon: Calendar },
   { label: "Tasks", to: "/studio/tasks", icon: CheckSquare, badgeKey: "tasks" },
