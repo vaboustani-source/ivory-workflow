@@ -12,7 +12,7 @@ import { shortDate, daysBetween } from "@/lib/dates";
 import { NewClientModal } from "@/components/NewClientModal";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/studio/pipeline")({
+export const Route = createFileRoute("/studio/pipeline/sales")({
   component: PipelinePage,
 });
 
@@ -171,7 +171,7 @@ function PipelinePage() {
     <div>
       <header className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="font-serif italic text-[28px] text-primary leading-tight">Pipeline</h1>
+          <h1 className="font-serif italic text-[28px] text-primary leading-tight">Sales Pipeline</h1>
           <p className="mt-1 text-sm text-muted-foreground">From inquiry to booked.</p>
         </div>
         <button onClick={() => setModalOpen(true)} className="bg-primary text-primary-foreground rounded-md px-4 py-2.5 text-sm font-medium hover:bg-primary/90 flex items-center gap-2">

@@ -1,7 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
-  Home, Users, Inbox, KanbanSquare, MessageCircle, Calendar,
+  Home, Users, Inbox, KanbanSquare, Workflow, MessageCircle, Calendar,
   CheckSquare, Image, Receipt, BookOpen, Settings, Bell, Search,
   LogOut, Menu, X, ChevronDown, Eye,
 } from "lucide-react";
@@ -17,14 +17,15 @@ type NavItem = {
   icon: typeof Home;
   exact?: boolean;
   matchPrefix?: string;
-  badgeKey?: "approval" | "tasks" | "pipeline";
+  badgeKey?: "approval" | "tasks" | "sales" | "production";
 };
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", to: "/studio", icon: Home, exact: true },
   { label: "Clients", to: "/studio/clients", icon: Users },
   { label: "Approval Queue", to: "/studio/approval-queue", icon: Inbox, badgeKey: "approval" },
-  { label: "Pipeline", to: "/studio/pipeline", icon: KanbanSquare, badgeKey: "pipeline" },
+  { label: "Sales Pipeline", to: "/studio/pipeline/sales", icon: KanbanSquare, badgeKey: "sales" },
+  { label: "Production Pipeline", to: "/studio/pipeline/production", icon: Workflow, badgeKey: "production" },
   { label: "Messages", to: "/studio/messages", icon: MessageCircle },
   { label: "Calendar", to: "/studio/calendar", icon: Calendar },
   { label: "Tasks", to: "/studio/tasks", icon: CheckSquare, badgeKey: "tasks" },
@@ -41,13 +42,15 @@ export function StudioLayout({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const [viewAsModalOpen, setViewAsModalOpen] = useState(false);
-  const [badges, setBadges] = useState({ approval: 0, tasks: 0, pipeline: 0 });
+  const [badges, setBadges] = useState({ approval: 0, tasks: 0, sales: 0, production: 0 });
 
   // Load badge counts. Re-load when impersonation changes.
   useEffect(() => {
     if (!effectiveUserId) return;
     let cancelled = false;
     const today = new Date().toISOString().slice(0, 10);
+    const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const load = async () => {
       // Determine scope: managers/associates -> assigned client_ids; owner (real, no view-as) -> all.
@@ -78,21 +81,48 @@ export function StudioLayout({ children }: { children: ReactNode }) {
         .eq("status", "pending")
         .lt("due_date", today);
 
-      // Pipeline: leads count, scoped if needed
-      let pipelineQ = supabase
+      // Sales pipeline: leads count, scoped if needed
+      let salesQ = supabase
         .from("clients")
         .select("id", { count: "exact", head: true })
         .eq("status", "lead");
       if (scopedIds !== null) {
-        pipelineQ = scopedIds.length > 0 ? pipelineQ.in("id", scopedIds) : pipelineQ.eq("id", "00000000-0000-0000-0000-000000000000");
+        salesQ = scopedIds.length > 0 ? salesQ.in("id", scopedIds) : salesQ.eq("id", "00000000-0000-0000-0000-000000000000");
       }
-      const pipeline = await pipelineQ;
+      const sales = await salesQ;
+
+      // Production pipeline attention items: distinct client ids with overdue milestones,
+      // stale contact, or aged drafts.
+      const attentionIds = new Set<string>();
+      const inScope = (id: string | null) => id && (scopedIds === null || scopedIds.includes(id));
+
+      const overdueMs = await supabase
+        .from("timeline_milestones")
+        .select("client_id")
+        .eq("status", "upcoming")
+        .lt("due_date", today);
+      (overdueMs.data ?? []).forEach((r) => { if (inScope(r.client_id)) attentionIds.add(r.client_id!); });
+
+      const stale = await supabase
+        .from("clients")
+        .select("id")
+        .in("status", ["booked", "active"])
+        .lt("last_contacted_at", fourteenDaysAgo);
+      (stale.data ?? []).forEach((r) => { if (inScope(r.id)) attentionIds.add(r.id); });
+
+      const oldDrafts = await supabase
+        .from("scheduled_communications")
+        .select("client_id")
+        .eq("status", "awaiting_approval")
+        .lt("created_at", sevenDaysAgo);
+      (oldDrafts.data ?? []).forEach((r) => { if (inScope(r.client_id)) attentionIds.add(r.client_id!); });
 
       if (!cancelled) {
         setBadges({
           approval: approval.count ?? 0,
           tasks: tasks.count ?? 0,
-          pipeline: pipeline.count ?? 0,
+          sales: sales.count ?? 0,
+          production: attentionIds.size,
         });
       }
     };

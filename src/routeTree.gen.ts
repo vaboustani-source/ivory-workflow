@@ -17,7 +17,6 @@ import { Route as StudioIndexRouteImport } from './routes/studio.index'
 import { Route as StudioTasksRouteImport } from './routes/studio.tasks'
 import { Route as StudioSettingsRouteImport } from './routes/studio.settings'
 import { Route as StudioResourcesRouteImport } from './routes/studio.resources'
-import { Route as StudioPipelineRouteImport } from './routes/studio.pipeline'
 import { Route as StudioMessagesRouteImport } from './routes/studio.messages'
 import { Route as StudioInvoicesRouteImport } from './routes/studio.invoices'
 import { Route as StudioGalleriesRouteImport } from './routes/studio.galleries'
@@ -32,6 +31,8 @@ import { Route as StudioSettingsIntegrationsRouteImport } from './routes/studio.
 import { Route as StudioSettingsEmailTemplatesRouteImport } from './routes/studio.settings.email-templates'
 import { Route as StudioSettingsCalendarRouteImport } from './routes/studio.settings.calendar'
 import { Route as StudioSettingsActivityLogRouteImport } from './routes/studio.settings.activity-log'
+import { Route as StudioPipelineSalesRouteImport } from './routes/studio.pipeline.sales'
+import { Route as StudioPipelineProductionRouteImport } from './routes/studio.pipeline.production'
 import { Route as StudioClientsIdRouteImport } from './routes/studio.clients.$id'
 
 const StudioRoute = StudioRouteImport.update({
@@ -72,11 +73,6 @@ const StudioSettingsRoute = StudioSettingsRouteImport.update({
 const StudioResourcesRoute = StudioResourcesRouteImport.update({
   id: '/resources',
   path: '/resources',
-  getParentRoute: () => StudioRoute,
-} as any)
-const StudioPipelineRoute = StudioPipelineRouteImport.update({
-  id: '/pipeline',
-  path: '/pipeline',
   getParentRoute: () => StudioRoute,
 } as any)
 const StudioMessagesRoute = StudioMessagesRouteImport.update({
@@ -152,6 +148,17 @@ const StudioSettingsActivityLogRoute =
     path: '/activity-log',
     getParentRoute: () => StudioSettingsRoute,
   } as any)
+const StudioPipelineSalesRoute = StudioPipelineSalesRouteImport.update({
+  id: '/pipeline/sales',
+  path: '/pipeline/sales',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioPipelineProductionRoute =
+  StudioPipelineProductionRouteImport.update({
+    id: '/pipeline/production',
+    path: '/pipeline/production',
+    getParentRoute: () => StudioRoute,
+  } as any)
 const StudioClientsIdRoute = StudioClientsIdRouteImport.update({
   id: '/clients/$id',
   path: '/clients/$id',
@@ -168,12 +175,13 @@ export interface FileRoutesByFullPath {
   '/studio/galleries': typeof StudioGalleriesRoute
   '/studio/invoices': typeof StudioInvoicesRoute
   '/studio/messages': typeof StudioMessagesRoute
-  '/studio/pipeline': typeof StudioPipelineRoute
   '/studio/resources': typeof StudioResourcesRoute
   '/studio/settings': typeof StudioSettingsRouteWithChildren
   '/studio/tasks': typeof StudioTasksRoute
   '/studio/': typeof StudioIndexRoute
   '/studio/clients/$id': typeof StudioClientsIdRoute
+  '/studio/pipeline/production': typeof StudioPipelineProductionRoute
+  '/studio/pipeline/sales': typeof StudioPipelineSalesRoute
   '/studio/settings/activity-log': typeof StudioSettingsActivityLogRoute
   '/studio/settings/calendar': typeof StudioSettingsCalendarRoute
   '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
@@ -193,12 +201,13 @@ export interface FileRoutesByTo {
   '/studio/galleries': typeof StudioGalleriesRoute
   '/studio/invoices': typeof StudioInvoicesRoute
   '/studio/messages': typeof StudioMessagesRoute
-  '/studio/pipeline': typeof StudioPipelineRoute
   '/studio/resources': typeof StudioResourcesRoute
   '/studio/settings': typeof StudioSettingsRouteWithChildren
   '/studio/tasks': typeof StudioTasksRoute
   '/studio': typeof StudioIndexRoute
   '/studio/clients/$id': typeof StudioClientsIdRoute
+  '/studio/pipeline/production': typeof StudioPipelineProductionRoute
+  '/studio/pipeline/sales': typeof StudioPipelineSalesRoute
   '/studio/settings/activity-log': typeof StudioSettingsActivityLogRoute
   '/studio/settings/calendar': typeof StudioSettingsCalendarRoute
   '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
@@ -220,12 +229,13 @@ export interface FileRoutesById {
   '/studio/galleries': typeof StudioGalleriesRoute
   '/studio/invoices': typeof StudioInvoicesRoute
   '/studio/messages': typeof StudioMessagesRoute
-  '/studio/pipeline': typeof StudioPipelineRoute
   '/studio/resources': typeof StudioResourcesRoute
   '/studio/settings': typeof StudioSettingsRouteWithChildren
   '/studio/tasks': typeof StudioTasksRoute
   '/studio/': typeof StudioIndexRoute
   '/studio/clients/$id': typeof StudioClientsIdRoute
+  '/studio/pipeline/production': typeof StudioPipelineProductionRoute
+  '/studio/pipeline/sales': typeof StudioPipelineSalesRoute
   '/studio/settings/activity-log': typeof StudioSettingsActivityLogRoute
   '/studio/settings/calendar': typeof StudioSettingsCalendarRoute
   '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
@@ -248,12 +258,13 @@ export interface FileRouteTypes {
     | '/studio/galleries'
     | '/studio/invoices'
     | '/studio/messages'
-    | '/studio/pipeline'
     | '/studio/resources'
     | '/studio/settings'
     | '/studio/tasks'
     | '/studio/'
     | '/studio/clients/$id'
+    | '/studio/pipeline/production'
+    | '/studio/pipeline/sales'
     | '/studio/settings/activity-log'
     | '/studio/settings/calendar'
     | '/studio/settings/email-templates'
@@ -273,12 +284,13 @@ export interface FileRouteTypes {
     | '/studio/galleries'
     | '/studio/invoices'
     | '/studio/messages'
-    | '/studio/pipeline'
     | '/studio/resources'
     | '/studio/settings'
     | '/studio/tasks'
     | '/studio'
     | '/studio/clients/$id'
+    | '/studio/pipeline/production'
+    | '/studio/pipeline/sales'
     | '/studio/settings/activity-log'
     | '/studio/settings/calendar'
     | '/studio/settings/email-templates'
@@ -299,12 +311,13 @@ export interface FileRouteTypes {
     | '/studio/galleries'
     | '/studio/invoices'
     | '/studio/messages'
-    | '/studio/pipeline'
     | '/studio/resources'
     | '/studio/settings'
     | '/studio/tasks'
     | '/studio/'
     | '/studio/clients/$id'
+    | '/studio/pipeline/production'
+    | '/studio/pipeline/sales'
     | '/studio/settings/activity-log'
     | '/studio/settings/calendar'
     | '/studio/settings/email-templates'
@@ -379,13 +392,6 @@ declare module '@tanstack/react-router' {
       path: '/resources'
       fullPath: '/studio/resources'
       preLoaderRoute: typeof StudioResourcesRouteImport
-      parentRoute: typeof StudioRoute
-    }
-    '/studio/pipeline': {
-      id: '/studio/pipeline'
-      path: '/pipeline'
-      fullPath: '/studio/pipeline'
-      preLoaderRoute: typeof StudioPipelineRouteImport
       parentRoute: typeof StudioRoute
     }
     '/studio/messages': {
@@ -486,6 +492,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioSettingsActivityLogRouteImport
       parentRoute: typeof StudioSettingsRoute
     }
+    '/studio/pipeline/sales': {
+      id: '/studio/pipeline/sales'
+      path: '/pipeline/sales'
+      fullPath: '/studio/pipeline/sales'
+      preLoaderRoute: typeof StudioPipelineSalesRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/pipeline/production': {
+      id: '/studio/pipeline/production'
+      path: '/pipeline/production'
+      fullPath: '/studio/pipeline/production'
+      preLoaderRoute: typeof StudioPipelineProductionRouteImport
+      parentRoute: typeof StudioRoute
+    }
     '/studio/clients/$id': {
       id: '/studio/clients/$id'
       path: '/clients/$id'
@@ -528,12 +548,13 @@ interface StudioRouteChildren {
   StudioGalleriesRoute: typeof StudioGalleriesRoute
   StudioInvoicesRoute: typeof StudioInvoicesRoute
   StudioMessagesRoute: typeof StudioMessagesRoute
-  StudioPipelineRoute: typeof StudioPipelineRoute
   StudioResourcesRoute: typeof StudioResourcesRoute
   StudioSettingsRoute: typeof StudioSettingsRouteWithChildren
   StudioTasksRoute: typeof StudioTasksRoute
   StudioIndexRoute: typeof StudioIndexRoute
   StudioClientsIdRoute: typeof StudioClientsIdRoute
+  StudioPipelineProductionRoute: typeof StudioPipelineProductionRoute
+  StudioPipelineSalesRoute: typeof StudioPipelineSalesRoute
   StudioClientsIndexRoute: typeof StudioClientsIndexRoute
 }
 
@@ -543,12 +564,13 @@ const StudioRouteChildren: StudioRouteChildren = {
   StudioGalleriesRoute: StudioGalleriesRoute,
   StudioInvoicesRoute: StudioInvoicesRoute,
   StudioMessagesRoute: StudioMessagesRoute,
-  StudioPipelineRoute: StudioPipelineRoute,
   StudioResourcesRoute: StudioResourcesRoute,
   StudioSettingsRoute: StudioSettingsRouteWithChildren,
   StudioTasksRoute: StudioTasksRoute,
   StudioIndexRoute: StudioIndexRoute,
   StudioClientsIdRoute: StudioClientsIdRoute,
+  StudioPipelineProductionRoute: StudioPipelineProductionRoute,
+  StudioPipelineSalesRoute: StudioPipelineSalesRoute,
   StudioClientsIndexRoute: StudioClientsIndexRoute,
 }
 
