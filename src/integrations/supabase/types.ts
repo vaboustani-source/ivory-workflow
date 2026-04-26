@@ -159,6 +159,30 @@ export type Database = {
           },
         ]
       }
+      business_calendar_holidays: {
+        Row: {
+          created_at: string
+          holiday_date: string
+          id: string
+          is_observed: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          holiday_date: string
+          id?: string
+          is_observed?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          holiday_date?: string
+          id?: string
+          is_observed?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
       calendar_availability_rules: {
         Row: {
           available_days: Json | null
@@ -300,6 +324,9 @@ export type Database = {
       }
       clients: {
         Row: {
+          album_workflow_activated_at: string | null
+          album_workflow_active: boolean
+          booked_at: string | null
           couple_name_1: string
           couple_name_2: string | null
           created_at: string
@@ -327,6 +354,9 @@ export type Database = {
           wedding_date: string | null
         }
         Insert: {
+          album_workflow_activated_at?: string | null
+          album_workflow_active?: boolean
+          booked_at?: string | null
           couple_name_1: string
           couple_name_2?: string | null
           created_at?: string
@@ -354,6 +384,9 @@ export type Database = {
           wedding_date?: string | null
         }
         Update: {
+          album_workflow_activated_at?: string | null
+          album_workflow_active?: boolean
+          booked_at?: string | null
           couple_name_1?: string
           couple_name_2?: string | null
           created_at?: string
@@ -1030,6 +1063,7 @@ export type Database = {
           sent_at: string | null
           status: Database["public"]["Enums"]["communication_status"]
           subject: string | null
+          workflow_step_id: string | null
         }
         Insert: {
           approved_at?: string | null
@@ -1045,6 +1079,7 @@ export type Database = {
           sent_at?: string | null
           status?: Database["public"]["Enums"]["communication_status"]
           subject?: string | null
+          workflow_step_id?: string | null
         }
         Update: {
           approved_at?: string | null
@@ -1060,6 +1095,7 @@ export type Database = {
           sent_at?: string | null
           status?: Database["public"]["Enums"]["communication_status"]
           subject?: string | null
+          workflow_step_id?: string | null
         }
         Relationships: [
           {
@@ -1164,6 +1200,7 @@ export type Database = {
       }
       timeline_milestones: {
         Row: {
+          action_type: string | null
           client_id: string
           completed_at: string | null
           completed_by: string | null
@@ -1173,12 +1210,16 @@ export type Database = {
           id: string
           is_client_visible: boolean
           is_overridden: boolean
+          metadata: Json
           override_reason: string | null
+          responsible_party: string | null
+          stage: string | null
           status: Database["public"]["Enums"]["milestone_status"]
           title: string | null
           workflow_step_id: string | null
         }
         Insert: {
+          action_type?: string | null
           client_id: string
           completed_at?: string | null
           completed_by?: string | null
@@ -1188,12 +1229,16 @@ export type Database = {
           id?: string
           is_client_visible?: boolean
           is_overridden?: boolean
+          metadata?: Json
           override_reason?: string | null
+          responsible_party?: string | null
+          stage?: string | null
           status?: Database["public"]["Enums"]["milestone_status"]
           title?: string | null
           workflow_step_id?: string | null
         }
         Update: {
+          action_type?: string | null
           client_id?: string
           completed_at?: string | null
           completed_by?: string | null
@@ -1203,7 +1248,10 @@ export type Database = {
           id?: string
           is_client_visible?: boolean
           is_overridden?: boolean
+          metadata?: Json
           override_reason?: string | null
+          responsible_party?: string | null
+          stage?: string | null
           status?: Database["public"]["Enums"]["milestone_status"]
           title?: string | null
           workflow_step_id?: string | null
@@ -1221,6 +1269,35 @@ export type Database = {
             columns: ["completed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_step_branches: {
+        Row: {
+          branch_type: Database["public"]["Enums"]["workflow_branch"]
+          created_at: string
+          id: string
+          workflow_step_id: string
+        }
+        Insert: {
+          branch_type: Database["public"]["Enums"]["workflow_branch"]
+          created_at?: string
+          id?: string
+          workflow_step_id: string
+        }
+        Update: {
+          branch_type?: Database["public"]["Enums"]["workflow_branch"]
+          created_at?: string
+          id?: string
+          workflow_step_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_step_branches_workflow_step_id_fkey"
+            columns: ["workflow_step_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_steps"
             referencedColumns: ["id"]
           },
         ]
@@ -1254,6 +1331,7 @@ export type Database = {
           trigger_type:
             | Database["public"]["Enums"]["workflow_trigger_type"]
             | null
+          trigger_uses_business_days: boolean
           workflow_template_id: string
         }
         Insert: {
@@ -1284,6 +1362,7 @@ export type Database = {
           trigger_type?:
             | Database["public"]["Enums"]["workflow_trigger_type"]
             | null
+          trigger_uses_business_days?: boolean
           workflow_template_id: string
         }
         Update: {
@@ -1314,6 +1393,7 @@ export type Database = {
           trigger_type?:
             | Database["public"]["Enums"]["workflow_trigger_type"]
             | null
+          trigger_uses_business_days?: boolean
           workflow_template_id?: string
         }
         Relationships: [
@@ -1369,6 +1449,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_business_days: {
+        Args: { days_to_add: number; start_date: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
