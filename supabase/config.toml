@@ -5,3 +5,12 @@ verify_jwt = false
 
 [functions.send-message-notification]
 verify_jwt = true
+
+[functions.cleanup-orphan-attachments]
+verify_jwt = false
+
+[functions.process-storage-cleanup-queue]
+verify_jwt = false
+
+[functions.export-conversation-zip]
+verify_jwt = true
