@@ -118,7 +118,7 @@ function Dashboard() {
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPICard label="Active clients" value={kpis.activeClients} comparison="—" />
+        <KPICard label="Booked & Active" value={kpis.activeClients} comparison="—" />
         <KPICard label="Weddings this month" value={kpis.weddingsThisMonth} comparison="—" />
         <KPICard label="Overdue tasks" value={kpis.overdueTasks} comparison={kpis.overdueTasks > 0 ? "Needs attention" : "All caught up"} negative={kpis.overdueTasks > 0} />
         <Link to="/studio/approval-queue">
