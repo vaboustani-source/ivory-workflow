@@ -6,6 +6,7 @@ import { shortDate, relativeTime, daysBetween } from "@/lib/dates";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { ClientTimelineTab } from "@/components/ClientTimelineTab";
+import { ClientMessagesTab } from "@/components/messages/ClientMessagesTab";
 
 export const Route = createFileRoute("/studio/clients/$id")({
   component: ClientDetail,
@@ -211,6 +212,8 @@ function ClientDetail() {
           </div>
         ) : tab === "Timeline" ? (
           <ClientTimelineTab clientId={id} />
+        ) : tab === "Messages" ? (
+          <ClientMessagesTab clientId={id} />
         ) : (
           <div className="bg-surface rounded-lg shadow-soft py-20 text-center">
             <p className="font-serif italic text-2xl text-primary">Coming soon. Building this in the next phase.</p>

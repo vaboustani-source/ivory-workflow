@@ -17,7 +17,7 @@ type NavItem = {
   icon: typeof Home;
   exact?: boolean;
   matchPrefix?: string;
-  badgeKey?: "approval" | "tasks" | "sales" | "production";
+  badgeKey?: "approval" | "tasks" | "sales" | "production" | "messages";
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -26,7 +26,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Approval Queue", to: "/studio/approval-queue", icon: Inbox, badgeKey: "approval" },
   { label: "Sales Pipeline", to: "/studio/pipeline/sales", icon: KanbanSquare, badgeKey: "sales" },
   { label: "Production Pipeline", to: "/studio/pipeline/production", icon: Workflow, badgeKey: "production" },
-  { label: "Messages", to: "/studio/messages", icon: MessageCircle },
+  { label: "Messages", to: "/studio/messages", icon: MessageCircle, badgeKey: "messages" },
   { label: "Calendar", to: "/studio/calendar", icon: Calendar },
   { label: "Tasks", to: "/studio/tasks", icon: CheckSquare, badgeKey: "tasks" },
   { label: "Galleries", to: "/studio/galleries", icon: Image },
@@ -42,7 +42,7 @@ export function StudioLayout({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const [viewAsModalOpen, setViewAsModalOpen] = useState(false);
-  const [badges, setBadges] = useState({ approval: 0, tasks: 0, sales: 0, production: 0 });
+  const [badges, setBadges] = useState({ approval: 0, tasks: 0, sales: 0, production: 0, messages: 0 });
 
   // Load badge counts. Re-load when impersonation changes.
   useEffect(() => {
@@ -117,17 +117,32 @@ export function StudioLayout({ children }: { children: ReactNode }) {
         .lt("created_at", sevenDaysAgo);
       (oldDrafts.data ?? []).forEach((r) => { if (inScope(r.client_id)) attentionIds.add(r.client_id!); });
 
+      // Unread messages: count of conversations where current user is participant
+      // and last_message_at > participant's last_read_at (or last_read_at is null and last_message_at exists)
+      let unreadMessages = 0;
+      const { data: parts } = await supabase
+        .from("conversation_participants")
+        .select("conversation_id, last_read_at, conversation:conversations(last_message_at)")
+        .eq("user_id", effectiveUserId);
+      (parts ?? []).forEach((p: any) => {
+        const lm = p.conversation?.last_message_at;
+        if (!lm) return;
+        if (!p.last_read_at || new Date(lm) > new Date(p.last_read_at)) unreadMessages += 1;
+      });
+
       if (!cancelled) {
         setBadges({
           approval: approval.count ?? 0,
           tasks: tasks.count ?? 0,
           sales: sales.count ?? 0,
           production: attentionIds.size,
+          messages: unreadMessages,
         });
       }
     };
     load();
-    return () => { cancelled = true; };
+    const interval = setInterval(load, 30000);
+    return () => { cancelled = true; clearInterval(interval); };
   }, [effectiveUserId, isRealOwner, viewingAs?.id, location.pathname]);
 
   const isActive = (item: NavItem) => {
