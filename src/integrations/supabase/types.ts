@@ -509,21 +509,75 @@ export type Database = {
           },
         ]
       }
+      conversation_participants: {
+        Row: {
+          conversation_id: string
+          email_notifications_enabled: boolean
+          id: string
+          joined_at: string
+          last_read_at: string | null
+          role_in_conversation: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          email_notifications_enabled?: boolean
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          role_in_conversation: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          email_notifications_enabled?: boolean
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          role_in_conversation?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           client_id: string | null
           created_at: string
           id: string
+          last_message_at: string | null
+          last_message_preview: string | null
+          updated_at: string
         }
         Insert: {
           client_id?: string | null
           created_at?: string
           id?: string
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          updated_at?: string
         }
         Update: {
           client_id?: string | null
           created_at?: string
           id?: string
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -718,12 +772,52 @@ export type Database = {
           },
         ]
       }
+      message_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size_bytes: number | null
+          file_url: string
+          id: string
+          message_id: string
+          mime_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size_bytes?: number | null
+          file_url: string
+          id?: string
+          message_id: string
+          mime_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size_bytes?: number | null
+          file_url?: string
+          id?: string
+          message_id?: string
+          mime_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           attachment_url: string | null
           content: string | null
           conversation_id: string
           created_at: string
+          deleted_at: string | null
+          edited_at: string | null
           id: string
           is_internal_note: boolean
           read_by: Json
@@ -735,6 +829,8 @@ export type Database = {
           content?: string | null
           conversation_id: string
           created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
           id?: string
           is_internal_note?: boolean
           read_by?: Json
@@ -746,6 +842,8 @@ export type Database = {
           content?: string | null
           conversation_id?: string
           created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
           id?: string
           is_internal_note?: boolean
           read_by?: Json
