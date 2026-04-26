@@ -20,7 +20,10 @@ export function NewClientModal({ open, onClose, onCreated }: { open: boolean; on
     phone: "",
     wedding_date: "",
     venue_name: "",
-    venue_address: "",
+    venue_street: "",
+    venue_city: "",
+    venue_state: "",
+    venue_postal_code: "",
     status: "lead" as "lead" | "booked" | "active" | "delivered" | "complete" | "archived",
     package_id: "",
     photographer_id: "",
@@ -45,7 +48,10 @@ export function NewClientModal({ open, onClose, onCreated }: { open: boolean; on
       phone: form.phone || null,
       wedding_date: form.wedding_date || null,
       venue_name: form.venue_name || null,
-      venue_address: form.venue_address || null,
+      venue_street: form.venue_street || null,
+      venue_city: form.venue_city || null,
+      venue_state: form.venue_state || null,
+      venue_postal_code: form.venue_postal_code || null,
       status: form.status,
       package_id: form.package_id || null,
       photographer_id: form.photographer_id || null,
@@ -83,7 +89,12 @@ export function NewClientModal({ open, onClose, onCreated }: { open: boolean; on
           <Field label="Phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
           <Field label="Wedding date" type="date" value={form.wedding_date} onChange={(v) => setForm({ ...form, wedding_date: v })} />
           <Field label="Venue name" value={form.venue_name} onChange={(v) => setForm({ ...form, venue_name: v })} />
-          <Field label="Venue address" value={form.venue_address} onChange={(v) => setForm({ ...form, venue_address: v })} />
+          <Field label="Street address" value={form.venue_street} onChange={(v) => setForm({ ...form, venue_street: v })} />
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="City" value={form.venue_city} onChange={(v) => setForm({ ...form, venue_city: v })} />
+            <Field label="State" value={form.venue_state} onChange={(v) => setForm({ ...form, venue_state: v })} />
+          </div>
+          <Field label="Postal code" value={form.venue_postal_code} onChange={(v) => setForm({ ...form, venue_postal_code: v })} />
           <Select label="Status" value={form.status} onChange={(v) => setForm({ ...form, status: v as typeof form.status })}>
             {["lead", "booked", "active", "delivered", "complete", "archived"].map((s) => (<option key={s} value={s}>{s}</option>))}
           </Select>

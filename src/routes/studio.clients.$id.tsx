@@ -24,6 +24,10 @@ interface ClientDetailRow {
   wedding_date: string | null;
   venue_name: string | null;
   venue_address: string | null;
+  venue_street: string | null;
+  venue_city: string | null;
+  venue_state: string | null;
+  venue_postal_code: string | null;
   guest_count: number | null;
   package_price: number | null;
   status: string;
@@ -57,7 +61,7 @@ function ClientDetail() {
     const [{ data }, openCount, doneCount] = await Promise.all([
       supabase.from("clients").select(`
         id, couple_name_1, couple_name_2, primary_email, secondary_email, phone,
-        wedding_date, venue_name, venue_address, guest_count, package_price, status,
+        wedding_date, venue_name, venue_address, venue_street, venue_city, venue_state, venue_postal_code, guest_count, package_price, status,
         last_contacted_at, portal_invited_at, portal_first_login_at,
         package:packages(name),
         photographer:profiles!clients_photographer_id_fkey(full_name),
@@ -158,7 +162,7 @@ function ClientDetail() {
               <Card title="Wedding details">
                 <Row label="Date" value={client.wedding_date ? shortDate(client.wedding_date) : "—"} />
                 <Row label="Venue" value={client.venue_name ?? "—"} />
-                <Row label="Address" value={client.venue_address ?? "—"} />
+                <AddressRow client={client} />
                 <Row label="Guest count" value={client.guest_count?.toString() ?? "—"} />
                 <Row label="Package" value={client.package?.name ?? "—"} />
                 <Row label="Investment" value={client.package_price ? `$${Number(client.package_price).toLocaleString()}` : "—"} />
@@ -231,6 +235,48 @@ function Row({ label, value, valueClass = "" }: { label: string; value: string; 
     <div className="flex justify-between items-center py-2 border-b border-border last:border-0">
       <span className="text-xs uppercase tracking-wider text-muted-foreground">{label}</span>
       <span className={`text-sm text-foreground ${valueClass}`}>{value}</span>
+    </div>
+  );
+}
+
+function AddressRow({ client }: { client: ClientDetailRow }) {
+  const parts = [client.venue_street, client.venue_city, client.venue_state, client.venue_postal_code].filter(Boolean) as string[];
+  if (parts.length === 0) {
+    // Fall back to legacy single-field address if present.
+    if (client.venue_address) {
+      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(client.venue_address)}`;
+      return (
+        <div className="flex justify-between items-center py-2 border-b border-border last:border-0">
+          <span className="text-xs uppercase tracking-wider text-muted-foreground">Address</span>
+          <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-foreground underline decoration-muted-foreground/40 hover:decoration-primary">
+            {client.venue_address}
+          </a>
+        </div>
+      );
+    }
+    return (
+      <div className="flex justify-between items-center py-2 border-b border-border last:border-0">
+        <span className="text-xs uppercase tracking-wider text-muted-foreground">Address</span>
+        <span className="text-sm text-foreground">—</span>
+      </div>
+    );
+  }
+  const fullAddress = [
+    client.venue_name,
+    client.venue_street,
+    [client.venue_city, client.venue_state].filter(Boolean).join(", "),
+    client.venue_postal_code,
+  ].filter(Boolean).join(", ");
+  const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
+  return (
+    <div className="flex justify-between items-start gap-4 py-2 border-b border-border last:border-0">
+      <span className="text-xs uppercase tracking-wider text-muted-foreground pt-0.5">Address</span>
+      <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-foreground text-right underline decoration-muted-foreground/40 hover:decoration-primary">
+        {client.venue_street && <>{client.venue_street}<br /></>}
+        {(client.venue_city || client.venue_state) && (
+          <>{[client.venue_city, client.venue_state].filter(Boolean).join(", ")}{client.venue_postal_code ? ` ${client.venue_postal_code}` : ""}</>
+        )}
+      </a>
     </div>
   );
 }

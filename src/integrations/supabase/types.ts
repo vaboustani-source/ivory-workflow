@@ -350,7 +350,11 @@ export type Database = {
           status: Database["public"]["Enums"]["client_status"]
           updated_at: string
           venue_address: string | null
+          venue_city: string | null
           venue_name: string | null
+          venue_postal_code: string | null
+          venue_state: string | null
+          venue_street: string | null
           wedding_date: string | null
         }
         Insert: {
@@ -380,7 +384,11 @@ export type Database = {
           status?: Database["public"]["Enums"]["client_status"]
           updated_at?: string
           venue_address?: string | null
+          venue_city?: string | null
           venue_name?: string | null
+          venue_postal_code?: string | null
+          venue_state?: string | null
+          venue_street?: string | null
           wedding_date?: string | null
         }
         Update: {
@@ -410,7 +418,11 @@ export type Database = {
           status?: Database["public"]["Enums"]["client_status"]
           updated_at?: string
           venue_address?: string | null
+          venue_city?: string | null
           venue_name?: string | null
+          venue_postal_code?: string | null
+          venue_state?: string | null
+          venue_street?: string | null
           wedding_date?: string | null
         }
         Relationships: [
