@@ -17,7 +17,7 @@ type NavItem = {
   icon: typeof Home;
   exact?: boolean;
   matchPrefix?: string;
-  badgeKey?: "approval" | "tasks" | "sales" | "production";
+  badgeKey?: "approval" | "tasks" | "sales" | "production" | "messages";
 };
 
 const NAV_ITEMS: NavItem[] = [
