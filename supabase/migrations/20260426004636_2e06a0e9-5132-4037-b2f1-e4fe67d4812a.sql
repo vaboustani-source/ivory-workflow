@@ -1,0 +1,1 @@
+SELECT public.materialize_workflow_for_client('9ad04193-fbea-4271-a1ac-571a270cb34d');
