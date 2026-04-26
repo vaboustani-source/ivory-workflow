@@ -212,6 +212,8 @@ function ClientDetail() {
           </div>
         ) : tab === "Timeline" ? (
           <ClientTimelineTab clientId={id} />
+        ) : tab === "Messages" ? (
+          <ClientMessagesTab clientId={id} />
         ) : (
           <div className="bg-surface rounded-lg shadow-soft py-20 text-center">
             <p className="font-serif italic text-2xl text-primary">Coming soon. Building this in the next phase.</p>
