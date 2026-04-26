@@ -250,8 +250,8 @@ export function MessageThread({
                     {m.edited_at && <span className="ml-1 normal-case">(edited)</span>}
                   </p>
                   <div
-                    className={`px-3 py-2.5 rounded-xl text-sm text-foreground whitespace-pre-wrap ${
-                      isMine ? "bg-background-alt" : "bg-surface shadow-soft"
+                    className={`px-3 py-2.5 rounded-xl text-sm text-foreground whitespace-pre-wrap bg-surface shadow-soft ${
+                      isMine ? "border border-gold/30" : ""
                     }`}
                   >
                     {m.content}
