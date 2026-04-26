@@ -1449,6 +1449,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _anchor_date: {
+        Args: { p_anchor: string; p_client_id: string; p_step_id?: string }
+        Returns: string
+      }
+      _branch_passes: {
+        Args: {
+          p_branch: Database["public"]["Enums"]["workflow_branch"]
+          p_client: Database["public"]["Tables"]["clients"]["Row"]
+        }
+        Returns: boolean
+      }
+      _draft_scheduled_communication: {
+        Args: { p_milestone_id: string }
+        Returns: undefined
+      }
+      _log_activity: {
+        Args: {
+          p_action_type: string
+          p_description: string
+          p_metadata?: Json
+          p_target_id: string
+          p_target_type: string
+          p_user_id?: string
+        }
+        Returns: undefined
+      }
       add_business_days: {
         Args: { days_to_add: number; start_date: string }
         Returns: string
@@ -1465,6 +1491,22 @@ export type Database = {
         Returns: boolean
       }
       is_studio_user: { Args: { _user_id: string }; Returns: boolean }
+      materialize_workflow_for_client: {
+        Args: { p_client_id: string }
+        Returns: undefined
+      }
+      recalculate_milestones_for_client: {
+        Args: { p_client_id: string }
+        Returns: undefined
+      }
+      trigger_event_handler: {
+        Args: {
+          p_client_id: string
+          p_event_metadata?: Json
+          p_event_name: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       album_status:
