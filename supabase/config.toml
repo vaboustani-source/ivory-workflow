@@ -1,1 +1,4 @@
 project_id = "fnukusqocwfxzyogsuuc"
+
+[functions.seed-margaux]
+verify_jwt = false
