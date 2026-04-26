@@ -346,6 +346,9 @@ export type Database = {
           portal_first_login_at: string | null
           portal_invited_at: string | null
           primary_email: string
+          production_stage_override: string | null
+          production_stage_override_at: string | null
+          production_stage_override_by: string | null
           secondary_email: string | null
           status: Database["public"]["Enums"]["client_status"]
           updated_at: string
@@ -380,6 +383,9 @@ export type Database = {
           portal_first_login_at?: string | null
           portal_invited_at?: string | null
           primary_email: string
+          production_stage_override?: string | null
+          production_stage_override_at?: string | null
+          production_stage_override_by?: string | null
           secondary_email?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           updated_at?: string
@@ -414,6 +420,9 @@ export type Database = {
           portal_first_login_at?: string | null
           portal_invited_at?: string | null
           primary_email?: string
+          production_stage_override?: string | null
+          production_stage_override_at?: string | null
+          production_stage_override_by?: string | null
           secondary_email?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           updated_at?: string
@@ -443,6 +452,13 @@ export type Database = {
           {
             foreignKeyName: "clients_photographer_id_fkey"
             columns: ["photographer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_production_stage_override_by_fkey"
+            columns: ["production_stage_override_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1489,6 +1505,10 @@ export type Database = {
       }
       add_business_days: {
         Args: { days_to_add: number; start_date: string }
+        Returns: string
+      }
+      calculate_production_stage: {
+        Args: { _client_id: string }
         Returns: string
       }
       has_role: {
