@@ -292,15 +292,16 @@ function DrillDownModal({ couple, onClose }: { couple: CoupleRow; onClose: () =>
     }
     const { error: dbErr } = await supabase.from("message_attachments").delete().in("id", ids);
     if (dbErr) { toast.error("DB delete failed: " + dbErr.message); return; }
-    await supabase.rpc("_log_activity_dummy", {}).catch(() => {});
-    // Best-effort activity log via REST
-    await supabase.from("activity_log").insert({
-      action_type: "storage_attachments_deleted",
-      target_type: "client",
-      target_id: couple.client_id,
-      description: `Deleted ${ids.length} attachment(s) (${fmtBytes(rows.reduce((s, r) => s + (r.file_size_bytes ?? 0), 0))})`,
-      metadata: { client_id: couple.client_id, count: ids.length },
-    }).catch(() => {});
+    // Best-effort activity log
+    try {
+      await supabase.from("activity_log").insert({
+        action_type: "storage_attachments_deleted",
+        target_type: "client",
+        target_id: couple.client_id,
+        description: `Deleted ${ids.length} attachment(s) (${fmtBytes(rows.reduce((s, r) => s + (r.file_size_bytes ?? 0), 0))})`,
+        metadata: { client_id: couple.client_id, count: ids.length },
+      });
+    } catch { /* ignore */ }
     toast.success(`Deleted ${ids.length} file(s)`);
     setSelected(new Set());
     setConfirm(null);
