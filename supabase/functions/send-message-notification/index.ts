@@ -14,7 +14,13 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { message_id } = await req.json();
+    const payload = await req.json().catch(() => ({}));
+    // Support both direct invocation ({message_id}) and Supabase DB webhook ({type, record})
+    const message_id =
+      payload?.message_id ??
+      payload?.record?.id ??
+      payload?.new?.id ??
+      null;
     if (!message_id) {
       return new Response(JSON.stringify({ error: "message_id required" }), {
         status: 400,
@@ -46,6 +52,12 @@ Deno.serve(async (req) => {
       .select("user_id, last_read_at, email_notifications_enabled, role_in_conversation, user:profiles!conversation_participants_user_id_fkey(email, full_name, role)")
       .eq("conversation_id", msg.conversation_id);
 
+    const { data: mentions } = await supabase
+      .from("message_mentions")
+      .select("mentioned_user_id")
+      .eq("message_id", message_id);
+    const mentionedIds = new Set((mentions ?? []).map((m: any) => m.mentioned_user_id));
+
     const resendKey = Deno.env.get("RESEND_API_KEY");
     if (!resendKey) {
       console.log("RESEND_API_KEY not set — skipping email notifications, message persisted normally.");
@@ -74,7 +86,10 @@ Deno.serve(async (req) => {
       if (p.last_read_at && new Date(p.last_read_at).getTime() > tenMinAgo) { skipped.push(p.user_id + ":recently_read"); continue; }
       if (!p.user?.email) { skipped.push(p.user_id + ":no_email"); continue; }
 
-      const subject = `New message from ${senderName} — Stories by Victoria`;
+      const isMentioned = mentionedIds.has(p.user_id);
+      const subject = isMentioned
+        ? `${senderName} mentioned you — Stories by Victoria`
+        : `New message from ${senderName} — Stories by Victoria`;
       const html = `<!doctype html><html><body style="font-family: Georgia, serif; background:#F5EDE6; padding:32px; color:#2A1A1F;">
   <div style="max-width:560px; margin:0 auto; background:#fff; padding:32px; border-top:3px solid #B8924A;">
     <p style="font-style: italic; font-size:20px; color:#6B1F2A; margin:0 0 16px;">A new message from ${senderName}</p>

@@ -778,27 +778,42 @@ export type Database = {
           file_name: string
           file_size_bytes: number | null
           file_url: string
+          height: number | null
           id: string
           message_id: string
           mime_type: string | null
+          storage_path: string
+          thumbnail_url: string | null
+          uploaded_by: string | null
+          width: number | null
         }
         Insert: {
           created_at?: string
           file_name: string
           file_size_bytes?: number | null
           file_url: string
+          height?: number | null
           id?: string
           message_id: string
           mime_type?: string | null
+          storage_path?: string
+          thumbnail_url?: string | null
+          uploaded_by?: string | null
+          width?: number | null
         }
         Update: {
           created_at?: string
           file_name?: string
           file_size_bytes?: number | null
           file_url?: string
+          height?: number | null
           id?: string
           message_id?: string
           mime_type?: string | null
+          storage_path?: string
+          thumbnail_url?: string | null
+          uploaded_by?: string | null
+          width?: number | null
         }
         Relationships: [
           {
@@ -806,6 +821,88 @@ export type Database = {
             columns: ["message_id"]
             isOneToOne: false
             referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_mentions: {
+        Row: {
+          created_at: string
+          id: string
+          mentioned_user_id: string
+          message_id: string
+          read_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mentioned_user_id: string
+          message_id: string
+          read_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mentioned_user_id?: string
+          message_id?: string
+          read_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_mentions_mentioned_user_id_fkey"
+            columns: ["mentioned_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_mentions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_reads: {
+        Row: {
+          id: string
+          message_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reads_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
