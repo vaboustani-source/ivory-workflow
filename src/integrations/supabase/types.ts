@@ -539,10 +539,12 @@ export type Database = {
         Row: {
           body: string | null
           created_at: string
+          description: string | null
           id: string
           is_active: boolean | null
           merge_fields: Json | null
           name: string | null
+          preview_data: Json | null
           requires_approval: boolean | null
           stage: string | null
           subject: string | null
@@ -551,10 +553,12 @@ export type Database = {
         Insert: {
           body?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           is_active?: boolean | null
           merge_fields?: Json | null
           name?: string | null
+          preview_data?: Json | null
           requires_approval?: boolean | null
           stage?: string | null
           subject?: string | null
@@ -563,10 +567,12 @@ export type Database = {
         Update: {
           body?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           is_active?: boolean | null
           merge_fields?: Json | null
           name?: string | null
+          preview_data?: Json | null
           requires_approval?: boolean | null
           stage?: string | null
           subject?: string | null
@@ -1438,27 +1444,42 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          draft_changelog: string | null
           id: string
           is_active: boolean | null
           name: string | null
+          parent_version_id: string | null
+          published_at: string | null
+          published_by: string | null
+          status: string
           updated_at: string
           version: number | null
         }
         Insert: {
           created_at?: string
           created_by?: string | null
+          draft_changelog?: string | null
           id?: string
           is_active?: boolean | null
           name?: string | null
+          parent_version_id?: string | null
+          published_at?: string | null
+          published_by?: string | null
+          status?: string
           updated_at?: string
           version?: number | null
         }
         Update: {
           created_at?: string
           created_by?: string | null
+          draft_changelog?: string | null
           id?: string
           is_active?: boolean | null
           name?: string | null
+          parent_version_id?: string | null
+          published_at?: string | null
+          published_by?: string | null
+          status?: string
           updated_at?: string
           version?: number | null
         }
@@ -1466,6 +1487,20 @@ export type Database = {
           {
             foreignKeyName: "workflow_templates_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_templates_parent_version_id_fkey"
+            columns: ["parent_version_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_templates_published_by_fkey"
+            columns: ["published_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1503,6 +1538,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      _substitute_merge_fields: {
+        Args: { _client_id: string; _text: string }
+        Returns: string
+      }
       add_business_days: {
         Args: { days_to_add: number; start_date: string }
         Returns: string
@@ -1511,6 +1550,8 @@ export type Database = {
         Args: { _client_id: string }
         Returns: string
       }
+      create_draft_from_published: { Args: never; Returns: string }
+      discard_draft: { Args: { _draft_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1530,6 +1571,11 @@ export type Database = {
       materialize_workflow_for_client: {
         Args: { p_client_id: string }
         Returns: undefined
+      }
+      preview_publish_impact: { Args: { _draft_id: string }; Returns: Json }
+      publish_draft: {
+        Args: { _draft_id: string; _migrate_couples?: boolean }
+        Returns: Json
       }
       recalculate_milestones_for_client: {
         Args: { p_client_id: string }
