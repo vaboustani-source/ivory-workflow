@@ -43,6 +43,7 @@ export function StudioLayout({ children }: { children: ReactNode }) {
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const [viewAsModalOpen, setViewAsModalOpen] = useState(false);
   const [badges, setBadges] = useState({ approval: 0, tasks: 0, sales: 0, production: 0, messages: 0 });
+  const [unreadMentions, setUnreadMentions] = useState(0);
 
   // Load badge counts. Re-load when impersonation changes.
   useEffect(() => {
@@ -130,6 +131,13 @@ export function StudioLayout({ children }: { children: ReactNode }) {
         if (!p.last_read_at || new Date(lm) > new Date(p.last_read_at)) unreadMessages += 1;
       });
 
+      // Unread mentions for the effective user
+      const { count: mentionCount } = await supabase
+        .from("message_mentions")
+        .select("id", { count: "exact", head: true })
+        .eq("mentioned_user_id", effectiveUserId)
+        .is("read_at", null);
+
       if (!cancelled) {
         setBadges({
           approval: approval.count ?? 0,
@@ -138,6 +146,7 @@ export function StudioLayout({ children }: { children: ReactNode }) {
           production: attentionIds.size,
           messages: unreadMessages,
         });
+        setUnreadMentions(mentionCount ?? 0);
       }
     };
     load();
@@ -184,8 +193,14 @@ export function StudioLayout({ children }: { children: ReactNode }) {
                 <Icon size={18} className={active ? "text-gold" : ""} />
                 {!collapsed && <span className="flex-1">{item.label}</span>}
                 {!collapsed && badgeCount > 0 && (
-                  <span className="bg-magenta text-background text-[10px] font-semibold rounded-full px-1.5 min-w-[20px] h-[18px] inline-flex items-center justify-center">
+                  <span
+                    className="bg-magenta text-background text-[10px] font-semibold rounded-full px-1.5 min-w-[20px] h-[18px] inline-flex items-center justify-center relative"
+                    title={item.badgeKey === "messages" && unreadMentions > 0 ? `${badgeCount} unread, ${unreadMentions} mentions` : undefined}
+                  >
                     {badgeCount > 99 ? "99+" : badgeCount}
+                    {item.badgeKey === "messages" && unreadMentions > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-gold ring-1 ring-sidebar" />
+                    )}
                   </span>
                 )}
               </Link>
