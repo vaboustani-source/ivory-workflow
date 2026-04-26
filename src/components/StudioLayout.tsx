@@ -141,7 +141,8 @@ export function StudioLayout({ children }: { children: ReactNode }) {
       }
     };
     load();
-    return () => { cancelled = true; };
+    const interval = setInterval(load, 30000);
+    return () => { cancelled = true; clearInterval(interval); };
   }, [effectiveUserId, isRealOwner, viewingAs?.id, location.pathname]);
 
   const isActive = (item: NavItem) => {
