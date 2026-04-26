@@ -42,7 +42,7 @@ export function StudioLayout({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const [viewAsModalOpen, setViewAsModalOpen] = useState(false);
-  const [badges, setBadges] = useState({ approval: 0, tasks: 0, sales: 0, production: 0 });
+  const [badges, setBadges] = useState({ approval: 0, tasks: 0, sales: 0, production: 0, messages: 0 });
 
   // Load badge counts. Re-load when impersonation changes.
   useEffect(() => {
