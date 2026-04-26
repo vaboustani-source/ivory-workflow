@@ -26,7 +26,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Approval Queue", to: "/studio/approval-queue", icon: Inbox, badgeKey: "approval" },
   { label: "Sales Pipeline", to: "/studio/pipeline/sales", icon: KanbanSquare, badgeKey: "sales" },
   { label: "Production Pipeline", to: "/studio/pipeline/production", icon: Workflow, badgeKey: "production" },
-  { label: "Messages", to: "/studio/messages", icon: MessageCircle },
+  { label: "Messages", to: "/studio/messages", icon: MessageCircle, badgeKey: "messages" },
   { label: "Calendar", to: "/studio/calendar", icon: Calendar },
   { label: "Tasks", to: "/studio/tasks", icon: CheckSquare, badgeKey: "tasks" },
   { label: "Galleries", to: "/studio/galleries", icon: Image },
