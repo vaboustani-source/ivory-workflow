@@ -14,7 +14,13 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { message_id } = await req.json();
+    const payload = await req.json().catch(() => ({}));
+    // Support both direct invocation ({message_id}) and Supabase DB webhook ({type, record})
+    const message_id =
+      payload?.message_id ??
+      payload?.record?.id ??
+      payload?.new?.id ??
+      null;
     if (!message_id) {
       return new Response(JSON.stringify({ error: "message_id required" }), {
         status: 400,
