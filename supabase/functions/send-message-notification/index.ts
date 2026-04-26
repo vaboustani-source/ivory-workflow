@@ -52,6 +52,12 @@ Deno.serve(async (req) => {
       .select("user_id, last_read_at, email_notifications_enabled, role_in_conversation, user:profiles!conversation_participants_user_id_fkey(email, full_name, role)")
       .eq("conversation_id", msg.conversation_id);
 
+    const { data: mentions } = await supabase
+      .from("message_mentions")
+      .select("mentioned_user_id")
+      .eq("message_id", message_id);
+    const mentionedIds = new Set((mentions ?? []).map((m: any) => m.mentioned_user_id));
+
     const resendKey = Deno.env.get("RESEND_API_KEY");
     if (!resendKey) {
       console.log("RESEND_API_KEY not set — skipping email notifications, message persisted normally.");
