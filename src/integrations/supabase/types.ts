@@ -1486,10 +1486,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_assigned_to_client: { Args: { _client_id: string }; Returns: boolean }
+      is_associate: { Args: { _user_id: string }; Returns: boolean }
       is_client_of: {
         Args: { _client_id: string; _user_id: string }
         Returns: boolean
       }
+      is_owner: { Args: { _user_id: string }; Returns: boolean }
+      is_studio_manager: { Args: { _user_id: string }; Returns: boolean }
       is_studio_user: { Args: { _user_id: string }; Returns: boolean }
       materialize_workflow_for_client: {
         Args: { p_client_id: string }
