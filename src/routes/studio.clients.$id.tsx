@@ -6,6 +6,7 @@ import { shortDate, relativeTime, daysBetween } from "@/lib/dates";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { ClientTimelineTab } from "@/components/ClientTimelineTab";
+import { ClientMessagesTab } from "@/components/messages/ClientMessagesTab";
 
 export const Route = createFileRoute("/studio/clients/$id")({
   component: ClientDetail,
