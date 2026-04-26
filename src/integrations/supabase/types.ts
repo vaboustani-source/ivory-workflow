@@ -1453,6 +1453,8 @@ export type Database = {
         | "has_engagement"
         | "has_videography"
         | "has_album"
+        | "has_album_active"
+        | "NOT_has_album_purchased"
       workflow_responsible:
         | "system"
         | "owner"
@@ -1465,6 +1467,8 @@ export type Database = {
         | "engagement_session_date"
         | "gallery_delivery_date"
         | "previous_step"
+        | "proposal_valid_until"
+        | "album_workflow_activated_at"
       workflow_trigger_type: "relative_date" | "event" | "manual"
     }
     CompositeTypes: {
@@ -1671,6 +1675,8 @@ export const Constants = {
         "has_engagement",
         "has_videography",
         "has_album",
+        "has_album_active",
+        "NOT_has_album_purchased",
       ],
       workflow_responsible: [
         "system",
@@ -1685,6 +1691,8 @@ export const Constants = {
         "engagement_session_date",
         "gallery_delivery_date",
         "previous_step",
+        "proposal_valid_until",
+        "album_workflow_activated_at",
       ],
       workflow_trigger_type: ["relative_date", "event", "manual"],
     },
