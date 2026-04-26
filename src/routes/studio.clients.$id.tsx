@@ -279,6 +279,7 @@ function AddressRow({ client }: { client: ClientDetailRow }) {
       </a>
     </div>
   );
+}
 
 function PersonBlock({ name, email, phone }: { name: string; email: string | null; phone: string | null }) {
   return (
