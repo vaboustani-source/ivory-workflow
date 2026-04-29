@@ -288,6 +288,11 @@ export type Database = {
           client_id: string
           created_at: string
           id: string
+          notification_email_enabled: boolean
+          notification_messages_enabled: boolean
+          notification_milestones_enabled: boolean
+          partner_email: string | null
+          partner_invited_at: string | null
           role_in_couple: string | null
           user_id: string | null
         }
@@ -295,6 +300,11 @@ export type Database = {
           client_id: string
           created_at?: string
           id?: string
+          notification_email_enabled?: boolean
+          notification_messages_enabled?: boolean
+          notification_milestones_enabled?: boolean
+          partner_email?: string | null
+          partner_invited_at?: string | null
           role_in_couple?: string | null
           user_id?: string | null
         }
@@ -302,6 +312,11 @@ export type Database = {
           client_id?: string
           created_at?: string
           id?: string
+          notification_email_enabled?: boolean
+          notification_messages_enabled?: boolean
+          notification_milestones_enabled?: boolean
+          partner_email?: string | null
+          partner_invited_at?: string | null
           role_in_couple?: string | null
           user_id?: string | null
         }
@@ -345,6 +360,7 @@ export type Database = {
           photographer_id: string | null
           portal_first_login_at: string | null
           portal_invited_at: string | null
+          portal_login_mode: string | null
           primary_email: string
           production_stage_override: string | null
           production_stage_override_at: string | null
@@ -382,6 +398,7 @@ export type Database = {
           photographer_id?: string | null
           portal_first_login_at?: string | null
           portal_invited_at?: string | null
+          portal_login_mode?: string | null
           primary_email: string
           production_stage_override?: string | null
           production_stage_override_at?: string | null
@@ -419,6 +436,7 @@ export type Database = {
           photographer_id?: string | null
           portal_first_login_at?: string | null
           portal_invited_at?: string | null
+          portal_login_mode?: string | null
           primary_email?: string
           production_stage_override?: string | null
           production_stage_override_at?: string | null
@@ -1018,6 +1036,60 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      portal_invitations: {
+        Row: {
+          client_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          invitation_token: string
+          invitation_type: string
+          invited_by: string | null
+          invited_email: string
+          invited_role_in_couple: string | null
+          used_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          invitation_token: string
+          invitation_type: string
+          invited_by?: string | null
+          invited_email: string
+          invited_role_in_couple?: string | null
+          used_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invitation_token?: string
+          invitation_type?: string
+          invited_by?: string | null
+          invited_email?: string
+          invited_role_in_couple?: string | null
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_invitations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
