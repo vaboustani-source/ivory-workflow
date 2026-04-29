@@ -411,32 +411,74 @@ export function MessageThread({
     }
     const messageId = msgRow.id;
 
-    // Move uploaded files from temp -> permanent path and insert attachment rows
+    // Finalize uploaded files: copy temp -> permanent path, insert row, delete temp.
+    // (Using copy+remove instead of move() because storage.objects has no UPDATE policy
+    //  for this bucket — move() would fail silently with "Object not found".)
     for (const pf of pending) {
       if (!pf.uploaded || !pf.tempPath) continue;
       const finalPath = `${conversationId}/${messageId}/${pf.file.name}`;
-      const { error: moveErr } = await supabase.storage
+
+      // 1) Copy temp -> final
+      const { error: copyErr } = await supabase.storage
         .from("message-attachments")
-        .move(pf.tempPath, finalPath);
-      if (moveErr) { console.warn("move failed", moveErr); continue; }
-      const { data: signed } = await supabase.storage
+        .copy(pf.tempPath, finalPath);
+      if (copyErr) {
+        console.error("attachment copy failed", copyErr);
+        toast.error(`Couldn't attach ${pf.file.name}: ${copyErr.message}`);
+        continue;
+      }
+
+      // 2) Build URLs
+      const { data: signed, error: signErr } = await supabase.storage
         .from("message-attachments")
-        .createSignedUrl(finalPath, 60 * 60 * 24 * 7); // 7 days
+        .createSignedUrl(finalPath, 60 * 60 * 24 * 7);
+      if (signErr || !signed?.signedUrl) {
+        console.error("sign url failed", signErr);
+        toast.error(`Couldn't link ${pf.file.name}: ${signErr?.message ?? "no url"}`);
+        continue;
+      }
       const isImage = pf.file.type.startsWith("image/");
       const { data: thumb } = isImage
-        ? await supabase.storage.from("message-attachments").createSignedUrl(finalPath, 60 * 60 * 24 * 7, { transform: { width: 400, quality: 75 } })
+        ? await supabase.storage
+            .from("message-attachments")
+            .createSignedUrl(finalPath, 60 * 60 * 24 * 7, { transform: { width: 400, quality: 75 } })
         : { data: null as any };
 
-      await supabase.from("message_attachments").insert({
+      // 3) Read image dimensions (best-effort) before revoking the preview URL
+      let dims: { width: number | null; height: number | null } = { width: null, height: null };
+      if (isImage && pf.previewUrl) {
+        dims = await new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+          img.onerror = () => resolve({ width: null, height: null });
+          img.src = pf.previewUrl!;
+        });
+      }
+
+      // 4) Insert attachment row
+      const { error: insErr } = await supabase.from("message_attachments").insert({
         message_id: messageId,
         file_name: pf.file.name,
-        file_url: signed?.signedUrl ?? "",
+        file_url: signed.signedUrl,
         thumbnail_url: thumb?.signedUrl ?? null,
         storage_path: finalPath,
         file_size_bytes: pf.file.size,
         mime_type: pf.file.type,
+        width: dims.width,
+        height: dims.height,
         uploaded_by: profile.id,
       });
+      if (insErr) {
+        console.error("attachment row insert failed", insErr);
+        toast.error(`Couldn't save ${pf.file.name}: ${insErr.message}`);
+        // Roll back the copied file so we don't orphan it
+        await supabase.storage.from("message-attachments").remove([finalPath]).catch(() => {});
+        continue;
+      }
+
+      // 5) Delete the temp file (best-effort; orphan cleanup will get it otherwise)
+      await supabase.storage.from("message-attachments").remove([pf.tempPath]).catch(() => {});
+
       if (pf.previewUrl) URL.revokeObjectURL(pf.previewUrl);
     }
 
