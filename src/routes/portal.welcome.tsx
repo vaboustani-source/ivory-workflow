@@ -180,7 +180,7 @@ function PortalWelcome() {
           <>
             <h1 className="font-serif italic text-2xl text-primary text-center">This invitation has expired.</h1>
             <p className="text-sm text-muted-foreground text-center mt-3">
-              Please reach out to us at <a className="text-primary underline" href="mailto:hello@storiesbyvictoria.com">hello@storiesbyvictoria.com</a> or wait for a new invitation.
+              Please reach out to us at <a className="text-primary underline" href="mailto:hello@victoriaboustani.com">hello@victoriaboustani.com</a> or wait for a new invitation.
             </p>
           </>
         )}

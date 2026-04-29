@@ -232,7 +232,7 @@ export function PortalGate({
           <Heart className="mx-auto text-gold mb-4" size={32} />
           <p className="font-serif italic text-2xl text-primary">Your portal isn't quite ready.</p>
           <p className="text-sm text-muted-foreground mt-3">
-            We haven't linked your account to a wedding yet. Please reach out to us at <a className="text-primary underline" href="mailto:hello@storiesbyvictoria.com">hello@storiesbyvictoria.com</a>.
+            We haven't linked your account to a wedding yet. Please reach out to us at <a className="text-primary underline" href="mailto:hello@victoriaboustani.com">hello@victoriaboustani.com</a>.
           </p>
         </div>
       </PortalLayout>
