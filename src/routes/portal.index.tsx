@@ -251,7 +251,7 @@ async function computeWhatsNext(clientId: string, client: any): Promise<{ label:
     if (unpaidRetainer) return { label: "Your retainer invoice is ready.", to: "/portal/invoices", cta: "View invoice" };
 
     const { data: qs } = await supabase
-      .from("questionnaires").select("id, status").eq("client_id", clientId).neq("status", "completed");
+      .from("questionnaires").select("id, status").eq("client_id", clientId).neq("status", "complete");
     if (qs && qs.length > 0) return { label: "Tell us about your wedding day.", to: "/portal/documents", cta: "Open form" };
 
     if (client.wedding_date) {

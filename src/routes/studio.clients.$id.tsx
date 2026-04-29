@@ -79,15 +79,22 @@ function ClientDetail() {
   useEffect(() => { load(); }, [id]);
 
   const sendInvite = async () => {
-    await supabase.from("clients").update({ portal_invited_at: new Date().toISOString() }).eq("id", id);
-    await supabase.from("activity_log").insert({
-      user_id: profile?.id,
-      action_type: "portal.invite_sent",
-      target_type: "client",
-      target_id: id,
-      description: "Portal invite sent",
-    });
-    toast.success("Portal invite sent.");
+    const isResend = !!client?.portal_invited_at;
+    try {
+      const { data, error } = await supabase.functions.invoke("send-portal-invite", {
+        body: { client_id: id, invitation_type: isResend ? "resend" : "initial" },
+      });
+      if (error) throw error;
+      if (data?.warn === "no_resend_key") {
+        toast.success("Invite created. Email key not configured — share link manually.");
+      } else if (data?.warn === "email_failed") {
+        toast.success("Invite created, but email send failed.");
+      } else {
+        toast.success("Portal invite sent.");
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't send invite.");
+    }
     load();
   };
 
