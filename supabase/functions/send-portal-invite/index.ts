@@ -8,22 +8,22 @@ const corsHeaders = {
 };
 
 const LOVABLE_PROJECT_ID = "e3bb35b0-f740-4259-80fa-567ec5c67321";
+const PUBLIC_APP_URL = `https://project--${LOVABLE_PROJECT_ID}.lovable.app`;
 
 function getPortalBaseUrl(req: Request): string {
-  const stablePreviewUrl = `https://project--${LOVABLE_PROJECT_ID}-dev.lovable.app`;
   const candidate = req.headers.get("origin") || req.headers.get("referer") || "";
 
-  if (!candidate || candidate === "null") return stablePreviewUrl;
+  if (!candidate || candidate === "null") return PUBLIC_APP_URL;
 
   try {
     const { origin, hostname } = new URL(candidate);
     const isEditorPreview = hostname.endsWith(".lovableproject.com") || hostname.startsWith("id-preview--");
     const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
 
-    if (isEditorPreview || isLocalhost) return stablePreviewUrl;
+    if (isEditorPreview || isLocalhost) return PUBLIC_APP_URL;
     return origin;
   } catch {
-    return stablePreviewUrl;
+    return PUBLIC_APP_URL;
   }
 }
 
