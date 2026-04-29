@@ -7,6 +7,26 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const LOVABLE_PROJECT_ID = "e3bb35b0-f740-4259-80fa-567ec5c67321";
+
+function getPortalBaseUrl(req: Request): string {
+  const stablePreviewUrl = `https://project--${LOVABLE_PROJECT_ID}-dev.lovable.app`;
+  const candidate = req.headers.get("origin") || req.headers.get("referer") || "";
+
+  if (!candidate || candidate === "null") return stablePreviewUrl;
+
+  try {
+    const { origin, hostname } = new URL(candidate);
+    const isEditorPreview = hostname.endsWith(".lovableproject.com") || hostname.startsWith("id-preview--");
+    const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
+
+    if (isEditorPreview || isLocalhost) return stablePreviewUrl;
+    return origin;
+  } catch {
+    return stablePreviewUrl;
+  }
+}
+
 function randomToken(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
@@ -120,10 +140,7 @@ Deno.serve(async (req) => {
     });
 
     // Build URL
-    const origin = req.headers.get("origin") ?? req.headers.get("referer")?.replace(/\/$/, "") ?? "";
-    const baseUrl = origin && origin !== "null"
-      ? origin.replace(/\/$/, "")
-      : `https://project--${Deno.env.get("SUPABASE_URL")?.split("//")[1]?.split(".")[0] ?? ""}.lovable.app`;
+    const baseUrl = getPortalBaseUrl(req);
     const link = `${baseUrl}/portal/welcome?token=${token}`;
 
     const coupleNames = client.couple_name_1
