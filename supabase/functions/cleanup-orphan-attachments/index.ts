@@ -58,17 +58,13 @@ Deno.serve(async (req) => {
     // 2) List storage objects (top-level conversation folders)
     const allPaths = await listAll(supabase, "");
 
-    const tempCutoff = Date.now() - 24 * 60 * 60 * 1000;
     const toDelete: string[] = [];
     for (const p of allPaths) {
       if (known.has(p)) continue;
-      // Skip recent /temp/ uploads
-      if (p.includes("/temp/")) {
-        // We can't easily get created_at from list; conservatively keep temp paths.
-        // The composer cleans up temp on remove; old ones will be deleted next run if
-        // we add an mtime check — for now we let them age out via DB (no DB row -> orphan).
-        continue;
-      }
+      // Anything not referenced by a message_attachments row is an orphan,
+      // including /temp/ paths left behind by failed finalize flows.
+      // The composer's removePending() handles user-initiated cleanup,
+      // so anything still here is from a finalize failure and safe to remove.
       toDelete.push(p);
     }
 
