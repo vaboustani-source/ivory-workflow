@@ -1,16 +1,19 @@
 project_id = "fnukusqocwfxzyogsuuc"
 
-[functions.seed-margaux]
-verify_jwt = false
-
 [functions.send-message-notification]
-verify_jwt = true
+verify_jwt = false
 
 [functions.cleanup-orphan-attachments]
 verify_jwt = false
 
+[functions.export-conversation-zip]
+verify_jwt = true
+
 [functions.process-storage-cleanup-queue]
 verify_jwt = false
 
-[functions.export-conversation-zip]
+[functions.seed-margaux]
+verify_jwt = false
+
+[functions.send-portal-invite]
 verify_jwt = true

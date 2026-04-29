@@ -14,6 +14,7 @@ import { Route as PortalRouteImport } from './routes/portal'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StudioIndexRouteImport } from './routes/studio.index'
+import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as StudioTasksRouteImport } from './routes/studio.tasks'
 import { Route as StudioSettingsRouteImport } from './routes/studio.settings'
 import { Route as StudioResourcesRouteImport } from './routes/studio.resources'
@@ -22,7 +23,17 @@ import { Route as StudioInvoicesRouteImport } from './routes/studio.invoices'
 import { Route as StudioGalleriesRouteImport } from './routes/studio.galleries'
 import { Route as StudioCalendarRouteImport } from './routes/studio.calendar'
 import { Route as StudioApprovalQueueRouteImport } from './routes/studio.approval-queue'
+import { Route as PortalWelcomeRouteImport } from './routes/portal.welcome'
+import { Route as PortalTimelineRouteImport } from './routes/portal.timeline'
+import { Route as PortalResourcesRouteImport } from './routes/portal.resources'
+import { Route as PortalMessagesRouteImport } from './routes/portal.messages'
+import { Route as PortalInvoicesRouteImport } from './routes/portal.invoices'
+import { Route as PortalGalleryRouteImport } from './routes/portal.gallery'
+import { Route as PortalEngagementRouteImport } from './routes/portal.engagement'
+import { Route as PortalDocumentsRouteImport } from './routes/portal.documents'
+import { Route as PortalAccountRouteImport } from './routes/portal.account'
 import { Route as StudioClientsIndexRouteImport } from './routes/studio.clients.index'
+import { Route as PortalAccountIndexRouteImport } from './routes/portal.account.index'
 import { Route as StudioSettingsWorkflowRouteImport } from './routes/studio.settings.workflow'
 import { Route as StudioSettingsTeamRouteImport } from './routes/studio.settings.team'
 import { Route as StudioSettingsStorageRouteImport } from './routes/studio.settings.storage'
@@ -35,6 +46,9 @@ import { Route as StudioSettingsActivityLogRouteImport } from './routes/studio.s
 import { Route as StudioPipelineSalesRouteImport } from './routes/studio.pipeline.sales'
 import { Route as StudioPipelineProductionRouteImport } from './routes/studio.pipeline.production'
 import { Route as StudioClientsIdRouteImport } from './routes/studio.clients.$id'
+import { Route as PortalAccountSecurityRouteImport } from './routes/portal.account.security'
+import { Route as PortalAccountPartnerRouteImport } from './routes/portal.account.partner'
+import { Route as PortalAccountNotificationsRouteImport } from './routes/portal.account.notifications'
 
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
@@ -60,6 +74,11 @@ const StudioIndexRoute = StudioIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => StudioRoute,
+} as any)
+const PortalIndexRoute = PortalIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PortalRoute,
 } as any)
 const StudioTasksRoute = StudioTasksRouteImport.update({
   id: '/tasks',
@@ -101,10 +120,60 @@ const StudioApprovalQueueRoute = StudioApprovalQueueRouteImport.update({
   path: '/approval-queue',
   getParentRoute: () => StudioRoute,
 } as any)
+const PortalWelcomeRoute = PortalWelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalTimelineRoute = PortalTimelineRouteImport.update({
+  id: '/timeline',
+  path: '/timeline',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalResourcesRoute = PortalResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalMessagesRoute = PortalMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalInvoicesRoute = PortalInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalGalleryRoute = PortalGalleryRouteImport.update({
+  id: '/gallery',
+  path: '/gallery',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalEngagementRoute = PortalEngagementRouteImport.update({
+  id: '/engagement',
+  path: '/engagement',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalDocumentsRoute = PortalDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalAccountRoute = PortalAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => PortalRoute,
+} as any)
 const StudioClientsIndexRoute = StudioClientsIndexRouteImport.update({
   id: '/clients/',
   path: '/clients/',
   getParentRoute: () => StudioRoute,
+} as any)
+const PortalAccountIndexRoute = PortalAccountIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PortalAccountRoute,
 } as any)
 const StudioSettingsWorkflowRoute = StudioSettingsWorkflowRouteImport.update({
   id: '/workflow',
@@ -170,12 +239,37 @@ const StudioClientsIdRoute = StudioClientsIdRouteImport.update({
   path: '/clients/$id',
   getParentRoute: () => StudioRoute,
 } as any)
+const PortalAccountSecurityRoute = PortalAccountSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => PortalAccountRoute,
+} as any)
+const PortalAccountPartnerRoute = PortalAccountPartnerRouteImport.update({
+  id: '/partner',
+  path: '/partner',
+  getParentRoute: () => PortalAccountRoute,
+} as any)
+const PortalAccountNotificationsRoute =
+  PortalAccountNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => PortalAccountRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/portal': typeof PortalRoute
+  '/portal': typeof PortalRouteWithChildren
   '/studio': typeof StudioRouteWithChildren
+  '/portal/account': typeof PortalAccountRouteWithChildren
+  '/portal/documents': typeof PortalDocumentsRoute
+  '/portal/engagement': typeof PortalEngagementRoute
+  '/portal/gallery': typeof PortalGalleryRoute
+  '/portal/invoices': typeof PortalInvoicesRoute
+  '/portal/messages': typeof PortalMessagesRoute
+  '/portal/resources': typeof PortalResourcesRoute
+  '/portal/timeline': typeof PortalTimelineRoute
+  '/portal/welcome': typeof PortalWelcomeRoute
   '/studio/approval-queue': typeof StudioApprovalQueueRoute
   '/studio/calendar': typeof StudioCalendarRoute
   '/studio/galleries': typeof StudioGalleriesRoute
@@ -184,7 +278,11 @@ export interface FileRoutesByFullPath {
   '/studio/resources': typeof StudioResourcesRoute
   '/studio/settings': typeof StudioSettingsRouteWithChildren
   '/studio/tasks': typeof StudioTasksRoute
+  '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
+  '/portal/account/notifications': typeof PortalAccountNotificationsRoute
+  '/portal/account/partner': typeof PortalAccountPartnerRoute
+  '/portal/account/security': typeof PortalAccountSecurityRoute
   '/studio/clients/$id': typeof StudioClientsIdRoute
   '/studio/pipeline/production': typeof StudioPipelineProductionRoute
   '/studio/pipeline/sales': typeof StudioPipelineSalesRoute
@@ -197,12 +295,20 @@ export interface FileRoutesByFullPath {
   '/studio/settings/storage': typeof StudioSettingsStorageRoute
   '/studio/settings/team': typeof StudioSettingsTeamRoute
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
+  '/portal/account/': typeof PortalAccountIndexRoute
   '/studio/clients/': typeof StudioClientsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/portal': typeof PortalRoute
+  '/portal/documents': typeof PortalDocumentsRoute
+  '/portal/engagement': typeof PortalEngagementRoute
+  '/portal/gallery': typeof PortalGalleryRoute
+  '/portal/invoices': typeof PortalInvoicesRoute
+  '/portal/messages': typeof PortalMessagesRoute
+  '/portal/resources': typeof PortalResourcesRoute
+  '/portal/timeline': typeof PortalTimelineRoute
+  '/portal/welcome': typeof PortalWelcomeRoute
   '/studio/approval-queue': typeof StudioApprovalQueueRoute
   '/studio/calendar': typeof StudioCalendarRoute
   '/studio/galleries': typeof StudioGalleriesRoute
@@ -211,7 +317,11 @@ export interface FileRoutesByTo {
   '/studio/resources': typeof StudioResourcesRoute
   '/studio/settings': typeof StudioSettingsRouteWithChildren
   '/studio/tasks': typeof StudioTasksRoute
+  '/portal': typeof PortalIndexRoute
   '/studio': typeof StudioIndexRoute
+  '/portal/account/notifications': typeof PortalAccountNotificationsRoute
+  '/portal/account/partner': typeof PortalAccountPartnerRoute
+  '/portal/account/security': typeof PortalAccountSecurityRoute
   '/studio/clients/$id': typeof StudioClientsIdRoute
   '/studio/pipeline/production': typeof StudioPipelineProductionRoute
   '/studio/pipeline/sales': typeof StudioPipelineSalesRoute
@@ -224,14 +334,24 @@ export interface FileRoutesByTo {
   '/studio/settings/storage': typeof StudioSettingsStorageRoute
   '/studio/settings/team': typeof StudioSettingsTeamRoute
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
+  '/portal/account': typeof PortalAccountIndexRoute
   '/studio/clients': typeof StudioClientsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/portal': typeof PortalRoute
+  '/portal': typeof PortalRouteWithChildren
   '/studio': typeof StudioRouteWithChildren
+  '/portal/account': typeof PortalAccountRouteWithChildren
+  '/portal/documents': typeof PortalDocumentsRoute
+  '/portal/engagement': typeof PortalEngagementRoute
+  '/portal/gallery': typeof PortalGalleryRoute
+  '/portal/invoices': typeof PortalInvoicesRoute
+  '/portal/messages': typeof PortalMessagesRoute
+  '/portal/resources': typeof PortalResourcesRoute
+  '/portal/timeline': typeof PortalTimelineRoute
+  '/portal/welcome': typeof PortalWelcomeRoute
   '/studio/approval-queue': typeof StudioApprovalQueueRoute
   '/studio/calendar': typeof StudioCalendarRoute
   '/studio/galleries': typeof StudioGalleriesRoute
@@ -240,7 +360,11 @@ export interface FileRoutesById {
   '/studio/resources': typeof StudioResourcesRoute
   '/studio/settings': typeof StudioSettingsRouteWithChildren
   '/studio/tasks': typeof StudioTasksRoute
+  '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
+  '/portal/account/notifications': typeof PortalAccountNotificationsRoute
+  '/portal/account/partner': typeof PortalAccountPartnerRoute
+  '/portal/account/security': typeof PortalAccountSecurityRoute
   '/studio/clients/$id': typeof StudioClientsIdRoute
   '/studio/pipeline/production': typeof StudioPipelineProductionRoute
   '/studio/pipeline/sales': typeof StudioPipelineSalesRoute
@@ -253,6 +377,7 @@ export interface FileRoutesById {
   '/studio/settings/storage': typeof StudioSettingsStorageRoute
   '/studio/settings/team': typeof StudioSettingsTeamRoute
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
+  '/portal/account/': typeof PortalAccountIndexRoute
   '/studio/clients/': typeof StudioClientsIndexRoute
 }
 export interface FileRouteTypes {
@@ -262,6 +387,15 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/studio'
+    | '/portal/account'
+    | '/portal/documents'
+    | '/portal/engagement'
+    | '/portal/gallery'
+    | '/portal/invoices'
+    | '/portal/messages'
+    | '/portal/resources'
+    | '/portal/timeline'
+    | '/portal/welcome'
     | '/studio/approval-queue'
     | '/studio/calendar'
     | '/studio/galleries'
@@ -270,7 +404,11 @@ export interface FileRouteTypes {
     | '/studio/resources'
     | '/studio/settings'
     | '/studio/tasks'
+    | '/portal/'
     | '/studio/'
+    | '/portal/account/notifications'
+    | '/portal/account/partner'
+    | '/portal/account/security'
     | '/studio/clients/$id'
     | '/studio/pipeline/production'
     | '/studio/pipeline/sales'
@@ -283,12 +421,20 @@ export interface FileRouteTypes {
     | '/studio/settings/storage'
     | '/studio/settings/team'
     | '/studio/settings/workflow'
+    | '/portal/account/'
     | '/studio/clients/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
-    | '/portal'
+    | '/portal/documents'
+    | '/portal/engagement'
+    | '/portal/gallery'
+    | '/portal/invoices'
+    | '/portal/messages'
+    | '/portal/resources'
+    | '/portal/timeline'
+    | '/portal/welcome'
     | '/studio/approval-queue'
     | '/studio/calendar'
     | '/studio/galleries'
@@ -297,7 +443,11 @@ export interface FileRouteTypes {
     | '/studio/resources'
     | '/studio/settings'
     | '/studio/tasks'
+    | '/portal'
     | '/studio'
+    | '/portal/account/notifications'
+    | '/portal/account/partner'
+    | '/portal/account/security'
     | '/studio/clients/$id'
     | '/studio/pipeline/production'
     | '/studio/pipeline/sales'
@@ -310,6 +460,7 @@ export interface FileRouteTypes {
     | '/studio/settings/storage'
     | '/studio/settings/team'
     | '/studio/settings/workflow'
+    | '/portal/account'
     | '/studio/clients'
   id:
     | '__root__'
@@ -317,6 +468,15 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/studio'
+    | '/portal/account'
+    | '/portal/documents'
+    | '/portal/engagement'
+    | '/portal/gallery'
+    | '/portal/invoices'
+    | '/portal/messages'
+    | '/portal/resources'
+    | '/portal/timeline'
+    | '/portal/welcome'
     | '/studio/approval-queue'
     | '/studio/calendar'
     | '/studio/galleries'
@@ -325,7 +485,11 @@ export interface FileRouteTypes {
     | '/studio/resources'
     | '/studio/settings'
     | '/studio/tasks'
+    | '/portal/'
     | '/studio/'
+    | '/portal/account/notifications'
+    | '/portal/account/partner'
+    | '/portal/account/security'
     | '/studio/clients/$id'
     | '/studio/pipeline/production'
     | '/studio/pipeline/sales'
@@ -338,13 +502,14 @@ export interface FileRouteTypes {
     | '/studio/settings/storage'
     | '/studio/settings/team'
     | '/studio/settings/workflow'
+    | '/portal/account/'
     | '/studio/clients/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
-  PortalRoute: typeof PortalRoute
+  PortalRoute: typeof PortalRouteWithChildren
   StudioRoute: typeof StudioRouteWithChildren
 }
 
@@ -384,6 +549,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/studio/'
       preLoaderRoute: typeof StudioIndexRouteImport
       parentRoute: typeof StudioRoute
+    }
+    '/portal/': {
+      id: '/portal/'
+      path: '/'
+      fullPath: '/portal/'
+      preLoaderRoute: typeof PortalIndexRouteImport
+      parentRoute: typeof PortalRoute
     }
     '/studio/tasks': {
       id: '/studio/tasks'
@@ -441,12 +613,82 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioApprovalQueueRouteImport
       parentRoute: typeof StudioRoute
     }
+    '/portal/welcome': {
+      id: '/portal/welcome'
+      path: '/welcome'
+      fullPath: '/portal/welcome'
+      preLoaderRoute: typeof PortalWelcomeRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/timeline': {
+      id: '/portal/timeline'
+      path: '/timeline'
+      fullPath: '/portal/timeline'
+      preLoaderRoute: typeof PortalTimelineRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/resources': {
+      id: '/portal/resources'
+      path: '/resources'
+      fullPath: '/portal/resources'
+      preLoaderRoute: typeof PortalResourcesRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/messages': {
+      id: '/portal/messages'
+      path: '/messages'
+      fullPath: '/portal/messages'
+      preLoaderRoute: typeof PortalMessagesRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/invoices': {
+      id: '/portal/invoices'
+      path: '/invoices'
+      fullPath: '/portal/invoices'
+      preLoaderRoute: typeof PortalInvoicesRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/gallery': {
+      id: '/portal/gallery'
+      path: '/gallery'
+      fullPath: '/portal/gallery'
+      preLoaderRoute: typeof PortalGalleryRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/engagement': {
+      id: '/portal/engagement'
+      path: '/engagement'
+      fullPath: '/portal/engagement'
+      preLoaderRoute: typeof PortalEngagementRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/documents': {
+      id: '/portal/documents'
+      path: '/documents'
+      fullPath: '/portal/documents'
+      preLoaderRoute: typeof PortalDocumentsRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/account': {
+      id: '/portal/account'
+      path: '/account'
+      fullPath: '/portal/account'
+      preLoaderRoute: typeof PortalAccountRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/studio/clients/': {
       id: '/studio/clients/'
       path: '/clients'
       fullPath: '/studio/clients/'
       preLoaderRoute: typeof StudioClientsIndexRouteImport
       parentRoute: typeof StudioRoute
+    }
+    '/portal/account/': {
+      id: '/portal/account/'
+      path: '/'
+      fullPath: '/portal/account/'
+      preLoaderRoute: typeof PortalAccountIndexRouteImport
+      parentRoute: typeof PortalAccountRoute
     }
     '/studio/settings/workflow': {
       id: '/studio/settings/workflow'
@@ -532,8 +774,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioClientsIdRouteImport
       parentRoute: typeof StudioRoute
     }
+    '/portal/account/security': {
+      id: '/portal/account/security'
+      path: '/security'
+      fullPath: '/portal/account/security'
+      preLoaderRoute: typeof PortalAccountSecurityRouteImport
+      parentRoute: typeof PortalAccountRoute
+    }
+    '/portal/account/partner': {
+      id: '/portal/account/partner'
+      path: '/partner'
+      fullPath: '/portal/account/partner'
+      preLoaderRoute: typeof PortalAccountPartnerRouteImport
+      parentRoute: typeof PortalAccountRoute
+    }
+    '/portal/account/notifications': {
+      id: '/portal/account/notifications'
+      path: '/notifications'
+      fullPath: '/portal/account/notifications'
+      preLoaderRoute: typeof PortalAccountNotificationsRouteImport
+      parentRoute: typeof PortalAccountRoute
+    }
   }
 }
+
+interface PortalAccountRouteChildren {
+  PortalAccountNotificationsRoute: typeof PortalAccountNotificationsRoute
+  PortalAccountPartnerRoute: typeof PortalAccountPartnerRoute
+  PortalAccountSecurityRoute: typeof PortalAccountSecurityRoute
+  PortalAccountIndexRoute: typeof PortalAccountIndexRoute
+}
+
+const PortalAccountRouteChildren: PortalAccountRouteChildren = {
+  PortalAccountNotificationsRoute: PortalAccountNotificationsRoute,
+  PortalAccountPartnerRoute: PortalAccountPartnerRoute,
+  PortalAccountSecurityRoute: PortalAccountSecurityRoute,
+  PortalAccountIndexRoute: PortalAccountIndexRoute,
+}
+
+const PortalAccountRouteWithChildren = PortalAccountRoute._addFileChildren(
+  PortalAccountRouteChildren,
+)
+
+interface PortalRouteChildren {
+  PortalAccountRoute: typeof PortalAccountRouteWithChildren
+  PortalDocumentsRoute: typeof PortalDocumentsRoute
+  PortalEngagementRoute: typeof PortalEngagementRoute
+  PortalGalleryRoute: typeof PortalGalleryRoute
+  PortalInvoicesRoute: typeof PortalInvoicesRoute
+  PortalMessagesRoute: typeof PortalMessagesRoute
+  PortalResourcesRoute: typeof PortalResourcesRoute
+  PortalTimelineRoute: typeof PortalTimelineRoute
+  PortalWelcomeRoute: typeof PortalWelcomeRoute
+  PortalIndexRoute: typeof PortalIndexRoute
+}
+
+const PortalRouteChildren: PortalRouteChildren = {
+  PortalAccountRoute: PortalAccountRouteWithChildren,
+  PortalDocumentsRoute: PortalDocumentsRoute,
+  PortalEngagementRoute: PortalEngagementRoute,
+  PortalGalleryRoute: PortalGalleryRoute,
+  PortalInvoicesRoute: PortalInvoicesRoute,
+  PortalMessagesRoute: PortalMessagesRoute,
+  PortalResourcesRoute: PortalResourcesRoute,
+  PortalTimelineRoute: PortalTimelineRoute,
+  PortalWelcomeRoute: PortalWelcomeRoute,
+  PortalIndexRoute: PortalIndexRoute,
+}
+
+const PortalRouteWithChildren =
+  PortalRoute._addFileChildren(PortalRouteChildren)
 
 interface StudioSettingsRouteChildren {
   StudioSettingsActivityLogRoute: typeof StudioSettingsActivityLogRoute
@@ -601,7 +911,7 @@ const StudioRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
-  PortalRoute: PortalRoute,
+  PortalRoute: PortalRouteWithChildren,
   StudioRoute: StudioRouteWithChildren,
 }
 export const routeTree = rootRouteImport
