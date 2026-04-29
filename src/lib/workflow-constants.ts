@@ -150,7 +150,7 @@ export const MERGE_FIELDS: { field: string; description: string; sample: string 
   { field: "{days_until_wedding}", description: "Days until the wedding", sample: "147" },
   { field: "{venue_name}", description: "Venue name", sample: "The Old Mill" },
   { field: "{photographer_name}", description: "Lead photographer", sample: "Victoria" },
-  { field: "{studio_email}", description: "Studio email address", sample: "hello@storiesbyvictoria.com" },
+  { field: "{studio_email}", description: "Studio email address", sample: "hello@victoriaboustani.com" },
   { field: "{studio_signature}", description: "Studio sign-off", sample: "with care, Stories by Victoria" },
   { field: "{portal_url}", description: "Couple's portal home", sample: "(portal link)" },
   { field: "{logistics_form_url}", description: "Logistics form link", sample: "(logistics form link)" },

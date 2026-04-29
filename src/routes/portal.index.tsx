@@ -157,8 +157,8 @@ function PortalHome({ client, clientId }: { client: any; clientId: string }) {
               <p className="text-sm text-foreground/80 mt-1">
                 I tell wedding stories through unhurried, intentional photography.
               </p>
-              <a href="mailto:hello@storiesbyvictoria.com" className="text-sm text-primary underline mt-2 inline-block">
-                hello@storiesbyvictoria.com
+              <a href="mailto:hello@victoriaboustani.com" className="text-sm text-primary underline mt-2 inline-block">
+                hello@victoriaboustani.com
               </a>
             </div>
           </div>
