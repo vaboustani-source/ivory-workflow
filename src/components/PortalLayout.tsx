@@ -180,35 +180,35 @@ export function PortalGate({
   const navigate = useNavigate();
   const [state, setState] = useState<{ status: "loading" | "ready" | "no-client"; clientId?: string; client?: any }>({ status: "loading" });
 
-  // Defer to ensure profile loaded
-  if (typeof window !== "undefined" && !loading && profile && state.status === "loading") {
+  useEffect(() => {
+    if (loading || !profile) return;
     if (profile.role !== "client") {
-      // Redirect studio users to /studio
-      setTimeout(() => {
-        navigate({ to: "/studio" });
-      }, 0);
-    } else {
-      // Load client_users → clients
-      import("@/integrations/supabase/client").then(async ({ supabase }) => {
-        const { data: cu } = await supabase
-          .from("client_users")
-          .select("client_id")
-          .eq("user_id", profile.id)
-          .limit(1)
-          .maybeSingle();
-        if (!cu?.client_id) {
-          setState({ status: "no-client" });
-          return;
-        }
-        const { data: client } = await supabase
-          .from("clients")
-          .select("id, couple_name_1, couple_name_2, wedding_date, status, portal_login_mode, manager_id, photographer_id")
-          .eq("id", cu.client_id)
-          .maybeSingle();
-        setState({ status: "ready", clientId: cu.client_id, client });
-      });
+      navigate({ to: "/studio" });
+      return;
     }
-  }
+    let cancelled = false;
+    (async () => {
+      const { data: cu } = await supabase
+        .from("client_users")
+        .select("client_id")
+        .eq("user_id", profile.id)
+        .limit(1)
+        .maybeSingle();
+      if (cancelled) return;
+      if (!cu?.client_id) {
+        setState({ status: "no-client" });
+        return;
+      }
+      const { data: client } = await supabase
+        .from("clients")
+        .select("id, couple_name_1, couple_name_2, wedding_date, status, portal_login_mode, manager_id, photographer_id")
+        .eq("id", cu.client_id)
+        .maybeSingle();
+      if (cancelled) return;
+      setState({ status: "ready", clientId: cu.client_id, client });
+    })();
+    return () => { cancelled = true; };
+  }, [loading, profile?.id, profile?.role]);
 
   if (loading || state.status === "loading") {
     return (
