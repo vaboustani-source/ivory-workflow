@@ -4,6 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 
+const STABLE_PORTAL_URL = "https://project--e3bb35b0-f740-4259-80fa-567ec5c67321-dev.lovable.app/portal";
+
+function getPortalRedirectUrl() {
+  if (typeof window === "undefined") return STABLE_PORTAL_URL;
+  const { origin, hostname } = window.location;
+  const isEditorPreview = hostname.endsWith(".lovableproject.com") || hostname.startsWith("id-preview--");
+  const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
+  return isEditorPreview || isLocalhost ? STABLE_PORTAL_URL : `${origin}/portal`;
+}
+
 export const Route = createFileRoute("/portal/account/security")({
   component: SecuritySection,
 });
@@ -33,7 +43,7 @@ function SecuritySection() {
     if (!profile?.email) return;
     const { error } = await supabase.auth.signInWithOtp({
       email: profile.email,
-      options: { emailRedirectTo: `${window.location.origin}/portal` },
+      options: { emailRedirectTo: getPortalRedirectUrl() },
     });
     if (error) toast.error(error.message);
     else toast.success("Sign-in link sent to your email.");
