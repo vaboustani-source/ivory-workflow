@@ -236,23 +236,22 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
   );
 }
 
-async function computeWhatsNext(clientId: string, client: any): Promise<{ label: string; to?: string; cta?: string; soft?: boolean } | null> {
+async function computeWhatsNext(clientId: string, client: any): Promise<{ label: string; to?: string; cta?: string; soft?: boolean; search?: any } | null> {
   const status = client.status;
-  // Booked/active priority order
   if (status === "booked" || status === "active") {
     const { data: contracts } = await supabase
       .from("contracts").select("id, status").eq("client_id", clientId);
     const unsigned = (contracts ?? []).find((c: any) => c.status !== "signed");
-    if (unsigned) return { label: "Your contract is ready to sign.", to: "/portal/documents", cta: "View contract" };
+    if (unsigned) return { label: "Your contract is ready to sign.", to: "/portal/documents", cta: "Sign contract", search: { contract_id: unsigned.id } };
 
     const { data: invs } = await supabase
       .from("invoices").select("id, status, invoice_type").eq("client_id", clientId);
     const unpaidRetainer = (invs ?? []).find((i: any) => i.invoice_type === "retainer" && i.status !== "paid");
-    if (unpaidRetainer) return { label: "Your retainer invoice is ready.", to: "/portal/invoices", cta: "View invoice" };
+    if (unpaidRetainer) return { label: "Your retainer invoice is ready.", to: "/portal/documents", cta: "View invoice", search: { invoice_id: unpaidRetainer.id } };
 
     const { data: qs } = await supabase
       .from("questionnaires").select("id, status").eq("client_id", clientId).neq("status", "complete");
-    if (qs && qs.length > 0) return { label: "Tell us about your wedding day.", to: "/portal/documents", cta: "Open form" };
+    if (qs && qs.length > 0) return { label: "Tell us about your wedding day.", to: "/portal/questionnaires", cta: "Continue form", search: { questionnaire_id: qs[0].id } };
 
     if (client.wedding_date) {
       const d = daysBetween(client.wedding_date);
@@ -275,10 +274,11 @@ async function computeWhatsNext(clientId: string, client: any): Promise<{ label:
     const { data: props } = await supabase
       .from("proposals").select("id, status").eq("client_id", clientId).order("created_at", { ascending: false }).limit(1);
     if (props && props[0] && props[0].status === "sent") {
-      return { label: "Your proposal is ready to review.", to: "/portal/documents", cta: "View proposal" };
+      return { label: "Your proposal is ready to review.", to: "/portal/documents", cta: "View proposal", search: { proposal_id: props[0].id } };
     }
     return { label: "We'll send your proposal after our discovery call.", to: "/portal/messages", cta: "Open messages" };
   }
 
   return null;
 }
+

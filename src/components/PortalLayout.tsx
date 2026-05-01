@@ -3,10 +3,13 @@ import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Home, Calendar, MessageCircle, FileText, Image, Receipt, BookOpen, User,
-  Bell, LogOut, Menu, X, Heart,
+  Bell, LogOut, Menu, ClipboardList, Heart,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { firstName, shortDate } from "@/lib/dates";
+
+type BadgeKind = "none" | "magenta" | "gold";
+type NavBadge = { kind: BadgeKind; count?: number };
 
 type NavItem = {
   label: string;
@@ -15,18 +18,21 @@ type NavItem = {
   exact?: boolean;
   matchPrefix?: string;
   hideForLead?: boolean;
+  badgeKey?: "messages" | "documents" | "questionnaires";
 };
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Home", to: "/portal", icon: Home, exact: true },
   { label: "Timeline", to: "/portal/timeline", icon: Calendar, hideForLead: true },
-  { label: "Messages", to: "/portal/messages", icon: MessageCircle },
-  { label: "Documents", to: "/portal/documents", icon: FileText },
+  { label: "Messages", to: "/portal/messages", icon: MessageCircle, badgeKey: "messages" },
+  { label: "Documents", to: "/portal/documents", icon: FileText, badgeKey: "documents" },
+  { label: "Forms", to: "/portal/questionnaires", icon: ClipboardList, badgeKey: "questionnaires" },
   { label: "Gallery", to: "/portal/gallery", icon: Image, hideForLead: true },
-  { label: "Invoices", to: "/portal/invoices", icon: Receipt },
+  { label: "Invoices", to: "/portal/invoices", icon: Receipt, badgeKey: "documents" },
   { label: "Resources", to: "/portal/resources", icon: BookOpen, hideForLead: true },
   { label: "Account", to: "/portal/account", icon: User, matchPrefix: "/portal/account" },
 ];
+
 
 export function PortalLayout({
   children,
@@ -40,6 +46,7 @@ export function PortalLayout({
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const [badges, setBadges] = useState<Record<string, NavBadge>>({});
 
   const isLead = client?.status === "lead";
   const visibleNav = NAV_ITEMS.filter((i) => !(isLead && i.hideForLead));
@@ -49,9 +56,58 @@ export function PortalLayout({
     return location.pathname === i.to || location.pathname.startsWith(i.to + "/");
   };
 
+  // Poll for unread / action badges every 30s
+  useEffect(() => {
+    if (!profile || !client) return;
+    let cancelled = false;
+    const compute = async () => {
+      // Look up clientId via client_users
+      const { data: cu } = await supabase
+        .from("client_users").select("client_id").eq("user_id", profile.id).limit(1).maybeSingle();
+      const clientId = cu?.client_id;
+      if (!clientId) return;
+
+      const next: Record<string, NavBadge> = {};
+
+      // MESSAGES: unread = last_message_at > my last_read_at on the conversation
+      const { data: conv } = await supabase
+        .from("conversations").select("id, last_message_at").eq("client_id", clientId).maybeSingle();
+      if (conv?.id) {
+        const { data: part } = await supabase
+          .from("conversation_participants")
+          .select("last_read_at")
+          .eq("conversation_id", conv.id).eq("user_id", profile.id).maybeSingle();
+        const lastRead = part?.last_read_at ? new Date(part.last_read_at).getTime() : 0;
+        const lastMsg = conv.last_message_at ? new Date(conv.last_message_at).getTime() : 0;
+        if (lastMsg > lastRead) next["messages"] = { kind: "magenta" };
+      }
+
+      // DOCUMENTS: unsigned contract OR sent (un-accepted) proposal
+      const { data: contracts } = await supabase
+        .from("contracts").select("id, status").eq("client_id", clientId);
+      const hasUnsigned = (contracts ?? []).some((c: any) => c.status !== "signed");
+      const { data: props } = await supabase
+        .from("proposals").select("id, status").eq("client_id", clientId);
+      const hasOpenProp = (props ?? []).some((p: any) => p.status === "sent");
+      if (hasUnsigned || hasOpenProp) next["documents"] = { kind: "gold" };
+
+      // QUESTIONNAIRES: any not_started or in_progress
+      const { data: qs } = await supabase
+        .from("questionnaires").select("id, status").eq("client_id", clientId);
+      const hasOpenQ = (qs ?? []).some((q: any) => q.status === "not_started" || q.status === "in_progress");
+      if (hasOpenQ) next["questionnaires"] = { kind: "gold" };
+
+      if (!cancelled) setBadges(next);
+    };
+    compute();
+    const id = setInterval(compute, 30000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [profile?.id, client?.status, location.pathname]);
+
   const coupleNames = client
     ? `${client.couple_name_1}${client.couple_name_2 ? ` & ${client.couple_name_2}` : ""}`
     : "Welcome";
+
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -75,6 +131,7 @@ export function PortalLayout({
           {visibleNav.map((item) => {
             const Icon = item.icon;
             const active = isActive(item);
+            const badge = item.badgeKey ? badges[item.badgeKey] : undefined;
             return (
               <Link
                 key={item.to}
@@ -88,11 +145,21 @@ export function PortalLayout({
               >
                 {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-gold rounded-r" />}
                 <Icon size={17} className={active ? "text-gold" : ""} />
-                <span>{item.label}</span>
+                <span className="flex-1">{item.label}</span>
+                {badge && badge.kind !== "none" && (
+                  badge.count && badge.count > 0 ? (
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${badge.kind === "magenta" ? "bg-magenta text-background" : "bg-gold text-background"}`}>
+                      +{badge.count}
+                    </span>
+                  ) : (
+                    <span className={`h-2 w-2 rounded-full ${badge.kind === "magenta" ? "bg-magenta" : "bg-gold"}`} />
+                  )
+                )}
               </Link>
             );
           })}
         </nav>
+
 
         <div className="px-3 py-4 border-t border-gold/20">
           <button
