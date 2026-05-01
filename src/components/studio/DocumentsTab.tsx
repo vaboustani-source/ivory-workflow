@@ -47,11 +47,15 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [signatures, setSignatures] = useState<Signature[]>([]);
+  const [clientLite, setClientLite] = useState<{ id: string; couple_name_1: string; couple_name_2: string | null; wedding_date: string | null; venue_name: string | null; primary_email: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [openContract, setOpenContract] = useState<Contract | null>(null);
   const [openProposal, setOpenProposal] = useState<Proposal | null>(null);
   const [openInvoice, setOpenInvoice] = useState<Invoice | null>(null);
+  const [editorContractId, setEditorContractId] = useState<string | null>(null);
+  const [creatingNewContract, setCreatingNewContract] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
