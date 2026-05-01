@@ -923,9 +923,16 @@ export function MessageThread({
               else messageRefs.current.delete(m.id);
             };
 
+            const isSearching = searchOpen && !!debouncedSearch;
+            const isMatch = isSearching && matchedIds.includes(m.id);
+            const dim = isSearching && !isMatch;
+            const flashing = flashId === m.id;
+            const flashCls = flashing ? (debouncedSearch ? "message-flash-short" : "message-flash") : "";
+            const dimCls = dim ? "opacity-40" : "";
+
             if (m.is_internal_note) {
               return (
-                <div key={m.id} ref={setRef} data-message-id={m.id} className="bg-sage/15 border border-dashed border-gold rounded-md p-4 max-w-[90%] mx-auto">
+                <div key={m.id} ref={setRef} data-message-id={m.id} className={`bg-sage/15 border border-dashed border-gold rounded-md p-4 max-w-[90%] mx-auto transition-opacity ${dimCls} ${flashCls}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-1.5 text-gold">
                       <Lock size={11} />
@@ -936,7 +943,7 @@ export function MessageThread({
                     {m.sender?.full_name ?? "—"} · {timeLabel(m.created_at)}
                     {m.edited_at && <span className="ml-1 normal-case">(edited)</span>}
                   </p>
-                  {m.content && <p className="text-sm text-foreground whitespace-pre-wrap">{renderMessageContent(m.content)}</p>}
+                  {m.content && <p className="text-sm text-foreground whitespace-pre-wrap">{renderMessageContent(m.content, isMatch ? debouncedSearch : undefined)}</p>}
                   {renderAttachments(m.id, true)}
                   {renderReadReceipts(m, isMine)}
                 </div>
@@ -944,7 +951,7 @@ export function MessageThread({
             }
 
             return (
-              <div key={m.id} ref={setRef} data-message-id={m.id} className={`flex gap-2 ${isMine ? "justify-end" : "justify-start"}`}>
+              <div key={m.id} ref={setRef} data-message-id={m.id} className={`flex gap-2 transition-opacity ${isMine ? "justify-end" : "justify-start"} ${dimCls} ${flashCls}`}>
                 {!isMine && (
                   <div className="h-6 w-6 rounded-full bg-plum text-background flex items-center justify-center text-[10px] mt-5 shrink-0">
                     {(m.sender?.full_name ?? "?").charAt(0).toUpperCase()}
@@ -960,7 +967,7 @@ export function MessageThread({
                       isMine ? "border border-gold/30" : ""
                     }`}
                   >
-                    {m.content && renderMessageContent(m.content)}
+                    {m.content && renderMessageContent(m.content, isMatch ? debouncedSearch : undefined)}
                     {renderAttachments(m.id, false)}
                   </div>
                   {renderReadReceipts(m, isMine)}
