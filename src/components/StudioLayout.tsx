@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   Home, Users, Inbox, KanbanSquare, Workflow, MessageCircle, Calendar,
   CheckSquare, Image, Receipt, BookOpen, Settings, Bell, Search,
-  LogOut, Menu, X, ChevronDown, Eye, FileText, ClipboardList,
+  LogOut, Menu, X, ChevronDown, Eye, FileText, ClipboardList, ClipboardCheck,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useViewAs } from "@/lib/view-as";
@@ -17,11 +17,12 @@ type NavItem = {
   icon: typeof Home;
   exact?: boolean;
   matchPrefix?: string;
-  badgeKey?: "approval" | "tasks" | "sales" | "production" | "messages" | "contracts" | "forms";
+  badgeKey?: "approval" | "tasks" | "sales" | "production" | "messages" | "contracts" | "forms" | "queue";
   badgeStyle?: "count" | "dot";
 };
 
 const NAV_ITEMS: NavItem[] = [
+  { label: "Today", to: "/studio/queue", icon: ClipboardCheck, badgeKey: "queue" },
   { label: "Dashboard", to: "/studio", icon: Home, exact: true },
   { label: "Clients", to: "/studio/clients", icon: Users },
   { label: "Approval Queue", to: "/studio/approval-queue", icon: Inbox, badgeKey: "approval" },
@@ -45,7 +46,7 @@ export function StudioLayout({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const [viewAsModalOpen, setViewAsModalOpen] = useState(false);
-  const [badges, setBadges] = useState({ approval: 0, tasks: 0, sales: 0, production: 0, messages: 0, contracts: 0, forms: 0 });
+  const [badges, setBadges] = useState({ approval: 0, tasks: 0, sales: 0, production: 0, messages: 0, contracts: 0, forms: 0, queue: 0 });
   const [unreadMentions, setUnreadMentions] = useState(0);
 
   // Load badge counts. Re-load when impersonation changes.
@@ -155,6 +156,17 @@ export function StudioLayout({ children }: { children: ReactNode }) {
       }
       const [contractsRes, formsRes] = await Promise.all([contractsQ, formsQ]);
 
+      // Queue badge: rough sum of unread client messages + unread mentions + overdue milestones (scoped).
+      let overdueMilestonesCount = 0;
+      const { data: overdueMsCounts } = await supabase
+        .from("timeline_milestones")
+        .select("client_id")
+        .neq("status", "complete")
+        .lt("due_date", today);
+      (overdueMsCounts ?? []).forEach((r: any) => {
+        if (scopedIds === null || (r.client_id && scopedIds.includes(r.client_id))) overdueMilestonesCount += 1;
+      });
+
       if (!cancelled) {
         setBadges({
           approval: approval.count ?? 0,
@@ -164,6 +176,7 @@ export function StudioLayout({ children }: { children: ReactNode }) {
           messages: unreadMessages,
           contracts: contractsRes.count ?? 0,
           forms: formsRes.count ?? 0,
+          queue: unreadMessages + (mentionCount ?? 0) + overdueMilestonesCount,
         });
         setUnreadMentions(mentionCount ?? 0);
       }
