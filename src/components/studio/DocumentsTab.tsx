@@ -94,68 +94,114 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
     return m;
   }, [signatures]);
 
-  if (loading) return <p className="font-serif italic text-primary">Loading…</p>;
+  const refresh = () => setReloadKey((k) => k + 1);
 
   const isEmpty = proposals.length === 0 && contracts.length === 0 && invoices.length === 0;
-  if (isEmpty) {
-    return (
-      <div className="bg-surface rounded-lg shadow-soft py-20 text-center border-t-2 border-gold">
-        <p className="font-serif italic text-2xl text-primary">No documents yet.</p>
-        <p className="text-sm text-muted-foreground mt-2">Documents will appear here once they're created.</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-8">
-      {proposals.length > 0 && (
-        <Section title="Proposals">
-          {proposals.map((p) => (
-            <Row key={p.id} icon={<ScrollText size={16} className="text-gold" />}
-              title="Proposal" pill={<StatusPill status={p.status} tone={proposalTone(p.status)} />}
-              meta={p.accepted_at ? `Accepted ${shortDate(p.accepted_at)}` : p.sent_at ? `Sent ${shortDate(p.sent_at)}` : "Draft"}
-              extra={p.total != null ? `Total: $${Number(p.total).toLocaleString()}` : null}
-              onView={() => setOpenProposal(p)} />
-          ))}
-        </Section>
-      )}
-      {contracts.length > 0 && (
-        <Section title="Contracts">
-          {contracts.map((c) => {
-            const sigs = sigsByContract.get(c.id) ?? [];
-            const required = c.signature_required_role === "both_partners" ? 2 : 1;
-            return (
-              <Row key={c.id} icon={<FileText size={16} className="text-gold" />}
-                title={c.title ?? "Contract"} pill={<StatusPill status={c.status} tone={contractTone(c.status)} />}
-                meta={c.signed_at ? `Signed ${shortDate(c.signed_at)}` : c.sent_at ? `Sent ${shortDate(c.sent_at)}` : "Draft"}
-                extra={
-                  <span className="flex items-center gap-3">
-                    <span>{c.signature_required_role === "both_partners" ? "Both partners required" : "Single signer"}</span>
-                    <span className="text-muted-foreground">·</span>
-                    <span>{sigs.length} of {required} signed</span>
-                  </span>
-                }
-                onView={() => setOpenContract(c)} />
-            );
-          })}
-        </Section>
-      )}
-      {invoices.length > 0 && (
-        <Section title="Invoices">
-          {invoices.map((i) => (
-            <Row key={i.id} icon={<Receipt size={16} className="text-gold" />}
-              title={i.invoice_type === "retainer" ? "Retainer invoice" : i.invoice_type === "final" ? "Final invoice" : "Invoice"}
-              pill={<StatusPill status={i.status} tone={invoiceTone(i.status)} />}
-              meta={i.paid_at ? `Paid ${shortDate(i.paid_at)}` : i.due_date ? `Due ${shortDate(i.due_date)}` : ""}
-              extra={i.amount != null ? `$${Number(i.amount).toLocaleString()}` : "—"}
-              onView={() => setOpenInvoice(i)} />
-          ))}
-        </Section>
+      {isEmpty ? (
+        <div className="bg-surface rounded-lg shadow-soft py-20 text-center border-t-2 border-gold">
+          <p className="font-serif italic text-2xl text-primary">No documents yet.</p>
+          <p className="text-sm text-muted-foreground mt-2">Send the first contract to get started.</p>
+          {clientLite && (
+            <button
+              onClick={() => setCreatingNewContract(true)}
+              className="mt-6 inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm hover:bg-primary/90"
+            >
+              <Plus size={14} /> New contract
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          {proposals.length > 0 && (
+            <Section title="Proposals">
+              {proposals.map((p) => (
+                <Row key={p.id} icon={<ScrollText size={16} className="text-gold" />}
+                  title="Proposal" pill={<StatusPill status={p.status} tone={proposalTone(p.status)} />}
+                  meta={p.accepted_at ? `Accepted ${shortDate(p.accepted_at)}` : p.sent_at ? `Sent ${shortDate(p.sent_at)}` : "Draft"}
+                  extra={p.total != null ? `Total: $${Number(p.total).toLocaleString()}` : null}
+                  onView={() => setOpenProposal(p)} />
+              ))}
+            </Section>
+          )}
+          <Section
+            title="Contracts"
+            action={
+              clientLite && (
+                <button
+                  onClick={() => setCreatingNewContract(true)}
+                  className="inline-flex items-center gap-1.5 text-xs text-gold hover:text-primary uppercase tracking-wider"
+                >
+                  <Plus size={12} /> New contract
+                </button>
+              )
+            }
+          >
+            {contracts.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">No contracts yet.</p>
+            ) : contracts.map((c) => {
+              const sigs = sigsByContract.get(c.id) ?? [];
+              const required = c.signature_required_role === "both_partners" ? 2 : 1;
+              return (
+                <Row key={c.id} icon={<FileText size={16} className="text-gold" />}
+                  title={c.title ?? "Contract"} pill={<StatusPill status={c.status} tone={contractTone(c.status)} />}
+                  meta={c.signed_at ? `Signed ${shortDate(c.signed_at)}` : c.sent_at ? `Sent ${shortDate(c.sent_at)}` : "Draft"}
+                  extra={
+                    <span className="flex items-center gap-3">
+                      <span>{c.signature_required_role === "both_partners" ? "Both partners required" : "Single signer"}</span>
+                      <span className="text-muted-foreground">·</span>
+                      <span>{sigs.length} of {required} signed</span>
+                    </span>
+                  }
+                  onView={() => setOpenContract(c)} />
+              );
+            })}
+          </Section>
+          {invoices.length > 0 && (
+            <Section title="Invoices">
+              {invoices.map((i) => (
+                <Row key={i.id} icon={<Receipt size={16} className="text-gold" />}
+                  title={i.invoice_type === "retainer" ? "Retainer invoice" : i.invoice_type === "final" ? "Final invoice" : "Invoice"}
+                  pill={<StatusPill status={i.status} tone={invoiceTone(i.status)} />}
+                  meta={i.paid_at ? `Paid ${shortDate(i.paid_at)}` : i.due_date ? `Due ${shortDate(i.due_date)}` : ""}
+                  extra={i.amount != null ? `$${Number(i.amount).toLocaleString()}` : "—"}
+                  onView={() => setOpenInvoice(i)} />
+              ))}
+            </Section>
+          )}
+        </>
       )}
 
       {openProposal && <ProposalModal proposal={openProposal} onClose={() => setOpenProposal(null)} />}
-      {openContract && <ContractModal contract={openContract} signatures={sigsByContract.get(openContract.id) ?? []} onClose={() => setOpenContract(null)} />}
+      {openContract && (
+        <ContractModal
+          contract={openContract}
+          signatures={sigsByContract.get(openContract.id) ?? []}
+          onClose={() => setOpenContract(null)}
+          onEdit={openContract.status !== "signed" ? () => {
+            setEditorContractId(openContract.id);
+            setOpenContract(null);
+          } : undefined}
+        />
+      )}
       {openInvoice && <InvoiceModal invoice={openInvoice} onClose={() => setOpenInvoice(null)} />}
+      {clientLite && creatingNewContract && (
+        <ContractEditorModal
+          client={clientLite}
+          onClose={() => setCreatingNewContract(false)}
+          onSaved={refresh}
+        />
+      )}
+      {clientLite && editorContractId && (
+        <ContractEditorModal
+          client={clientLite}
+          existingContractId={editorContractId}
+          onClose={() => setEditorContractId(null)}
+          onSaved={refresh}
+        />
+      )}
     </div>
   );
 }
