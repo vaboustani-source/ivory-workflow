@@ -141,6 +141,20 @@ export function StudioLayout({ children }: { children: ReactNode }) {
         .eq("mentioned_user_id", effectiveUserId)
         .is("read_at", null);
 
+      // Contracts awaiting signature + forms awaiting response (scoped)
+      let contractsQ = supabase.from("contracts").select("id", { count: "exact", head: true }).eq("status", "sent");
+      let formsQ = supabase.from("questionnaires").select("id", { count: "exact", head: true }).in("status", ["not_started", "in_progress"]);
+      if (scopedIds !== null) {
+        if (scopedIds.length > 0) {
+          contractsQ = contractsQ.in("client_id", scopedIds);
+          formsQ = formsQ.in("client_id", scopedIds);
+        } else {
+          contractsQ = contractsQ.eq("client_id", "00000000-0000-0000-0000-000000000000");
+          formsQ = formsQ.eq("client_id", "00000000-0000-0000-0000-000000000000");
+        }
+      }
+      const [contractsRes, formsRes] = await Promise.all([contractsQ, formsQ]);
+
       if (!cancelled) {
         setBadges({
           approval: approval.count ?? 0,
@@ -148,6 +162,8 @@ export function StudioLayout({ children }: { children: ReactNode }) {
           sales: sales.count ?? 0,
           production: attentionIds.size,
           messages: unreadMessages,
+          contracts: contractsRes.count ?? 0,
+          forms: formsRes.count ?? 0,
         });
         setUnreadMentions(mentionCount ?? 0);
       }
