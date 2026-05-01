@@ -154,6 +154,13 @@ export function MessageThread({
   const [showJump, setShowJump] = useState(false);
   const [mentionPopover, setMentionPopover] = useState<{ open: boolean; query: string; index: number }>({ open: false, query: "", index: 0 });
 
+  // In-thread search (portal/optional)
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [activeMatchIdx, setActiveMatchIdx] = useState(0);
+  const [flashId, setFlashId] = useState<string | null>(null);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
