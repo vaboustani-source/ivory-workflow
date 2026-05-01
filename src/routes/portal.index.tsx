@@ -20,7 +20,7 @@ function PortalHome({ client, clientId }: { client: any; clientId: string }) {
   const [partnerEmail, setPartnerEmail] = useState("");
   const [sendingPartner, setSendingPartner] = useState(false);
   const [partnerSent, setPartnerSent] = useState(false);
-  const [whatsNext, setWhatsNext] = useState<{ label: string; to?: string; cta?: string; soft?: boolean } | null>(null);
+  const [whatsNext, setWhatsNext] = useState<{ label: string; to?: string; cta?: string; soft?: boolean; search?: any } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -129,7 +129,8 @@ function PortalHome({ client, clientId }: { client: any; clientId: string }) {
             </p>
             {whatsNext.to && whatsNext.cta && (
               <Link
-                to={whatsNext.to}
+                to={whatsNext.to as any}
+                search={(whatsNext.search ?? {}) as any}
                 className="inline-block bg-primary text-primary-foreground px-5 py-2 rounded-md text-sm hover:bg-primary/90 self-start md:self-auto"
               >
                 {whatsNext.cta}
