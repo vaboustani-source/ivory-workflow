@@ -803,13 +803,91 @@ export function MessageThread({
                 </div>
               )}
             </div>
+            {enableInThreadSearch && (
+              <button
+                type="button"
+                onClick={() => setSearchOpen((v) => !v)}
+                className={`h-8 w-8 flex items-center justify-center rounded-full transition-colors ${searchOpen ? "bg-gold/25 text-gold" : "text-muted-foreground hover:text-primary hover:bg-background-alt"}`}
+                aria-label="Search this conversation"
+                title="Search this conversation"
+              >
+                <Search size={15} />
+              </button>
+            )}
           </div>
         </div>
       )}
 
       {!showHeader && (
-        <div className="absolute top-2 right-3 z-10">
+        <div className="absolute top-2 right-3 z-10 flex items-center gap-2">
+          {enableInThreadSearch && (
+            <button
+              type="button"
+              onClick={() => setSearchOpen((v) => !v)}
+              className={`h-7 w-7 flex items-center justify-center rounded-full transition-colors ${searchOpen ? "bg-gold/25 text-gold" : "text-muted-foreground hover:text-primary hover:bg-background-alt"}`}
+              aria-label="Search this conversation"
+            >
+              <Search size={14} />
+            </button>
+          )}
           <span className={`h-2 w-2 rounded-full ${connectionDot} inline-block`} title={connectionLabel} />
+        </div>
+      )}
+
+      {enableInThreadSearch && searchOpen && (
+        <div className="bg-surface border-b border-gold/30 px-6 py-3">
+          <div className="max-w-[480px] mx-auto">
+            <div className="relative">
+              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="search"
+                autoFocus
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search this conversation"
+                className="w-full pl-8 pr-9 py-2 bg-background-alt border border-gold/30 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gold/30"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary"
+                  aria-label="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            <div className="flex items-center justify-between mt-2 text-[11px] text-muted-foreground">
+              <span>
+                {!debouncedSearch
+                  ? "Press Esc to close · ↑↓ to navigate"
+                  : matchedIds.length === 0
+                    ? `No matches for “${debouncedSearch}”`
+                    : `${matchedIds.length} message${matchedIds.length === 1 ? "" : "s"} found · ${Math.min(activeMatchIdx, matchedIds.length - 1) + 1} of ${matchedIds.length}`}
+              </span>
+              {matchedIds.length > 0 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setActiveMatchIdx((i) => (i - 1 + matchedIds.length) % matchedIds.length)}
+                    className="h-6 w-6 flex items-center justify-center rounded hover:bg-background-alt text-muted-foreground hover:text-primary"
+                    aria-label="Previous match"
+                  >
+                    <ChevronUp size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveMatchIdx((i) => (i + 1) % matchedIds.length)}
+                    className="h-6 w-6 flex items-center justify-center rounded hover:bg-background-alt text-muted-foreground hover:text-primary"
+                    aria-label="Next match"
+                  >
+                    <ChevronDown size={14} />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
