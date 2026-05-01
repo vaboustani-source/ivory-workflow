@@ -96,6 +96,8 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
 
   const refresh = () => setReloadKey((k) => k + 1);
 
+  if (loading) return <p className="font-serif italic text-primary">Loading…</p>;
+
   const isEmpty = proposals.length === 0 && contracts.length === 0 && invoices.length === 0;
 
   return (
