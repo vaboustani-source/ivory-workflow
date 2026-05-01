@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { Lock, Send, Paperclip, X, FileText, Image as ImageIcon, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { Lock, Send, Paperclip, X, FileText, Image as ImageIcon, Download, ChevronLeft, ChevronRight, Search, ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
