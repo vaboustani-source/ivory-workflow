@@ -42,7 +42,7 @@ function PortalMessages({ clientId }: { clientId: string }) {
         </div>
       ) : (
         <div className="bg-surface rounded-lg shadow-soft overflow-hidden h-[640px] flex flex-col border-t-2 border-gold">
-          <MessageThread conversationId={convId} />
+          <MessageThread conversationId={convId} enableInThreadSearch />
         </div>
       )}
     </div>
