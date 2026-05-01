@@ -304,7 +304,7 @@ function ProposalModal({ proposal, onClose }: { proposal: Proposal; onClose: () 
   );
 }
 
-function ContractModal({ contract, signatures, onClose }: { contract: Contract; signatures: Signature[]; onClose: () => void }) {
+function ContractModal({ contract, signatures, onClose, onEdit }: { contract: Contract; signatures: Signature[]; onClose: () => void; onEdit?: () => void }) {
   const [signers, setSigners] = useState<Map<string, { full_name: string | null }>>(new Map());
 
   useEffect(() => {
