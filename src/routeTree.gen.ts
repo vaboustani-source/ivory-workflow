@@ -21,6 +21,8 @@ import { Route as StudioResourcesRouteImport } from './routes/studio.resources'
 import { Route as StudioMessagesRouteImport } from './routes/studio.messages'
 import { Route as StudioInvoicesRouteImport } from './routes/studio.invoices'
 import { Route as StudioGalleriesRouteImport } from './routes/studio.galleries'
+import { Route as StudioFormsRouteImport } from './routes/studio.forms'
+import { Route as StudioContractsRouteImport } from './routes/studio.contracts'
 import { Route as StudioCalendarRouteImport } from './routes/studio.calendar'
 import { Route as StudioApprovalQueueRouteImport } from './routes/studio.approval-queue'
 import { Route as PortalWelcomeRouteImport } from './routes/portal.welcome'
@@ -109,6 +111,16 @@ const StudioInvoicesRoute = StudioInvoicesRouteImport.update({
 const StudioGalleriesRoute = StudioGalleriesRouteImport.update({
   id: '/galleries',
   path: '/galleries',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioFormsRoute = StudioFormsRouteImport.update({
+  id: '/forms',
+  path: '/forms',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioContractsRoute = StudioContractsRouteImport.update({
+  id: '/contracts',
+  path: '/contracts',
   getParentRoute: () => StudioRoute,
 } as any)
 const StudioCalendarRoute = StudioCalendarRouteImport.update({
@@ -279,6 +291,8 @@ export interface FileRoutesByFullPath {
   '/portal/welcome': typeof PortalWelcomeRoute
   '/studio/approval-queue': typeof StudioApprovalQueueRoute
   '/studio/calendar': typeof StudioCalendarRoute
+  '/studio/contracts': typeof StudioContractsRoute
+  '/studio/forms': typeof StudioFormsRoute
   '/studio/galleries': typeof StudioGalleriesRoute
   '/studio/invoices': typeof StudioInvoicesRoute
   '/studio/messages': typeof StudioMessagesRoute
@@ -319,6 +333,8 @@ export interface FileRoutesByTo {
   '/portal/welcome': typeof PortalWelcomeRoute
   '/studio/approval-queue': typeof StudioApprovalQueueRoute
   '/studio/calendar': typeof StudioCalendarRoute
+  '/studio/contracts': typeof StudioContractsRoute
+  '/studio/forms': typeof StudioFormsRoute
   '/studio/galleries': typeof StudioGalleriesRoute
   '/studio/invoices': typeof StudioInvoicesRoute
   '/studio/messages': typeof StudioMessagesRoute
@@ -363,6 +379,8 @@ export interface FileRoutesById {
   '/portal/welcome': typeof PortalWelcomeRoute
   '/studio/approval-queue': typeof StudioApprovalQueueRoute
   '/studio/calendar': typeof StudioCalendarRoute
+  '/studio/contracts': typeof StudioContractsRoute
+  '/studio/forms': typeof StudioFormsRoute
   '/studio/galleries': typeof StudioGalleriesRoute
   '/studio/invoices': typeof StudioInvoicesRoute
   '/studio/messages': typeof StudioMessagesRoute
@@ -408,6 +426,8 @@ export interface FileRouteTypes {
     | '/portal/welcome'
     | '/studio/approval-queue'
     | '/studio/calendar'
+    | '/studio/contracts'
+    | '/studio/forms'
     | '/studio/galleries'
     | '/studio/invoices'
     | '/studio/messages'
@@ -448,6 +468,8 @@ export interface FileRouteTypes {
     | '/portal/welcome'
     | '/studio/approval-queue'
     | '/studio/calendar'
+    | '/studio/contracts'
+    | '/studio/forms'
     | '/studio/galleries'
     | '/studio/invoices'
     | '/studio/messages'
@@ -491,6 +513,8 @@ export interface FileRouteTypes {
     | '/portal/welcome'
     | '/studio/approval-queue'
     | '/studio/calendar'
+    | '/studio/contracts'
+    | '/studio/forms'
     | '/studio/galleries'
     | '/studio/invoices'
     | '/studio/messages'
@@ -609,6 +633,20 @@ declare module '@tanstack/react-router' {
       path: '/galleries'
       fullPath: '/studio/galleries'
       preLoaderRoute: typeof StudioGalleriesRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/forms': {
+      id: '/studio/forms'
+      path: '/forms'
+      fullPath: '/studio/forms'
+      preLoaderRoute: typeof StudioFormsRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/contracts': {
+      id: '/studio/contracts'
+      path: '/contracts'
+      fullPath: '/studio/contracts'
+      preLoaderRoute: typeof StudioContractsRouteImport
       parentRoute: typeof StudioRoute
     }
     '/studio/calendar': {
@@ -897,6 +935,8 @@ const StudioSettingsRouteWithChildren = StudioSettingsRoute._addFileChildren(
 interface StudioRouteChildren {
   StudioApprovalQueueRoute: typeof StudioApprovalQueueRoute
   StudioCalendarRoute: typeof StudioCalendarRoute
+  StudioContractsRoute: typeof StudioContractsRoute
+  StudioFormsRoute: typeof StudioFormsRoute
   StudioGalleriesRoute: typeof StudioGalleriesRoute
   StudioInvoicesRoute: typeof StudioInvoicesRoute
   StudioMessagesRoute: typeof StudioMessagesRoute
@@ -913,6 +953,8 @@ interface StudioRouteChildren {
 const StudioRouteChildren: StudioRouteChildren = {
   StudioApprovalQueueRoute: StudioApprovalQueueRoute,
   StudioCalendarRoute: StudioCalendarRoute,
+  StudioContractsRoute: StudioContractsRoute,
+  StudioFormsRoute: StudioFormsRoute,
   StudioGalleriesRoute: StudioGalleriesRoute,
   StudioInvoicesRoute: StudioInvoicesRoute,
   StudioMessagesRoute: StudioMessagesRoute,

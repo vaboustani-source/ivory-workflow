@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, useSearch, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronRight } from "lucide-react";
@@ -7,13 +7,30 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { ClientTimelineTab } from "@/components/ClientTimelineTab";
 import { ClientMessagesTab } from "@/components/messages/ClientMessagesTab";
+import { StudioDocumentsTab } from "@/components/studio/DocumentsTab";
+import { StudioFormsTab } from "@/components/studio/FormsTab";
+
+type SearchSchema = { tab?: string; contract_id?: string; questionnaire_id?: string };
 
 export const Route = createFileRoute("/studio/clients/$id")({
+  validateSearch: (s: Record<string, unknown>): SearchSchema => ({
+    tab: typeof s.tab === "string" ? s.tab : undefined,
+    contract_id: typeof s.contract_id === "string" ? s.contract_id : undefined,
+    questionnaire_id: typeof s.questionnaire_id === "string" ? s.questionnaire_id : undefined,
+  }),
   component: ClientDetail,
 });
 
-const TABS = ["Overview", "Timeline", "Messages", "Contracts", "Questionnaires", "Gallery", "Invoices", "Notes"] as const;
+const TABS = ["Overview", "Timeline", "Messages", "Documents", "Forms", "Gallery", "Notes"] as const;
 type Tab = typeof TABS[number];
+
+const TAB_KEY: Record<Tab, string> = {
+  Overview: "overview", Timeline: "timeline", Messages: "messages",
+  Documents: "documents", Forms: "forms", Gallery: "gallery", Notes: "notes",
+};
+const KEY_TO_TAB: Record<string, Tab> = Object.fromEntries(
+  Object.entries(TAB_KEY).map(([k, v]) => [v, k as Tab])
+) as Record<string, Tab>;
 
 interface ClientDetailRow {
   id: string;
@@ -51,9 +68,27 @@ const STATUS_DOT: Record<string, string> = {
 
 function ClientDetail() {
   const { id } = useParams({ from: "/studio/clients/$id" });
+  const search = useSearch({ from: "/studio/clients/$id" });
+  const navigate = useNavigate();
   const { profile } = useAuth();
   const [client, setClient] = useState<ClientDetailRow | null>(null);
-  const [tab, setTab] = useState<Tab>("Overview");
+  const initialTab: Tab = (search.tab && KEY_TO_TAB[search.tab]) || "Overview";
+  const [tab, setTab] = useState<Tab>(initialTab);
+
+  useEffect(() => {
+    const t = (search.tab && KEY_TO_TAB[search.tab]) || "Overview";
+    setTab(t);
+  }, [search.tab]);
+
+  const changeTab = (t: Tab) => {
+    setTab(t);
+    navigate({
+      to: "/studio/clients/$id",
+      params: { id },
+      search: { tab: TAB_KEY[t] },
+      replace: true,
+    });
+  };
   const [taskCounts, setTaskCounts] = useState({ open: 0, complete: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -143,7 +178,7 @@ function ClientDetail() {
           {TABS.map((t) => (
             <button
               key={t}
-              onClick={() => setTab(t)}
+              onClick={() => changeTab(t)}
               className={`px-4 py-3 text-sm transition-colors border-b-[3px] ${
                 tab === t ? "text-primary border-primary" : "text-muted-foreground border-transparent hover:text-primary"
               }`}
@@ -221,6 +256,10 @@ function ClientDetail() {
           <ClientTimelineTab clientId={id} />
         ) : tab === "Messages" ? (
           <ClientMessagesTab clientId={id} />
+        ) : tab === "Documents" ? (
+          <StudioDocumentsTab clientId={id} openContractId={search.contract_id} />
+        ) : tab === "Forms" ? (
+          <StudioFormsTab clientId={id} openQuestionnaireId={search.questionnaire_id} />
         ) : (
           <div className="bg-surface rounded-lg shadow-soft py-20 text-center">
             <p className="font-serif italic text-2xl text-primary">Coming soon. Building this in the next phase.</p>
