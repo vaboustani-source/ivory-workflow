@@ -483,36 +483,103 @@ export type Database = {
           },
         ]
       }
+      contract_signatures: {
+        Row: {
+          agreed_to_terms: boolean
+          client_id: string
+          contract_id: string
+          contract_version_hash: string
+          id: string
+          ip_address: string | null
+          signed_at: string
+          signed_by_user_id: string
+          typed_name: string
+          user_agent: string | null
+        }
+        Insert: {
+          agreed_to_terms?: boolean
+          client_id: string
+          contract_id: string
+          contract_version_hash: string
+          id?: string
+          ip_address?: string | null
+          signed_at?: string
+          signed_by_user_id: string
+          typed_name: string
+          user_agent?: string | null
+        }
+        Update: {
+          agreed_to_terms?: boolean
+          client_id?: string
+          contract_id?: string
+          contract_version_hash?: string
+          id?: string
+          ip_address?: string | null
+          signed_at?: string
+          signed_by_user_id?: string
+          typed_name?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_signatures_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_signatures_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_signatures_signed_by_user_id_fkey"
+            columns: ["signed_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracts: {
         Row: {
           client_id: string | null
+          content: string | null
           created_at: string
           file_url: string | null
           id: string
           sent_at: string | null
           signature_data: Json | null
+          signature_required_role: string
           signed_at: string | null
           status: Database["public"]["Enums"]["contract_status"]
           title: string | null
         }
         Insert: {
           client_id?: string | null
+          content?: string | null
           created_at?: string
           file_url?: string | null
           id?: string
           sent_at?: string | null
           signature_data?: Json | null
+          signature_required_role?: string
           signed_at?: string | null
           status?: Database["public"]["Enums"]["contract_status"]
           title?: string | null
         }
         Update: {
           client_id?: string | null
+          content?: string | null
           created_at?: string
           file_url?: string | null
           id?: string
           sent_at?: string | null
           signature_data?: Json | null
+          signature_required_role?: string
           signed_at?: string | null
           status?: Database["public"]["Enums"]["contract_status"]
           title?: string | null
@@ -1229,10 +1296,12 @@ export type Database = {
       }
       questionnaires: {
         Row: {
+          auto_saved_at: string | null
           client_id: string | null
           completed_at: string | null
           due_date: string | null
           id: string
+          locked_after_submit: boolean
           reminder_count: number | null
           responses: Json | null
           sent_at: string | null
@@ -1240,10 +1309,12 @@ export type Database = {
           template_id: string | null
         }
         Insert: {
+          auto_saved_at?: string | null
           client_id?: string | null
           completed_at?: string | null
           due_date?: string | null
           id?: string
+          locked_after_submit?: boolean
           reminder_count?: number | null
           responses?: Json | null
           sent_at?: string | null
@@ -1251,10 +1322,12 @@ export type Database = {
           template_id?: string | null
         }
         Update: {
+          auto_saved_at?: string | null
           client_id?: string | null
           completed_at?: string | null
           due_date?: string | null
           id?: string
+          locked_after_submit?: boolean
           reminder_count?: number | null
           responses?: Json | null
           sent_at?: string | null
