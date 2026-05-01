@@ -92,20 +92,34 @@ function firstNameOf(full?: string | null) {
   return (full ?? "").split(" ")[0] ?? "";
 }
 
-// Render text with @mentions as gold pills.
-function renderMessageContent(content: string): React.ReactNode {
+// Render text with @mentions as gold pills, optionally highlighting query matches in gold.
+function renderMessageContent(content: string, highlightQuery?: string): React.ReactNode {
   const parts = content.split(/(@[A-Za-z][A-Za-z0-9_-]*)/g);
-  return parts.map((p, i) =>
-    p.startsWith("@") && p.length > 1 ? (
-      <span
-        key={i}
-        className="inline-flex items-center px-1.5 py-0.5 rounded-sm text-gold bg-gold/15 font-medium text-[13px]"
-      >
-        {p}
-      </span>
-    ) : (
-      <span key={i}>{p}</span>
-    )
+  return parts.map((p, i) => {
+    if (p.startsWith("@") && p.length > 1) {
+      return (
+        <span
+          key={i}
+          className="inline-flex items-center px-1.5 py-0.5 rounded-sm text-gold bg-gold/15 font-medium text-[13px]"
+        >
+          {p}
+        </span>
+      );
+    }
+    if (highlightQuery && highlightQuery.trim()) return <span key={i}>{highlightText(p, highlightQuery)}</span>;
+    return <span key={i}>{p}</span>;
+  });
+}
+
+function highlightText(text: string, query: string): React.ReactNode {
+  if (!query.trim()) return text;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(`(${escaped})`, "gi");
+  const segs = text.split(re);
+  return segs.map((s, i) =>
+    re.test(s) && s.toLowerCase() === query.toLowerCase()
+      ? <mark key={i} className="bg-gold/35 text-foreground rounded-sm px-0.5">{s}</mark>
+      : <span key={i}>{s}</span>
   );
 }
 
@@ -113,10 +127,14 @@ export function MessageThread({
   conversationId,
   showHeader = false,
   coupleNames,
+  highlightMessageId,
+  enableInThreadSearch = false,
 }: {
   conversationId: string;
   showHeader?: boolean;
   coupleNames?: string;
+  highlightMessageId?: string | null;
+  enableInThreadSearch?: boolean;
 }) {
   const { profile } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
