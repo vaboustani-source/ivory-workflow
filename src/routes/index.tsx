@@ -16,6 +16,8 @@ function Index() {
       navigate({ to: "/login" });
     } else if (profile.role === "client") {
       navigate({ to: "/portal" });
+    } else if (profile.role === "studio_manager") {
+      navigate({ to: "/studio/queue" });
     } else {
       navigate({ to: "/studio" });
     }
