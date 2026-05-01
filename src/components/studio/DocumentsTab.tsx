@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { shortDate } from "@/lib/dates";
 import ReactMarkdown from "react-markdown";
-import { X, FileText, Receipt, ScrollText } from "lucide-react";
+import { X, FileText, Receipt, ScrollText, Plus, Pencil } from "lucide-react";
+import { ContractEditorModal } from "./ContractEditorModal";
 
 interface Proposal {
   id: string; status: string; sent_at: string | null; accepted_at: string | null;
