@@ -26,6 +26,7 @@ import { Route as StudioApprovalQueueRouteImport } from './routes/studio.approva
 import { Route as PortalWelcomeRouteImport } from './routes/portal.welcome'
 import { Route as PortalTimelineRouteImport } from './routes/portal.timeline'
 import { Route as PortalResourcesRouteImport } from './routes/portal.resources'
+import { Route as PortalQuestionnairesRouteImport } from './routes/portal.questionnaires'
 import { Route as PortalMessagesRouteImport } from './routes/portal.messages'
 import { Route as PortalInvoicesRouteImport } from './routes/portal.invoices'
 import { Route as PortalGalleryRouteImport } from './routes/portal.gallery'
@@ -133,6 +134,11 @@ const PortalTimelineRoute = PortalTimelineRouteImport.update({
 const PortalResourcesRoute = PortalResourcesRouteImport.update({
   id: '/resources',
   path: '/resources',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalQuestionnairesRoute = PortalQuestionnairesRouteImport.update({
+  id: '/questionnaires',
+  path: '/questionnaires',
   getParentRoute: () => PortalRoute,
 } as any)
 const PortalMessagesRoute = PortalMessagesRouteImport.update({
@@ -267,6 +273,7 @@ export interface FileRoutesByFullPath {
   '/portal/gallery': typeof PortalGalleryRoute
   '/portal/invoices': typeof PortalInvoicesRoute
   '/portal/messages': typeof PortalMessagesRoute
+  '/portal/questionnaires': typeof PortalQuestionnairesRoute
   '/portal/resources': typeof PortalResourcesRoute
   '/portal/timeline': typeof PortalTimelineRoute
   '/portal/welcome': typeof PortalWelcomeRoute
@@ -306,6 +313,7 @@ export interface FileRoutesByTo {
   '/portal/gallery': typeof PortalGalleryRoute
   '/portal/invoices': typeof PortalInvoicesRoute
   '/portal/messages': typeof PortalMessagesRoute
+  '/portal/questionnaires': typeof PortalQuestionnairesRoute
   '/portal/resources': typeof PortalResourcesRoute
   '/portal/timeline': typeof PortalTimelineRoute
   '/portal/welcome': typeof PortalWelcomeRoute
@@ -349,6 +357,7 @@ export interface FileRoutesById {
   '/portal/gallery': typeof PortalGalleryRoute
   '/portal/invoices': typeof PortalInvoicesRoute
   '/portal/messages': typeof PortalMessagesRoute
+  '/portal/questionnaires': typeof PortalQuestionnairesRoute
   '/portal/resources': typeof PortalResourcesRoute
   '/portal/timeline': typeof PortalTimelineRoute
   '/portal/welcome': typeof PortalWelcomeRoute
@@ -393,6 +402,7 @@ export interface FileRouteTypes {
     | '/portal/gallery'
     | '/portal/invoices'
     | '/portal/messages'
+    | '/portal/questionnaires'
     | '/portal/resources'
     | '/portal/timeline'
     | '/portal/welcome'
@@ -432,6 +442,7 @@ export interface FileRouteTypes {
     | '/portal/gallery'
     | '/portal/invoices'
     | '/portal/messages'
+    | '/portal/questionnaires'
     | '/portal/resources'
     | '/portal/timeline'
     | '/portal/welcome'
@@ -474,6 +485,7 @@ export interface FileRouteTypes {
     | '/portal/gallery'
     | '/portal/invoices'
     | '/portal/messages'
+    | '/portal/questionnaires'
     | '/portal/resources'
     | '/portal/timeline'
     | '/portal/welcome'
@@ -632,6 +644,13 @@ declare module '@tanstack/react-router' {
       path: '/resources'
       fullPath: '/portal/resources'
       preLoaderRoute: typeof PortalResourcesRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/questionnaires': {
+      id: '/portal/questionnaires'
+      path: '/questionnaires'
+      fullPath: '/portal/questionnaires'
+      preLoaderRoute: typeof PortalQuestionnairesRouteImport
       parentRoute: typeof PortalRoute
     }
     '/portal/messages': {
@@ -823,6 +842,7 @@ interface PortalRouteChildren {
   PortalGalleryRoute: typeof PortalGalleryRoute
   PortalInvoicesRoute: typeof PortalInvoicesRoute
   PortalMessagesRoute: typeof PortalMessagesRoute
+  PortalQuestionnairesRoute: typeof PortalQuestionnairesRoute
   PortalResourcesRoute: typeof PortalResourcesRoute
   PortalTimelineRoute: typeof PortalTimelineRoute
   PortalWelcomeRoute: typeof PortalWelcomeRoute
@@ -836,6 +856,7 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalGalleryRoute: PortalGalleryRoute,
   PortalInvoicesRoute: PortalInvoicesRoute,
   PortalMessagesRoute: PortalMessagesRoute,
+  PortalQuestionnairesRoute: PortalQuestionnairesRoute,
   PortalResourcesRoute: PortalResourcesRoute,
   PortalTimelineRoute: PortalTimelineRoute,
   PortalWelcomeRoute: PortalWelcomeRoute,

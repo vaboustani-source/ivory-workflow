@@ -3,10 +3,13 @@ import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Home, Calendar, MessageCircle, FileText, Image, Receipt, BookOpen, User,
-  Bell, LogOut, Menu, X, Heart,
+  Bell, LogOut, Menu, ClipboardList, Heart,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { firstName, shortDate } from "@/lib/dates";
+
+type BadgeKind = "none" | "magenta" | "gold";
+type NavBadge = { kind: BadgeKind; count?: number };
 
 type NavItem = {
   label: string;
@@ -15,18 +18,21 @@ type NavItem = {
   exact?: boolean;
   matchPrefix?: string;
   hideForLead?: boolean;
+  badgeKey?: "messages" | "documents" | "questionnaires";
 };
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Home", to: "/portal", icon: Home, exact: true },
   { label: "Timeline", to: "/portal/timeline", icon: Calendar, hideForLead: true },
-  { label: "Messages", to: "/portal/messages", icon: MessageCircle },
-  { label: "Documents", to: "/portal/documents", icon: FileText },
+  { label: "Messages", to: "/portal/messages", icon: MessageCircle, badgeKey: "messages" },
+  { label: "Documents", to: "/portal/documents", icon: FileText, badgeKey: "documents" },
+  { label: "Forms", to: "/portal/questionnaires", icon: ClipboardList, badgeKey: "questionnaires" },
   { label: "Gallery", to: "/portal/gallery", icon: Image, hideForLead: true },
-  { label: "Invoices", to: "/portal/invoices", icon: Receipt },
+  { label: "Invoices", to: "/portal/invoices", icon: Receipt, badgeKey: "documents" },
   { label: "Resources", to: "/portal/resources", icon: BookOpen, hideForLead: true },
   { label: "Account", to: "/portal/account", icon: User, matchPrefix: "/portal/account" },
 ];
+
 
 export function PortalLayout({
   children,
