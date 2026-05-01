@@ -120,3 +120,10 @@
 
 @utility font-serif { font-family: var(--font-serif); }
 @utility font-sans  { font-family: var(--font-sans); }
+
+@keyframes message-flash {
+  0%   { box-shadow: 0 0 0 2px var(--gold), 0 0 24px 6px color-mix(in oklab, var(--gold) 55%, transparent); }
+  100% { box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent; }
+}
+.message-flash { animation: message-flash 2s ease-out; border-radius: 12px; }
+.message-flash-short { animation: message-flash 1s ease-out; border-radius: 12px; }

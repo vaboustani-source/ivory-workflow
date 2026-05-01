@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { Lock, Send, Paperclip, X, FileText, Image as ImageIcon, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { Lock, Send, Paperclip, X, FileText, Image as ImageIcon, Download, ChevronLeft, ChevronRight, Search, ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
@@ -92,20 +92,34 @@ function firstNameOf(full?: string | null) {
   return (full ?? "").split(" ")[0] ?? "";
 }
 
-// Render text with @mentions as gold pills.
-function renderMessageContent(content: string): React.ReactNode {
+// Render text with @mentions as gold pills, optionally highlighting query matches in gold.
+function renderMessageContent(content: string, highlightQuery?: string): React.ReactNode {
   const parts = content.split(/(@[A-Za-z][A-Za-z0-9_-]*)/g);
-  return parts.map((p, i) =>
-    p.startsWith("@") && p.length > 1 ? (
-      <span
-        key={i}
-        className="inline-flex items-center px-1.5 py-0.5 rounded-sm text-gold bg-gold/15 font-medium text-[13px]"
-      >
-        {p}
-      </span>
-    ) : (
-      <span key={i}>{p}</span>
-    )
+  return parts.map((p, i) => {
+    if (p.startsWith("@") && p.length > 1) {
+      return (
+        <span
+          key={i}
+          className="inline-flex items-center px-1.5 py-0.5 rounded-sm text-gold bg-gold/15 font-medium text-[13px]"
+        >
+          {p}
+        </span>
+      );
+    }
+    if (highlightQuery && highlightQuery.trim()) return <span key={i}>{highlightText(p, highlightQuery)}</span>;
+    return <span key={i}>{p}</span>;
+  });
+}
+
+function highlightText(text: string, query: string): React.ReactNode {
+  if (!query.trim()) return text;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(`(${escaped})`, "gi");
+  const segs = text.split(re);
+  return segs.map((s, i) =>
+    re.test(s) && s.toLowerCase() === query.toLowerCase()
+      ? <mark key={i} className="bg-gold/35 text-foreground rounded-sm px-0.5">{s}</mark>
+      : <span key={i}>{s}</span>
   );
 }
 
@@ -113,10 +127,14 @@ export function MessageThread({
   conversationId,
   showHeader = false,
   coupleNames,
+  highlightMessageId,
+  enableInThreadSearch = false,
 }: {
   conversationId: string;
   showHeader?: boolean;
   coupleNames?: string;
+  highlightMessageId?: string | null;
+  enableInThreadSearch?: boolean;
 }) {
   const { profile } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -135,6 +153,13 @@ export function MessageThread({
   const [lightbox, setLightbox] = useState<{ images: Attachment[]; index: number } | null>(null);
   const [showJump, setShowJump] = useState(false);
   const [mentionPopover, setMentionPopover] = useState<{ open: boolean; query: string; index: number }>({ open: false, query: "", index: 0 });
+
+  // In-thread search (portal/optional)
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [activeMatchIdx, setActiveMatchIdx] = useState(0);
+  const [flashId, setFlashId] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -296,6 +321,63 @@ export function MessageThread({
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages.length, loading]);
+
+  // ---------- DEEP-LINK SCROLL & FLASH ----------
+  useEffect(() => {
+    if (!highlightMessageId || loading) return;
+    const tryScroll = () => {
+      const el = messageRefs.current.get(highlightMessageId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        setFlashId(highlightMessageId);
+        setTimeout(() => setFlashId((f) => (f === highlightMessageId ? null : f)), 2100);
+        return true;
+      }
+      return false;
+    };
+    if (!tryScroll()) {
+      const t = setTimeout(tryScroll, 200);
+      return () => clearTimeout(t);
+    }
+  }, [highlightMessageId, loading, messages.length]);
+
+  // ---------- IN-THREAD SEARCH: debounce ----------
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  const matchedIds = useMemo(() => {
+    if (!debouncedSearch) return [] as string[];
+    const q = debouncedSearch.toLowerCase();
+    return messages.filter((m) => !m.deleted_at && (m.content ?? "").toLowerCase().includes(q)).map((m) => m.id);
+  }, [debouncedSearch, messages]);
+
+  useEffect(() => { setActiveMatchIdx(0); }, [debouncedSearch]);
+
+  useEffect(() => {
+    if (!debouncedSearch || matchedIds.length === 0) return;
+    const id = matchedIds[Math.min(activeMatchIdx, matchedIds.length - 1)];
+    const el = messageRefs.current.get(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      setFlashId(id);
+      setTimeout(() => setFlashId((f) => (f === id ? null : f)), 1100);
+    }
+  }, [activeMatchIdx, matchedIds, debouncedSearch]);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setSearchOpen(false); setSearchQuery(""); return; }
+      if (matchedIds.length > 0) {
+        if (e.key === "ArrowDown") { e.preventDefault(); setActiveMatchIdx((i) => (i + 1) % matchedIds.length); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); setActiveMatchIdx((i) => (i - 1 + matchedIds.length) % matchedIds.length); }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [searchOpen, matchedIds.length]);
 
   // ---------- READ RECEIPTS via IntersectionObserver ----------
   useEffect(() => {
@@ -721,13 +803,91 @@ export function MessageThread({
                 </div>
               )}
             </div>
+            {enableInThreadSearch && (
+              <button
+                type="button"
+                onClick={() => setSearchOpen((v) => !v)}
+                className={`h-8 w-8 flex items-center justify-center rounded-full transition-colors ${searchOpen ? "bg-gold/25 text-gold" : "text-muted-foreground hover:text-primary hover:bg-background-alt"}`}
+                aria-label="Search this conversation"
+                title="Search this conversation"
+              >
+                <Search size={15} />
+              </button>
+            )}
           </div>
         </div>
       )}
 
       {!showHeader && (
-        <div className="absolute top-2 right-3 z-10">
+        <div className="absolute top-2 right-3 z-10 flex items-center gap-2">
+          {enableInThreadSearch && (
+            <button
+              type="button"
+              onClick={() => setSearchOpen((v) => !v)}
+              className={`h-7 w-7 flex items-center justify-center rounded-full transition-colors ${searchOpen ? "bg-gold/25 text-gold" : "text-muted-foreground hover:text-primary hover:bg-background-alt"}`}
+              aria-label="Search this conversation"
+            >
+              <Search size={14} />
+            </button>
+          )}
           <span className={`h-2 w-2 rounded-full ${connectionDot} inline-block`} title={connectionLabel} />
+        </div>
+      )}
+
+      {enableInThreadSearch && searchOpen && (
+        <div className="bg-surface border-b border-gold/30 px-6 py-3">
+          <div className="max-w-[480px] mx-auto">
+            <div className="relative">
+              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="search"
+                autoFocus
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search this conversation"
+                className="w-full pl-8 pr-9 py-2 bg-background-alt border border-gold/30 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gold/30"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary"
+                  aria-label="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            <div className="flex items-center justify-between mt-2 text-[11px] text-muted-foreground">
+              <span>
+                {!debouncedSearch
+                  ? "Press Esc to close · ↑↓ to navigate"
+                  : matchedIds.length === 0
+                    ? `No matches for “${debouncedSearch}”`
+                    : `${matchedIds.length} message${matchedIds.length === 1 ? "" : "s"} found · ${Math.min(activeMatchIdx, matchedIds.length - 1) + 1} of ${matchedIds.length}`}
+              </span>
+              {matchedIds.length > 0 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setActiveMatchIdx((i) => (i - 1 + matchedIds.length) % matchedIds.length)}
+                    className="h-6 w-6 flex items-center justify-center rounded hover:bg-background-alt text-muted-foreground hover:text-primary"
+                    aria-label="Previous match"
+                  >
+                    <ChevronUp size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveMatchIdx((i) => (i + 1) % matchedIds.length)}
+                    className="h-6 w-6 flex items-center justify-center rounded hover:bg-background-alt text-muted-foreground hover:text-primary"
+                    aria-label="Next match"
+                  >
+                    <ChevronDown size={14} />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -763,9 +923,16 @@ export function MessageThread({
               else messageRefs.current.delete(m.id);
             };
 
+            const isSearching = searchOpen && !!debouncedSearch;
+            const isMatch = isSearching && matchedIds.includes(m.id);
+            const dim = isSearching && !isMatch;
+            const flashing = flashId === m.id;
+            const flashCls = flashing ? (debouncedSearch ? "message-flash-short" : "message-flash") : "";
+            const dimCls = dim ? "opacity-40" : "";
+
             if (m.is_internal_note) {
               return (
-                <div key={m.id} ref={setRef} data-message-id={m.id} className="bg-sage/15 border border-dashed border-gold rounded-md p-4 max-w-[90%] mx-auto">
+                <div key={m.id} ref={setRef} data-message-id={m.id} className={`bg-sage/15 border border-dashed border-gold rounded-md p-4 max-w-[90%] mx-auto transition-opacity ${dimCls} ${flashCls}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-1.5 text-gold">
                       <Lock size={11} />
@@ -776,7 +943,7 @@ export function MessageThread({
                     {m.sender?.full_name ?? "—"} · {timeLabel(m.created_at)}
                     {m.edited_at && <span className="ml-1 normal-case">(edited)</span>}
                   </p>
-                  {m.content && <p className="text-sm text-foreground whitespace-pre-wrap">{renderMessageContent(m.content)}</p>}
+                  {m.content && <p className="text-sm text-foreground whitespace-pre-wrap">{renderMessageContent(m.content, isMatch ? debouncedSearch : undefined)}</p>}
                   {renderAttachments(m.id, true)}
                   {renderReadReceipts(m, isMine)}
                 </div>
@@ -784,7 +951,7 @@ export function MessageThread({
             }
 
             return (
-              <div key={m.id} ref={setRef} data-message-id={m.id} className={`flex gap-2 ${isMine ? "justify-end" : "justify-start"}`}>
+              <div key={m.id} ref={setRef} data-message-id={m.id} className={`flex gap-2 transition-opacity ${isMine ? "justify-end" : "justify-start"} ${dimCls} ${flashCls}`}>
                 {!isMine && (
                   <div className="h-6 w-6 rounded-full bg-plum text-background flex items-center justify-center text-[10px] mt-5 shrink-0">
                     {(m.sender?.full_name ?? "?").charAt(0).toUpperCase()}
@@ -800,7 +967,7 @@ export function MessageThread({
                       isMine ? "border border-gold/30" : ""
                     }`}
                   >
-                    {m.content && renderMessageContent(m.content)}
+                    {m.content && renderMessageContent(m.content, isMatch ? debouncedSearch : undefined)}
                     {renderAttachments(m.id, false)}
                   </div>
                   {renderReadReceipts(m, isMine)}
