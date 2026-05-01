@@ -131,6 +131,7 @@ export function PortalLayout({
           {visibleNav.map((item) => {
             const Icon = item.icon;
             const active = isActive(item);
+            const badge = item.badgeKey ? badges[item.badgeKey] : undefined;
             return (
               <Link
                 key={item.to}
@@ -144,11 +145,21 @@ export function PortalLayout({
               >
                 {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-gold rounded-r" />}
                 <Icon size={17} className={active ? "text-gold" : ""} />
-                <span>{item.label}</span>
+                <span className="flex-1">{item.label}</span>
+                {badge && badge.kind !== "none" && (
+                  badge.count && badge.count > 0 ? (
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${badge.kind === "magenta" ? "bg-magenta text-background" : "bg-gold text-background"}`}>
+                      +{badge.count}
+                    </span>
+                  ) : (
+                    <span className={`h-2 w-2 rounded-full ${badge.kind === "magenta" ? "bg-magenta" : "bg-gold"}`} />
+                  )
+                )}
               </Link>
             );
           })}
         </nav>
+
 
         <div className="px-3 py-4 border-t border-gold/20">
           <button
