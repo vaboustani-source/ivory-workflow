@@ -46,6 +46,7 @@ export function PortalLayout({
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const [badges, setBadges] = useState<Record<string, NavBadge>>({});
 
   const isLead = client?.status === "lead";
   const visibleNav = NAV_ITEMS.filter((i) => !(isLead && i.hideForLead));
@@ -55,9 +56,58 @@ export function PortalLayout({
     return location.pathname === i.to || location.pathname.startsWith(i.to + "/");
   };
 
+  // Poll for unread / action badges every 30s
+  useEffect(() => {
+    if (!profile || !client) return;
+    let cancelled = false;
+    const compute = async () => {
+      // Look up clientId via client_users
+      const { data: cu } = await supabase
+        .from("client_users").select("client_id").eq("user_id", profile.id).limit(1).maybeSingle();
+      const clientId = cu?.client_id;
+      if (!clientId) return;
+
+      const next: Record<string, NavBadge> = {};
+
+      // MESSAGES: unread = last_message_at > my last_read_at on the conversation
+      const { data: conv } = await supabase
+        .from("conversations").select("id, last_message_at").eq("client_id", clientId).maybeSingle();
+      if (conv?.id) {
+        const { data: part } = await supabase
+          .from("conversation_participants")
+          .select("last_read_at")
+          .eq("conversation_id", conv.id).eq("user_id", profile.id).maybeSingle();
+        const lastRead = part?.last_read_at ? new Date(part.last_read_at).getTime() : 0;
+        const lastMsg = conv.last_message_at ? new Date(conv.last_message_at).getTime() : 0;
+        if (lastMsg > lastRead) next["messages"] = { kind: "magenta" };
+      }
+
+      // DOCUMENTS: unsigned contract OR sent (un-accepted) proposal
+      const { data: contracts } = await supabase
+        .from("contracts").select("id, status").eq("client_id", clientId);
+      const hasUnsigned = (contracts ?? []).some((c: any) => c.status !== "signed");
+      const { data: props } = await supabase
+        .from("proposals").select("id, status").eq("client_id", clientId);
+      const hasOpenProp = (props ?? []).some((p: any) => p.status === "sent");
+      if (hasUnsigned || hasOpenProp) next["documents"] = { kind: "gold" };
+
+      // QUESTIONNAIRES: any not_started or in_progress
+      const { data: qs } = await supabase
+        .from("questionnaires").select("id, status").eq("client_id", clientId);
+      const hasOpenQ = (qs ?? []).some((q: any) => q.status === "not_started" || q.status === "in_progress");
+      if (hasOpenQ) next["questionnaires"] = { kind: "gold" };
+
+      if (!cancelled) setBadges(next);
+    };
+    compute();
+    const id = setInterval(compute, 30000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [profile?.id, client?.status, location.pathname]);
+
   const coupleNames = client
     ? `${client.couple_name_1}${client.couple_name_2 ? ` & ${client.couple_name_2}` : ""}`
     : "Welcome";
+
 
   return (
     <div className="min-h-screen flex bg-background">
