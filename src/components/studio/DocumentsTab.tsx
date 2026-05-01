@@ -206,10 +206,13 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h2 className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{title}</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{title}</h2>
+        {action}
+      </div>
       <div className="space-y-3">{children}</div>
     </section>
   );
