@@ -211,7 +211,10 @@ export function StudioLayout({ children }: { children: ReactNode }) {
                 {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-sidebar-foreground rounded-r" />}
                 <Icon size={18} className={active ? "text-gold" : ""} />
                 {!collapsed && <span className="flex-1">{item.label}</span>}
-                {!collapsed && badgeCount > 0 && (
+                {!collapsed && badgeCount > 0 && item.badgeStyle === "dot" && (
+                  <span className="h-2 w-2 rounded-full bg-gold" title={`${badgeCount} pending`} />
+                )}
+                {!collapsed && badgeCount > 0 && item.badgeStyle !== "dot" && (
                   <span
                     className="bg-magenta text-background text-[10px] font-semibold rounded-full px-1.5 min-w-[20px] h-[18px] inline-flex items-center justify-center relative"
                     title={item.badgeKey === "messages" && unreadMentions > 0 ? `${badgeCount} unread, ${unreadMentions} mentions` : undefined}
