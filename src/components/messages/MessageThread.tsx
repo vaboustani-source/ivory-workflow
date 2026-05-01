@@ -322,6 +322,63 @@ export function MessageThread({
     }
   }, [messages.length, loading]);
 
+  // ---------- DEEP-LINK SCROLL & FLASH ----------
+  useEffect(() => {
+    if (!highlightMessageId || loading) return;
+    const tryScroll = () => {
+      const el = messageRefs.current.get(highlightMessageId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        setFlashId(highlightMessageId);
+        setTimeout(() => setFlashId((f) => (f === highlightMessageId ? null : f)), 2100);
+        return true;
+      }
+      return false;
+    };
+    if (!tryScroll()) {
+      const t = setTimeout(tryScroll, 200);
+      return () => clearTimeout(t);
+    }
+  }, [highlightMessageId, loading, messages.length]);
+
+  // ---------- IN-THREAD SEARCH: debounce ----------
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  const matchedIds = useMemo(() => {
+    if (!debouncedSearch) return [] as string[];
+    const q = debouncedSearch.toLowerCase();
+    return messages.filter((m) => !m.deleted_at && (m.content ?? "").toLowerCase().includes(q)).map((m) => m.id);
+  }, [debouncedSearch, messages]);
+
+  useEffect(() => { setActiveMatchIdx(0); }, [debouncedSearch]);
+
+  useEffect(() => {
+    if (!debouncedSearch || matchedIds.length === 0) return;
+    const id = matchedIds[Math.min(activeMatchIdx, matchedIds.length - 1)];
+    const el = messageRefs.current.get(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      setFlashId(id);
+      setTimeout(() => setFlashId((f) => (f === id ? null : f)), 1100);
+    }
+  }, [activeMatchIdx, matchedIds, debouncedSearch]);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setSearchOpen(false); setSearchQuery(""); return; }
+      if (matchedIds.length > 0) {
+        if (e.key === "ArrowDown") { e.preventDefault(); setActiveMatchIdx((i) => (i + 1) % matchedIds.length); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); setActiveMatchIdx((i) => (i - 1 + matchedIds.length) % matchedIds.length); }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [searchOpen, matchedIds.length]);
+
   // ---------- READ RECEIPTS via IntersectionObserver ----------
   useEffect(() => {
     if (loading || !profile) return;
