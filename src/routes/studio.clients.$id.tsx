@@ -178,7 +178,7 @@ function ClientDetail() {
           {TABS.map((t) => (
             <button
               key={t}
-              onClick={() => setTab(t)}
+              onClick={() => changeTab(t)}
               className={`px-4 py-3 text-sm transition-colors border-b-[3px] ${
                 tab === t ? "text-primary border-primary" : "text-muted-foreground border-transparent hover:text-primary"
               }`}
