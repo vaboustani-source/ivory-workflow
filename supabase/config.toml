@@ -26,3 +26,6 @@ verify_jwt = true
 
 [functions.draft-reply-with-claude]
 verify_jwt = true
+
+[functions.send-document-to-client]
+verify_jwt = true
