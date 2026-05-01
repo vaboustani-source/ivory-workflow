@@ -23,3 +23,6 @@ verify_jwt = true
 
 [functions.send-contract-receipt]
 verify_jwt = true
+
+[functions.draft-reply-with-claude]
+verify_jwt = true
