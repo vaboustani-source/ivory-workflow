@@ -324,11 +324,21 @@ function ContractModal({ contract, signatures, onClose, onEdit }: { contract: Co
   return (
     <ModalShell title={contract.title ?? "Contract"} onClose={onClose}>
       <div className="px-6 md:px-10 py-8 space-y-8">
-        <div className="text-xs text-muted-foreground flex flex-wrap gap-x-6 gap-y-1">
-          <span>Status: <span className="text-foreground capitalize">{contract.status.replace(/_/g, " ")}</span></span>
-          {contract.sent_at && <span>Sent {shortDate(contract.sent_at)}</span>}
-          {contract.signed_at && <span>Signed {shortDate(contract.signed_at)}</span>}
-          <span>{contract.signature_required_role === "both_partners" ? "Both partners required" : "Single signer"}</span>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="text-xs text-muted-foreground flex flex-wrap gap-x-6 gap-y-1">
+            <span>Status: <span className="text-foreground capitalize">{contract.status.replace(/_/g, " ")}</span></span>
+            {contract.sent_at && <span>Sent {shortDate(contract.sent_at)}</span>}
+            {contract.signed_at && <span>Signed {shortDate(contract.signed_at)}</span>}
+            <span>{contract.signature_required_role === "both_partners" ? "Both partners required" : "Single signer"}</span>
+          </div>
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              className="inline-flex items-center gap-1.5 border border-gold text-gold px-3 py-1.5 rounded-md text-xs hover:bg-gold/10"
+            >
+              <Pencil size={12} /> Edit
+            </button>
+          )}
         </div>
 
         <div className="prose prose-sm max-w-none font-serif text-foreground">
