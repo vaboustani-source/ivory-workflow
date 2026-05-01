@@ -195,7 +195,7 @@ function QueuePage() {
       let qQ = supabase
         .from("questionnaires")
         .select("id, sent_at, status, client_id, template:questionnaire_templates(name), client:clients(couple_name_1, couple_name_2, wedding_date)")
-        .in("status", ["not_started", "sent"])
+        .eq("status", "not_started")
         .lt("sent_at", fiveDaysAgo);
       if (scopeFilter !== null) {
         qQ = scopeFilter.length > 0
@@ -371,7 +371,7 @@ function QueueCard({ item, onRemove }: { item: QueueItem; onRemove: () => void }
           )}
           {item.wedding_date && (
             <span className="text-[11px] text-muted-foreground">
-              · wedding {editorialDate(item.wedding_date)}
+              · wedding {editorialDate(new Date(item.wedding_date))}
             </span>
           )}
         </div>
@@ -738,7 +738,7 @@ function MilestoneCard({ item, onDone }: { item: QueueItem; onDone: () => void }
       const newDate = next.toISOString().slice(0, 10);
       const { error } = await supabase.from("timeline_milestones").update({ due_date: newDate }).eq("id", ctx.milestone_id);
       if (error) throw error;
-      toast.success(`Snoozed until ${editorialDate(newDate)}`);
+      toast.success(`Snoozed until ${editorialDate(new Date(newDate))}`);
       onDone();
     } catch (err: any) {
       toast.error(err.message ?? "Could not snooze");
