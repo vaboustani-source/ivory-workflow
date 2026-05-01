@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   Home, Users, Inbox, KanbanSquare, Workflow, MessageCircle, Calendar,
   CheckSquare, Image, Receipt, BookOpen, Settings, Bell, Search,
-  LogOut, Menu, X, ChevronDown, Eye,
+  LogOut, Menu, X, ChevronDown, Eye, FileText, ClipboardList,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useViewAs } from "@/lib/view-as";
@@ -17,7 +17,8 @@ type NavItem = {
   icon: typeof Home;
   exact?: boolean;
   matchPrefix?: string;
-  badgeKey?: "approval" | "tasks" | "sales" | "production" | "messages";
+  badgeKey?: "approval" | "tasks" | "sales" | "production" | "messages" | "contracts" | "forms";
+  badgeStyle?: "count" | "dot";
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -30,6 +31,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Calendar", to: "/studio/calendar", icon: Calendar },
   { label: "Tasks", to: "/studio/tasks", icon: CheckSquare, badgeKey: "tasks" },
   { label: "Galleries", to: "/studio/galleries", icon: Image },
+  { label: "Contracts", to: "/studio/contracts", icon: FileText, badgeKey: "contracts", badgeStyle: "dot" },
+  { label: "Forms", to: "/studio/forms", icon: ClipboardList, badgeKey: "forms", badgeStyle: "dot" },
   { label: "Invoices", to: "/studio/invoices", icon: Receipt },
   { label: "Resources", to: "/studio/resources", icon: BookOpen },
   { label: "Settings", to: "/studio/settings/team", icon: Settings, matchPrefix: "/studio/settings" },
@@ -42,7 +45,7 @@ export function StudioLayout({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const [viewAsModalOpen, setViewAsModalOpen] = useState(false);
-  const [badges, setBadges] = useState({ approval: 0, tasks: 0, sales: 0, production: 0, messages: 0 });
+  const [badges, setBadges] = useState({ approval: 0, tasks: 0, sales: 0, production: 0, messages: 0, contracts: 0, forms: 0 });
   const [unreadMentions, setUnreadMentions] = useState(0);
 
   // Load badge counts. Re-load when impersonation changes.
