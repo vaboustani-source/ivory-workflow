@@ -996,6 +996,7 @@ export type Database = {
         Row: {
           attachment_url: string | null
           content: string | null
+          content_tsv: unknown
           conversation_id: string
           created_at: string
           deleted_at: string | null
@@ -1009,6 +1010,7 @@ export type Database = {
         Insert: {
           attachment_url?: string | null
           content?: string | null
+          content_tsv?: unknown
           conversation_id: string
           created_at?: string
           deleted_at?: string | null
@@ -1022,6 +1024,7 @@ export type Database = {
         Update: {
           attachment_url?: string | null
           content?: string | null
+          content_tsv?: unknown
           conversation_id?: string
           created_at?: string
           deleted_at?: string | null
