@@ -2,6 +2,10 @@
 // Emails the couple a confirmation that their contract has been signed,
 // including signature audit details (typed name, IP, timestamp).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { renderEmailTemplate } from "../_emails/template.ts";
+import { heading, paragraph, divider, smallLabel, detailRow } from "../_emails/components.ts";
+import { sendEmail } from "../_emails/send.ts";
+import { BRAND } from "../_emails/brand.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
