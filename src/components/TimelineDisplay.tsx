@@ -99,7 +99,7 @@ export function TimelineDisplay({ clientId, editable = false }: { clientId: stri
     if (!timeline) return;
     const overrides = { ...(timeline.manual_overrides ?? {}), [String(idx)]: { ...(timeline.manual_overrides?.[String(idx)] ?? {}), ...patch } };
     const blocks = timeline.blocks.map((b, i) => (i === idx ? { ...b, ...patch } : b));
-    await supabase.from("photography_timelines").update({ manual_overrides: overrides, blocks: blocks as any }).eq("id", timeline.id);
+    await supabase.from("photography_timelines").update({ manual_overrides: overrides as any, blocks: blocks as any }).eq("id", timeline.id);
     setTimeline({ ...timeline, manual_overrides: overrides, blocks });
     setEditingIdx(null);
   };
