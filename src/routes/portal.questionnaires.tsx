@@ -447,6 +447,9 @@ function FieldRow({
       {q.type === "file_upload" && (
         <input type="file" disabled={readOnly} className={baseInput} onChange={(e) => onChange(e.target.files?.[0]?.name ?? null)} />
       )}
+      {q.type === "timeline_events" && (
+        <TimelineEventsField value={value} readOnly={readOnly} onChange={onChange} />
+      )}
 
       {error && <p className="text-[12px] text-magenta">{error}</p>}
     </div>
