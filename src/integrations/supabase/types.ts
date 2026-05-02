@@ -728,6 +728,35 @@ export type Database = {
           },
         ]
       }
+      email_template_copy: {
+        Row: {
+          copy: Json
+          email_type: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          copy?: Json
+          email_type: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          copy?: Json
+          email_type?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_template_copy_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_templates: {
         Row: {
           body: string | null
