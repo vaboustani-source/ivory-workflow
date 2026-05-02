@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useEffectiveScope, useViewAs } from "@/lib/view-as";
 import { editorialDate, firstName, shortDate, relativeTime } from "@/lib/dates";
-import { AlertCircle, Check } from "lucide-react";
+import { AlertCircle, Check, Mail } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/studio/")({
   component: Dashboard,
@@ -112,9 +113,12 @@ function Dashboard() {
 
   return (
     <div>
-      <header className="mb-10">
-        <h1 className="font-serif italic text-[32px] text-primary leading-tight">Good morning, {firstName(profile?.full_name)}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{editorialDate()}</p>
+      <header className="mb-10 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-serif italic text-[32px] text-primary leading-tight">Good morning, {firstName(profile?.full_name)}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{editorialDate()}</p>
+        </div>
+        {profile?.role === "owner" && <SendEmailPreviewsButton email={profile?.email ?? null} />}
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
@@ -219,5 +223,41 @@ function KPICard({ label, value, comparison, negative }: { label: string; value:
       <p className="font-serif text-[36px] text-primary mt-2 leading-none">{value}</p>
       <p className={`text-xs mt-3 ${negative ? "text-magenta" : "text-sage"}`}>{comparison}</p>
     </div>
+  );
+}
+
+function SendEmailPreviewsButton({ email }: { email: string | null }) {
+  const [sending, setSending] = useState(false);
+  const send = async () => {
+    if (!email) {
+      toast.error("No email on your profile.");
+      return;
+    }
+    setSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("preview-emails", {
+        body: {
+          recipient: email,
+          types: ["portal_invite", "message_notification", "contract_sent", "form_sent", "contract_receipt"],
+        },
+      });
+      if (error) throw error;
+      const sent = (data?.results ?? []).filter((r: { emailed: boolean }) => r.emailed).length;
+      toast.success(`Sent ${sent} preview email${sent === 1 ? "" : "s"} to ${email}`);
+    } catch (e) {
+      toast.error(`Failed to send previews: ${(e as Error).message}`);
+    } finally {
+      setSending(false);
+    }
+  };
+  return (
+    <button
+      onClick={send}
+      disabled={sending}
+      className="inline-flex items-center gap-2 border border-gold text-gold hover:bg-gold/10 rounded-md px-3 py-2 text-xs uppercase tracking-wider transition-colors disabled:opacity-50"
+    >
+      <Mail size={14} />
+      {sending ? "Sending…" : "Send email previews to me"}
+    </button>
   );
 }
