@@ -225,3 +225,39 @@ function KPICard({ label, value, comparison, negative }: { label: string; value:
     </div>
   );
 }
+
+function SendEmailPreviewsButton({ email }: { email: string | null }) {
+  const [sending, setSending] = useState(false);
+  const send = async () => {
+    if (!email) {
+      toast.error("No email on your profile.");
+      return;
+    }
+    setSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("preview-emails", {
+        body: {
+          recipient: email,
+          types: ["portal_invite", "message_notification", "contract_sent", "form_sent", "contract_receipt"],
+        },
+      });
+      if (error) throw error;
+      const sent = (data?.results ?? []).filter((r: { emailed: boolean }) => r.emailed).length;
+      toast.success(`Sent ${sent} preview email${sent === 1 ? "" : "s"} to ${email}`);
+    } catch (e) {
+      toast.error(`Failed to send previews: ${(e as Error).message}`);
+    } finally {
+      setSending(false);
+    }
+  };
+  return (
+    <button
+      onClick={send}
+      disabled={sending}
+      className="inline-flex items-center gap-2 border border-gold text-gold hover:bg-gold/10 rounded-md px-3 py-2 text-xs uppercase tracking-wider transition-colors disabled:opacity-50"
+    >
+      <Mail size={14} />
+      {sending ? "Sending…" : "Send email previews to me"}
+    </button>
+  );
+}
