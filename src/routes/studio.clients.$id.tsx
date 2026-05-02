@@ -6,6 +6,7 @@ import { shortDate, relativeTime, daysBetween } from "@/lib/dates";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { ClientTimelineTab } from "@/components/ClientTimelineTab";
+import { TimelineDisplay } from "@/components/TimelineDisplay";
 import { ClientMessagesTab } from "@/components/messages/ClientMessagesTab";
 import { StudioDocumentsTab } from "@/components/studio/DocumentsTab";
 import { StudioFormsTab } from "@/components/studio/FormsTab";
