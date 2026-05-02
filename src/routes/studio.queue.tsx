@@ -372,6 +372,17 @@ function QueuePage() {
           ))}
         </div>
       )}
+
+      {!loading && hiddenCount > 0 && (
+        <div className="max-w-3xl mt-8 pt-4 border-t border-border/50 text-center">
+          <Link
+            to="/studio/queue/hidden"
+            className="text-xs italic text-muted-foreground hover:text-primary"
+          >
+            {hiddenCount} {hiddenCount === 1 ? "item" : "items"} hidden (reminders, system events, internal tasks)
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
