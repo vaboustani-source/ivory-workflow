@@ -323,17 +323,19 @@ function QuestionnaireModal({
                 {schema.length === 0 ? (
                   <p className="font-serif italic text-muted-foreground">This form has no questions yet.</p>
                 ) : (
-                  schema.map((q) => (
-                    <FieldRow
-                      key={q.id}
-                      q={q}
-                      value={responses[q.id]}
-                      error={errors[q.id]}
-                      readOnly={isReadOnly}
-                      onChange={(v) => setVal(q.id, v)}
-                      registerRef={(el) => { if (el) fieldRefs.current.set(q.id, el); else fieldRefs.current.delete(q.id); }}
-                    />
-                  ))
+                  schema
+                    .filter((q) => !q.conditional || responses[q.conditional.on] === q.conditional.equals)
+                    .map((q) => (
+                      <FieldRow
+                        key={q.id}
+                        q={q}
+                        value={responses[q.id]}
+                        error={errors[q.id]}
+                        readOnly={isReadOnly}
+                        onChange={(v) => setVal(q.id, v)}
+                        registerRef={(el) => { if (el) fieldRefs.current.set(q.id, el); else fieldRefs.current.delete(q.id); }}
+                      />
+                    ))
                 )}
               </div>
             </>
