@@ -99,7 +99,7 @@ export function TimelineDisplay({ clientId, editable = false }: { clientId: stri
     if (!timeline) return;
     const overrides = { ...(timeline.manual_overrides ?? {}), [String(idx)]: { ...(timeline.manual_overrides?.[String(idx)] ?? {}), ...patch } };
     const blocks = timeline.blocks.map((b, i) => (i === idx ? { ...b, ...patch } : b));
-    await supabase.from("photography_timelines").update({ manual_overrides: overrides, blocks }).eq("id", timeline.id);
+    await supabase.from("photography_timelines").update({ manual_overrides: overrides, blocks: blocks as any }).eq("id", timeline.id);
     setTimeline({ ...timeline, manual_overrides: overrides, blocks });
     setEditingIdx(null);
   };
@@ -114,7 +114,7 @@ export function TimelineDisplay({ clientId, editable = false }: { clientId: stri
       type: "shoot",
     };
     const blocks = [...timeline.blocks, newBlock];
-    await supabase.from("photography_timelines").update({ blocks }).eq("id", timeline.id);
+    await supabase.from("photography_timelines").update({ blocks: blocks as any }).eq("id", timeline.id);
     setTimeline({ ...timeline, blocks });
     setEditingIdx(blocks.length - 1);
   };
@@ -122,7 +122,7 @@ export function TimelineDisplay({ clientId, editable = false }: { clientId: stri
   const deleteBlock = async (idx: number) => {
     if (!timeline) return;
     const blocks = timeline.blocks.filter((_, i) => i !== idx);
-    await supabase.from("photography_timelines").update({ blocks }).eq("id", timeline.id);
+    await supabase.from("photography_timelines").update({ blocks: blocks as any }).eq("id", timeline.id);
     setTimeline({ ...timeline, blocks });
   };
 
