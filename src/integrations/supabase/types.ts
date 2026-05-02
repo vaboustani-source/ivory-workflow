@@ -2136,6 +2136,7 @@ export type Database = {
         | "send_invoice"
         | "status_change"
         | "reminder"
+        | "system_event"
       workflow_branch:
         | "always"
         | "has_engagement"
@@ -2357,6 +2358,7 @@ export const Constants = {
         "send_invoice",
         "status_change",
         "reminder",
+        "system_event",
       ],
       workflow_branch: [
         "always",
