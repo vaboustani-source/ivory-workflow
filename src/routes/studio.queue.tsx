@@ -75,6 +75,29 @@ function daysSince(iso: string | null | undefined): number {
   return Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / (24 * 60 * 60 * 1000)));
 }
 
+// Filter out reminders, system events, internal tasks, and stale (>14d) milestones.
+const SYSTEM_EVENT_TITLES = new Set<string>([
+  "Welcome email",
+  "Full portal unlocked",
+  "Grant inquiry portal access",
+  "Client Welcome Guide surfaces",
+  "Engagement branch activates",
+  "Album branch activates",
+  "Videography branch activates",
+]);
+const HIDDEN_ACTION_TYPES = new Set<string>(["reminder", "system_event", "auto"]);
+
+function isHumanActionMilestone(m: any, fourteenDaysAgoIsoDate: string): boolean {
+  if (!m?.due_date) return false;
+  if (m.due_date <= fourteenDaysAgoIsoDate) return false;
+  if (m.action_type && HIDDEN_ACTION_TYPES.has(m.action_type)) return false;
+  const title: string = m.title ?? "";
+  if (/^reminder:/i.test(title)) return false;
+  if (/^internal:/i.test(title)) return false;
+  if (SYSTEM_EVENT_TITLES.has(title)) return false;
+  return true;
+}
+
 // =====================================================================
 // Page
 // =====================================================================
