@@ -223,12 +223,19 @@ function QueuePage() {
 
       // ----- 4. Overdue milestones assigned to me (RLS handles scope) -----
       const today = new Date().toISOString().slice(0, 10);
+      const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
       const { data: milestones } = await supabase
         .from("timeline_milestones")
-        .select("id, title, due_date, client_id, client:clients(couple_name_1, couple_name_2, wedding_date)")
-        .neq("status", "complete")
+        .select("id, title, due_date, action_type, client_id, client:clients(couple_name_1, couple_name_2, wedding_date)")
+        .eq("status", "upcoming")
         .lt("due_date", today);
+
+      let hiddenMilestoneCount = 0;
       (milestones ?? []).forEach((m: any) => {
+        if (!isHumanActionMilestone(m, fourteenDaysAgo)) {
+          hiddenMilestoneCount += 1;
+          return;
+        }
         collected.push({
           id: `ms:${m.id}`,
           type: "milestone_overdue",
@@ -244,6 +251,7 @@ function QueuePage() {
           },
         });
       });
+      setHiddenCount(hiddenMilestoneCount);
 
       // ----- 5. Unread mentions of me -----
       const { data: mentions } = await supabase
