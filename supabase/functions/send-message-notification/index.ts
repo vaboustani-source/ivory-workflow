@@ -2,6 +2,10 @@
 // Sends transactional emails to conversation participants when a new message is posted.
 // Falls back gracefully if RESEND_API_KEY is not set.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { renderEmailTemplate } from "../_emails/template.ts";
+import { heading, paragraph, button, noteBlock, smallLabel, escapeHtml } from "../_emails/components.ts";
+import { sendEmail } from "../_emails/send.ts";
+import { BRAND } from "../_emails/brand.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -88,46 +92,29 @@ Deno.serve(async (req) => {
 
       const isMentioned = mentionedIds.has(p.user_id);
       const subject = isMentioned
-        ? `${senderName} mentioned you — Stories by Victoria`
-        : `New message from ${senderName} — Stories by Victoria`;
-      const html = `<!doctype html><html><body style="font-family: Georgia, serif; background:#F5EDE6; padding:32px; color:#2A1A1F;">
-  <div style="max-width:560px; margin:0 auto; background:#fff; padding:32px; border-top:3px solid #B8924A;">
-    <p style="font-style: italic; font-size:20px; color:#6B1F2A; margin:0 0 16px;">A new message from ${senderName}</p>
-    <p style="margin:0 0 8px; font-size:13px; color:#7A6A6E; text-transform: uppercase; letter-spacing:0.1em;">Re: ${coupleNames}</p>
-    <blockquote style="border-left:2px solid #B8924A; margin:16px 0; padding:8px 16px; color:#2A1A1F; font-size:15px; line-height:1.6;">
-      ${preview.replace(/</g, "&lt;").replace(/\n/g, "<br>")}${(msg.content ?? "").length > 120 ? "…" : ""}
-    </blockquote>
-    <p style="margin:24px 0;">
-      <a href="${portalUrl}" style="background:#6B1F2A; color:#F5EDE6; padding:10px 20px; text-decoration:none; border-radius:4px; font-size:14px;">Open in Studio</a>
-    </p>
-    <p style="font-size:11px; color:#7A6A6E; margin-top:32px;">with care, Stories by Victoria</p>
-  </div>
-</body></html>`;
+        ? `${senderName} mentioned you — ${BRAND.studioName}`
+        : `New message from ${senderName} — ${BRAND.studioName}`;
 
-      try {
-        const res = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${resendKey}`,
-          },
-          body: JSON.stringify({
-            from: "Stories by Victoria <hello@mail.victoriaboustani.com>",
-            to: [p.user.email],
-            subject,
-            html,
-          }),
-        });
-        if (!res.ok) {
-          const errText = await res.text();
-          console.warn(`Resend error for ${p.user.email}: ${res.status} ${errText}`);
-          skipped.push(p.user_id + ":resend_error");
-        } else {
-          sent.push(p.user.email);
-        }
-      } catch (err) {
-        console.warn(`Resend exception for ${p.user.email}`, err);
-        skipped.push(p.user_id + ":exception");
+      const previewSafe = escapeHtml(preview).replace(/\n/g, "<br/>") +
+        ((msg.content ?? "").length > 120 ? "…" : "");
+
+      const contentHtml = `
+        ${heading(isMentioned ? `${senderName} mentioned you.` : `A new message from ${senderName}.`)}
+        ${smallLabel(`Re: ${coupleNames}`)}
+        ${noteBlock(previewSafe)}
+        ${button("Open in Studio", portalUrl)}
+      `;
+
+      const html = renderEmailTemplate({
+        preheader: `${senderName}: ${preview.slice(0, 80)}${preview.length > 80 ? "…" : ""}`,
+        contentHtml,
+      });
+
+      const r = await sendEmail({ to: p.user.email, subject, html });
+      if (r.emailed) {
+        sent.push(p.user.email);
+      } else {
+        skipped.push(p.user_id + ":" + (r.warn ?? "send_failed"));
       }
     }
 

@@ -1,6 +1,10 @@
 // Supabase Edge Function: send-portal-invite
 // Creates a portal_invitations row and emails the invitee a magic link to /portal/welcome.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { renderEmailTemplate } from "../_emails/template.ts";
+import { heading, paragraph, paragraphRich, button, noteBlock, escapeHtml } from "../_emails/components.ts";
+import { sendEmail } from "../_emails/send.ts";
+import { BRAND } from "../_emails/brand.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -145,68 +149,47 @@ Deno.serve(async (req) => {
 
     const coupleNames = client.couple_name_1
       + (client.couple_name_2 ? ` & ${client.couple_name_2}` : "");
-    const subject = invitation_type === "partner"
-      ? "Your partner invited you to your wedding portal — Stories by Victoria"
-      : "Welcome to your wedding portal — Stories by Victoria";
-    const greeting = invitation_type === "partner"
+    const isPartner = invitation_type === "partner";
+    const isResend = invitation_type === "resend";
+
+    const subject = isPartner
+      ? `Your partner invited you to your wedding portal — ${BRAND.studioName}`
+      : isResend
+      ? `A reminder: your ${BRAND.studioName} portal awaits`
+      : `Welcome to your wedding portal — ${BRAND.studioName}`;
+
+    const greetingText = isPartner
       ? `Join your partner on this journey.`
+      : isResend
+      ? `Hi ${client.couple_name_1},`
       : `Welcome to your story.`;
-    const intro = invitation_type === "partner"
-      ? `You've been invited to join the wedding portal for <em>${coupleNames}</em>. We've prepared a quiet, beautiful space to walk through every step of your photography journey together.`
+
+    const introHtml = isPartner
+      ? `You've been invited to join the wedding portal for <em>${escapeHtml(coupleNames)}</em>. We've prepared a quiet, beautiful space to walk through every step of your photography journey together.`
+      : isResend
+      ? `Just a gentle reminder — your private planning portal is ready whenever you're ready to dive in.`
       : `We're so glad you're here. We've prepared a quiet, beautiful space for you to walk through your wedding photography journey with us — every milestone, every detail, every memory.`;
 
-    const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>${subject}</title></head>
-<body style="margin:0;padding:0;background:#F5EDE6;font-family:Georgia,serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5EDE6;padding:48px 16px;">
-    <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#FFFFFF;border-radius:8px;box-shadow:0 4px 16px rgba(42,26,31,0.06);">
-        <tr><td align="center" style="padding:32px 32px 8px;">
-          <div style="font-family:'Playfair Display',Georgia,serif;font-style:italic;color:#B8924A;font-size:32px;letter-spacing:2px;">SBV</div>
-        </td></tr>
-        <tr><td align="center" style="padding:0 40px;">
-          <h1 style="font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:400;color:#6B1F2A;font-size:28px;line-height:1.3;margin:16px 0 8px;">${greeting}</h1>
-        </td></tr>
-        <tr><td style="padding:8px 40px 24px;">
-          <p style="font-family:'Inter',Arial,sans-serif;color:#2A1A1F;font-size:15px;line-height:1.6;margin:0;">${intro}</p>
-        </td></tr>
-        <tr><td align="center" style="padding:8px 40px 32px;">
-          <a href="${link}" style="display:inline-block;background:#6B1F2A;color:#F5EDE6;text-decoration:none;font-family:'Inter',Arial,sans-serif;font-size:14px;font-weight:500;letter-spacing:0.5px;padding:14px 32px;border-radius:4px;">Open your portal</a>
-        </td></tr>
-        <tr><td style="padding:0 40px 24px;">
-          <p style="font-family:'Inter',Arial,sans-serif;color:#7A6A6E;font-size:12px;line-height:1.5;margin:0;text-align:center;">This link expires in 7 days. If you didn't expect this invitation, please ignore this email.</p>
-        </td></tr>
-        <tr><td style="border-top:1px solid #E8DAD9;padding:24px 40px;">
-          <p style="font-family:'Playfair Display',Georgia,serif;font-style:italic;color:#6B1F2A;font-size:14px;margin:0;">with care,<br/>Stories by Victoria</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body></html>`;
+    const link2 = link;
+    const contentHtml = `
+      ${heading(greetingText)}
+      ${paragraphRich(introHtml)}
+      ${button("Open your portal", link2)}
+      <p style="font-family:${BRAND.fontBody};color:${BRAND.textSecondary};font-size:12px;line-height:1.5;margin:8px 0 0;text-align:center;">This link expires in 7 days. If you didn't expect this invitation, please ignore this email.</p>
+    `;
 
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    if (RESEND_API_KEY) {
-      const r = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: "Stories by Victoria <hello@mail.victoriaboustani.com>",
-          to: [recipient],
-          subject,
-          html,
-        }),
-      });
-      if (!r.ok) {
-        const errText = await r.text();
-        console.error("resend send failed", r.status, errText);
-        // Don't fail the whole flow — invitation row exists, link can be shared manually.
-        return new Response(JSON.stringify({ ok: true, emailed: false, link, warn: "email_failed" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-    } else {
-      console.warn("RESEND_API_KEY missing; skipping email send");
-      return new Response(JSON.stringify({ ok: true, emailed: false, link, warn: "no_resend_key" }), {
+    const html = renderEmailTemplate({
+      preheader: isPartner
+        ? `You've been invited to ${coupleNames}'s wedding portal.`
+        : isResend
+        ? "A reminder of your private planning portal."
+        : "Your private wedding planning portal awaits.",
+      contentHtml,
+    });
+
+    const sendResult = await sendEmail({ to: recipient, subject, html });
+    if (!sendResult.emailed) {
+      return new Response(JSON.stringify({ ok: true, emailed: false, link, warn: sendResult.warn }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
