@@ -2,10 +2,10 @@
 // Emails the couple a confirmation that their contract has been signed,
 // including signature audit details (typed name, IP, timestamp).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
-import { renderEmailTemplate } from "../_emails/template.ts";
-import { heading, paragraph, divider, smallLabel, detailRow } from "../_emails/components.ts";
 import { sendEmail } from "../_emails/send.ts";
 import { BRAND } from "../_emails/brand.ts";
+import { buildContractReceipt } from "../_emails/renderers.ts";
+import { loadCopyOverrides } from "../_emails/load_overrides.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -80,23 +80,21 @@ Deno.serve(async (req) => {
     const signedAtFmt = new Date(sig.signed_at).toLocaleString("en-US", {
       dateStyle: "long", timeStyle: "short", timeZone: "UTC",
     }) + " UTC";
-    const subject = "Your signed contract — Stories by Victoria";
 
-    const contentHtml = `
-      ${heading(`Hi ${coupleNames},`)}
-      ${paragraph(`Thank you. Your contract has been signed and recorded.`)}
-      ${paragraph(`We've kept a copy in your portal — you can view it anytime under Documents.`)}
-      ${divider()}
-      ${smallLabel("Signature details")}
-      ${detailRow("Signed by", sig.typed_name)}
-      ${detailRow("Date", signedAtFmt)}
-      ${detailRow("Contract", contract?.title ?? "Wedding contract")}
-      ${detailRow("IP recorded", sig.ip_address ?? "—")}
-    `;
+    const overrides = await loadCopyOverrides(admin, "contract_receipt");
+    const ctx: Record<string, string> = {
+      couple_first_names: client?.couple_name_1 ?? "",
+      couple_full_names: coupleNames,
+      studio_name: BRAND.studioName,
+      contract_title: contract?.title ?? "Wedding contract",
+      signer_name: sig.typed_name,
+    };
 
-    const html = renderEmailTemplate({
-      preheader: "Your contract has been signed and recorded.",
-      contentHtml,
+    const { subject, html } = buildContractReceipt(overrides, ctx, {
+      contractTitle: contract?.title ?? "Wedding contract",
+      signedAtFormatted: signedAtFmt,
+      ipAddress: sig.ip_address ?? "—",
+      signerName: sig.typed_name,
     });
 
     const sendResult = await sendEmail({ to: recipients, subject, html });

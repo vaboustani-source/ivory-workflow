@@ -1,10 +1,10 @@
 // Supabase Edge Function: send-portal-invite
 // Creates a portal_invitations row and emails the invitee a magic link to /portal/welcome.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
-import { renderEmailTemplate } from "../_emails/template.ts";
-import { heading, paragraph, paragraphRich, button, noteBlock, escapeHtml } from "../_emails/components.ts";
 import { sendEmail } from "../_emails/send.ts";
 import { BRAND } from "../_emails/brand.ts";
+import { buildPortalInvite } from "../_emails/renderers.ts";
+import { loadCopyOverrides } from "../_emails/load_overrides.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -149,42 +149,20 @@ Deno.serve(async (req) => {
 
     const coupleNames = client.couple_name_1
       + (client.couple_name_2 ? ` & ${client.couple_name_2}` : "");
-    const isPartner = invitation_type === "partner";
-    const isResend = invitation_type === "resend";
+    const variant: "initial" | "resend" | "partner" =
+      invitation_type === "partner" ? "partner" : invitation_type === "resend" ? "resend" : "initial";
 
-    const subject = isPartner
-      ? `Your partner invited you to your wedding portal — ${BRAND.studioName}`
-      : isResend
-      ? `A reminder: your ${BRAND.studioName} portal awaits`
-      : `Welcome to your wedding portal — ${BRAND.studioName}`;
+    const overrides = await loadCopyOverrides(admin, "portal_invite");
+    const ctx: Record<string, string> = {
+      couple_first_names: client.couple_name_1,
+      couple_full_names: coupleNames,
+      studio_name: BRAND.studioName,
+    };
 
-    const greetingText = isPartner
-      ? `Join your partner on this journey.`
-      : isResend
-      ? `Hi ${client.couple_name_1},`
-      : `Welcome to your story.`;
-
-    const introHtml = isPartner
-      ? `You've been invited to join the wedding portal for <em>${escapeHtml(coupleNames)}</em>. We've prepared a quiet, beautiful space to walk through every step of your photography journey together.`
-      : isResend
-      ? `Just a gentle reminder — your private planning portal is ready whenever you're ready to dive in.`
-      : `We're so glad you're here. We've prepared a quiet, beautiful space for you to walk through your wedding photography journey with us — every milestone, every detail, every memory.`;
-
-    const link2 = link;
-    const contentHtml = `
-      ${heading(greetingText)}
-      ${paragraphRich(introHtml)}
-      ${button("Open your portal", link2)}
-      <p style="font-family:${BRAND.fontBody};color:${BRAND.textSecondary};font-size:12px;line-height:1.5;margin:8px 0 0;text-align:center;">This link expires in 7 days. If you didn't expect this invitation, please ignore this email.</p>
-    `;
-
-    const html = renderEmailTemplate({
-      preheader: isPartner
-        ? `You've been invited to ${coupleNames}'s wedding portal.`
-        : isResend
-        ? "A reminder of your private planning portal."
-        : "Your private wedding planning portal awaits.",
-      contentHtml,
+    const { subject, html } = buildPortalInvite(overrides, ctx, {
+      link,
+      variant,
+      partnerCoupleNames: coupleNames,
     });
 
     const sendResult = await sendEmail({ to: recipient, subject, html });

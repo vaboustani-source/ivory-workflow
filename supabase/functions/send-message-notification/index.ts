@@ -2,10 +2,10 @@
 // Sends transactional emails to conversation participants when a new message is posted.
 // Falls back gracefully if RESEND_API_KEY is not set.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
-import { renderEmailTemplate } from "../_emails/template.ts";
-import { heading, paragraph, button, noteBlock, smallLabel, escapeHtml } from "../_emails/components.ts";
 import { sendEmail } from "../_emails/send.ts";
 import { BRAND } from "../_emails/brand.ts";
+import { buildMessageNotification } from "../_emails/renderers.ts";
+import { loadCopyOverrides } from "../_emails/load_overrides.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -80,6 +80,8 @@ Deno.serve(async (req) => {
     const preview = (msg.content ?? "").substring(0, 120);
     const portalUrl = "https://storiesbyvictoria.lovable.app/studio/messages";
 
+    const overrides = await loadCopyOverrides(supabase, "message_notification");
+
     const sent: string[] = [];
     const skipped: string[] = [];
 
@@ -91,23 +93,17 @@ Deno.serve(async (req) => {
       if (!p.user?.email) { skipped.push(p.user_id + ":no_email"); continue; }
 
       const isMentioned = mentionedIds.has(p.user_id);
-      const subject = isMentioned
-        ? `${senderName} mentioned you — ${BRAND.studioName}`
-        : `New message from ${senderName} — ${BRAND.studioName}`;
+      const ctx: Record<string, string> = {
+        couple_first_names: couple?.couple_name_1 ?? "",
+        sender_name: senderName,
+        studio_name: BRAND.studioName,
+      };
 
-      const previewSafe = escapeHtml(preview).replace(/\n/g, "<br/>") +
-        ((msg.content ?? "").length > 120 ? "…" : "");
-
-      const contentHtml = `
-        ${heading(isMentioned ? `${senderName} mentioned you.` : `A new message from ${senderName}.`)}
-        ${smallLabel(`Re: ${coupleNames}`)}
-        ${noteBlock(previewSafe)}
-        ${button("Open in Studio", portalUrl)}
-      `;
-
-      const html = renderEmailTemplate({
-        preheader: `${senderName}: ${preview.slice(0, 80)}${preview.length > 80 ? "…" : ""}`,
-        contentHtml,
+      const { subject, html } = buildMessageNotification(overrides, ctx, {
+        link: portalUrl,
+        isMentioned,
+        reLabel: `Re: ${coupleNames}`,
+        messagePreview: msg.content ?? "",
       });
 
       const r = await sendEmail({ to: p.user.email, subject, html });

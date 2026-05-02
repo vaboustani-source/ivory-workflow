@@ -15,6 +15,7 @@ function SettingsLayout() {
     { label: "Team", to: "/studio/settings/team", visible: true },
     { label: "Workflow", to: "/studio/settings/workflow", visible: isOwner },
     { label: "Email Templates", to: "/studio/settings/email-templates", visible: true },
+    { label: "Email copy", to: "/studio/settings/emails", visible: isOwner },
     { label: "Resources", to: "/studio/settings/resources", visible: true },
     { label: "Calendar", to: "/studio/settings/calendar", visible: true },
     { label: "Integrations", to: "/studio/settings/integrations", visible: true },

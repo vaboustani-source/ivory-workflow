@@ -32,3 +32,6 @@ verify_jwt = true
 
 [functions.preview-emails]
 verify_jwt = true
+
+[functions.render-email-preview]
+verify_jwt = true

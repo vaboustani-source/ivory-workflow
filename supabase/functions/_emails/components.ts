@@ -9,6 +9,18 @@ export function escapeHtml(s: string): string {
     .replace(/>/g, "&gt;");
 }
 
+// Replaces {key} placeholders with values from ctx. Unknown keys pass through unchanged.
+export function renderPlaceholders(
+  text: string,
+  ctx: Record<string, string | null | undefined>,
+): string {
+  if (!text) return text;
+  return text.replace(/\{(\w+)\}/g, (match, key) => {
+    const v = ctx[key];
+    return v != null && v !== "" ? String(v) : match;
+  });
+}
+
 // Italic editorial heading — opening line of a letter.
 export function heading(text: string): string {
   return `<h1 style="font-family:${BRAND.fontHeadings};font-style:italic;font-weight:400;color:${BRAND.burgundy};font-size:26px;line-height:1.3;margin:0 0 16px;">${escapeHtml(text)}</h1>`;
