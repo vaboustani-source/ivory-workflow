@@ -35,3 +35,15 @@ verify_jwt = true
 
 [functions.render-email-preview]
 verify_jwt = true
+
+[functions.geocode-address]
+verify_jwt = true
+
+[functions.compute-sunset-time]
+verify_jwt = true
+
+[functions.compute-travel-time]
+verify_jwt = true
+
+[functions.generate-photography-timeline]
+verify_jwt = true

@@ -1190,6 +1190,111 @@ export type Database = {
         }
         Relationships: []
       }
+      photography_timelines: {
+        Row: {
+          blocks: Json
+          ceremony_address: string | null
+          ceremony_length_minutes: number
+          ceremony_start_time: string
+          client_id: string
+          coverage_end_time: string
+          created_at: string
+          dinner_end_time: string | null
+          generated_at: string
+          generated_from: string
+          getting_ready_address: string | null
+          golden_hour_start_time: string | null
+          group_portrait_minutes: number
+          has_extended_dancing: boolean | null
+          has_first_look: boolean
+          has_jewish_ketubah: boolean | null
+          has_wedding_party: boolean | null
+          id: string
+          manual_overrides: Json | null
+          notes_for_photographer: string | null
+          questionnaire_response_id: string | null
+          reception_address: string | null
+          reception_events: Json | null
+          sunset_time: string | null
+          travel_minutes_ceremony_to_reception: number | null
+          travel_minutes_gr_to_ceremony: number | null
+          updated_at: string
+        }
+        Insert: {
+          blocks?: Json
+          ceremony_address?: string | null
+          ceremony_length_minutes?: number
+          ceremony_start_time: string
+          client_id: string
+          coverage_end_time: string
+          created_at?: string
+          dinner_end_time?: string | null
+          generated_at?: string
+          generated_from?: string
+          getting_ready_address?: string | null
+          golden_hour_start_time?: string | null
+          group_portrait_minutes?: number
+          has_extended_dancing?: boolean | null
+          has_first_look?: boolean
+          has_jewish_ketubah?: boolean | null
+          has_wedding_party?: boolean | null
+          id?: string
+          manual_overrides?: Json | null
+          notes_for_photographer?: string | null
+          questionnaire_response_id?: string | null
+          reception_address?: string | null
+          reception_events?: Json | null
+          sunset_time?: string | null
+          travel_minutes_ceremony_to_reception?: number | null
+          travel_minutes_gr_to_ceremony?: number | null
+          updated_at?: string
+        }
+        Update: {
+          blocks?: Json
+          ceremony_address?: string | null
+          ceremony_length_minutes?: number
+          ceremony_start_time?: string
+          client_id?: string
+          coverage_end_time?: string
+          created_at?: string
+          dinner_end_time?: string | null
+          generated_at?: string
+          generated_from?: string
+          getting_ready_address?: string | null
+          golden_hour_start_time?: string | null
+          group_portrait_minutes?: number
+          has_extended_dancing?: boolean | null
+          has_first_look?: boolean
+          has_jewish_ketubah?: boolean | null
+          has_wedding_party?: boolean | null
+          id?: string
+          manual_overrides?: Json | null
+          notes_for_photographer?: string | null
+          questionnaire_response_id?: string | null
+          reception_address?: string | null
+          reception_events?: Json | null
+          sunset_time?: string | null
+          travel_minutes_ceremony_to_reception?: number | null
+          travel_minutes_gr_to_ceremony?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photography_timelines_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photography_timelines_questionnaire_response_id_fkey"
+            columns: ["questionnaire_response_id"]
+            isOneToOne: false
+            referencedRelation: "questionnaires"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       portal_invitations: {
         Row: {
           client_id: string

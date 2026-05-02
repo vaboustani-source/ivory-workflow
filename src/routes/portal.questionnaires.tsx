@@ -17,11 +17,12 @@ export const Route = createFileRoute("/portal/questionnaires")({
 
 interface QuestionDef {
   id: string;
-  type: "short_text" | "long_text" | "single_select" | "multi_select" | "date" | "time" | "email" | "phone" | "file_upload";
+  type: "short_text" | "long_text" | "single_select" | "multi_select" | "date" | "time" | "email" | "phone" | "file_upload" | "timeline_events";
   label: string;
   helper?: string;
   required?: boolean;
   options?: string[];
+  conditional?: { on: string; equals: string };
 }
 
 interface Questionnaire {
@@ -258,6 +259,16 @@ function QuestionnaireModal({
       target_id: questionnaire.id,
       description: `Questionnaire submitted: ${questionnaire.template?.name ?? ""}`,
     }).then(() => {});
+    // Auto-regenerate photography timeline if this is the logistics form
+    if (questionnaire.template?.name === "Wedding Day Logistics") {
+      const { data: cu } = await supabase
+        .from("questionnaires").select("client_id").eq("id", questionnaire.id).maybeSingle();
+      if (cu?.client_id) {
+        supabase.functions.invoke("generate-photography-timeline", {
+          body: { client_id: cu.client_id, questionnaire_id: questionnaire.id },
+        }).then(() => {});
+      }
+    }
     setDone(true);
     setSubmitting(false);
     await onSubmitted();
@@ -322,17 +333,19 @@ function QuestionnaireModal({
                 {schema.length === 0 ? (
                   <p className="font-serif italic text-muted-foreground">This form has no questions yet.</p>
                 ) : (
-                  schema.map((q) => (
-                    <FieldRow
-                      key={q.id}
-                      q={q}
-                      value={responses[q.id]}
-                      error={errors[q.id]}
-                      readOnly={isReadOnly}
-                      onChange={(v) => setVal(q.id, v)}
-                      registerRef={(el) => { if (el) fieldRefs.current.set(q.id, el); else fieldRefs.current.delete(q.id); }}
-                    />
-                  ))
+                  schema
+                    .filter((q) => !q.conditional || responses[q.conditional.on] === q.conditional.equals)
+                    .map((q) => (
+                      <FieldRow
+                        key={q.id}
+                        q={q}
+                        value={responses[q.id]}
+                        error={errors[q.id]}
+                        readOnly={isReadOnly}
+                        onChange={(v) => setVal(q.id, v)}
+                        registerRef={(el) => { if (el) fieldRefs.current.set(q.id, el); else fieldRefs.current.delete(q.id); }}
+                      />
+                    ))
                 )}
               </div>
             </>
@@ -444,8 +457,55 @@ function FieldRow({
       {q.type === "file_upload" && (
         <input type="file" disabled={readOnly} className={baseInput} onChange={(e) => onChange(e.target.files?.[0]?.name ?? null)} />
       )}
+      {q.type === "timeline_events" && (
+        <TimelineEventsField value={value} readOnly={readOnly} onChange={onChange} />
+      )}
 
       {error && <p className="text-[12px] text-magenta">{error}</p>}
+    </div>
+  );
+}
+
+function TimelineEventsField({ value, readOnly, onChange }: { value: any; readOnly: boolean; onChange: (v: any) => void }) {
+  const events: Array<{ time: string; label: string }> = Array.isArray(value) ? value : [];
+  const update = (idx: number, patch: Partial<{ time: string; label: string }>) => {
+    const next = events.map((e, i) => (i === idx ? { ...e, ...patch } : e));
+    onChange(next);
+  };
+  const remove = (idx: number) => onChange(events.filter((_, i) => i !== idx));
+  const add = () => onChange([...events, { time: "", label: "" }]);
+  return (
+    <div className="space-y-2">
+      {events.length === 0 && (
+        <p className="text-sm text-muted-foreground italic">No events yet. Add your reception schedule below.</p>
+      )}
+      {events.map((ev, i) => (
+        <div key={i} className="flex gap-2 items-center">
+          <input
+            type="time"
+            disabled={readOnly}
+            value={ev.time ?? ""}
+            onChange={(e) => update(i, { time: e.target.value })}
+            className="px-2 py-1 border border-border rounded-md text-sm w-[120px] bg-background"
+          />
+          <input
+            type="text"
+            disabled={readOnly}
+            value={ev.label ?? ""}
+            placeholder="e.g. Grand entrance"
+            onChange={(e) => update(i, { label: e.target.value })}
+            className="flex-1 px-2 py-1 border border-border rounded-md text-sm bg-background"
+          />
+          {!readOnly && (
+            <button type="button" onClick={() => remove(i)} className="text-magenta text-xs hover:underline px-2">Remove</button>
+          )}
+        </div>
+      ))}
+      {!readOnly && (
+        <button type="button" onClick={add} className="border border-dashed border-gold text-gold px-3 py-1.5 rounded-md text-xs hover:bg-gold/10">
+          + Add event
+        </button>
+      )}
     </div>
   );
 }
