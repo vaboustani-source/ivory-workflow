@@ -54,6 +54,8 @@ import { Route as StudioClientsIdRouteImport } from './routes/studio.clients.$id
 import { Route as PortalAccountSecurityRouteImport } from './routes/portal.account.security'
 import { Route as PortalAccountPartnerRouteImport } from './routes/portal.account.partner'
 import { Route as PortalAccountNotificationsRouteImport } from './routes/portal.account.notifications'
+import { Route as StudioSettingsEmailsIndexRouteImport } from './routes/studio.settings.emails.index'
+import { Route as StudioSettingsEmailsEmailTypeRouteImport } from './routes/studio.settings.emails.$emailType'
 import { Route as StudioContractsTemplatesIdRouteImport } from './routes/studio.contracts.templates.$id'
 
 const StudioRoute = StudioRouteImport.update({
@@ -287,6 +289,18 @@ const PortalAccountNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => PortalAccountRoute,
   } as any)
+const StudioSettingsEmailsIndexRoute =
+  StudioSettingsEmailsIndexRouteImport.update({
+    id: '/emails/',
+    path: '/emails/',
+    getParentRoute: () => StudioSettingsRoute,
+  } as any)
+const StudioSettingsEmailsEmailTypeRoute =
+  StudioSettingsEmailsEmailTypeRouteImport.update({
+    id: '/emails/$emailType',
+    path: '/emails/$emailType',
+    getParentRoute: () => StudioSettingsRoute,
+  } as any)
 const StudioContractsTemplatesIdRoute =
   StudioContractsTemplatesIdRouteImport.update({
     id: '/$id',
@@ -341,6 +355,8 @@ export interface FileRoutesByFullPath {
   '/portal/account/': typeof PortalAccountIndexRoute
   '/studio/clients/': typeof StudioClientsIndexRoute
   '/studio/contracts/templates/$id': typeof StudioContractsTemplatesIdRoute
+  '/studio/settings/emails/$emailType': typeof StudioSettingsEmailsEmailTypeRoute
+  '/studio/settings/emails/': typeof StudioSettingsEmailsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -386,6 +402,8 @@ export interface FileRoutesByTo {
   '/portal/account': typeof PortalAccountIndexRoute
   '/studio/clients': typeof StudioClientsIndexRoute
   '/studio/contracts/templates/$id': typeof StudioContractsTemplatesIdRoute
+  '/studio/settings/emails/$emailType': typeof StudioSettingsEmailsEmailTypeRoute
+  '/studio/settings/emails': typeof StudioSettingsEmailsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -435,6 +453,8 @@ export interface FileRoutesById {
   '/portal/account/': typeof PortalAccountIndexRoute
   '/studio/clients/': typeof StudioClientsIndexRoute
   '/studio/contracts/templates/$id': typeof StudioContractsTemplatesIdRoute
+  '/studio/settings/emails/$emailType': typeof StudioSettingsEmailsEmailTypeRoute
+  '/studio/settings/emails/': typeof StudioSettingsEmailsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -485,6 +505,8 @@ export interface FileRouteTypes {
     | '/portal/account/'
     | '/studio/clients/'
     | '/studio/contracts/templates/$id'
+    | '/studio/settings/emails/$emailType'
+    | '/studio/settings/emails/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -530,6 +552,8 @@ export interface FileRouteTypes {
     | '/portal/account'
     | '/studio/clients'
     | '/studio/contracts/templates/$id'
+    | '/studio/settings/emails/$emailType'
+    | '/studio/settings/emails'
   id:
     | '__root__'
     | '/'
@@ -578,6 +602,8 @@ export interface FileRouteTypes {
     | '/portal/account/'
     | '/studio/clients/'
     | '/studio/contracts/templates/$id'
+    | '/studio/settings/emails/$emailType'
+    | '/studio/settings/emails/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -904,6 +930,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalAccountNotificationsRouteImport
       parentRoute: typeof PortalAccountRoute
     }
+    '/studio/settings/emails/': {
+      id: '/studio/settings/emails/'
+      path: '/emails'
+      fullPath: '/studio/settings/emails/'
+      preLoaderRoute: typeof StudioSettingsEmailsIndexRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
+    '/studio/settings/emails/$emailType': {
+      id: '/studio/settings/emails/$emailType'
+      path: '/emails/$emailType'
+      fullPath: '/studio/settings/emails/$emailType'
+      preLoaderRoute: typeof StudioSettingsEmailsEmailTypeRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
     '/studio/contracts/templates/$id': {
       id: '/studio/contracts/templates/$id'
       path: '/$id'
@@ -999,6 +1039,8 @@ interface StudioSettingsRouteChildren {
   StudioSettingsStorageRoute: typeof StudioSettingsStorageRoute
   StudioSettingsTeamRoute: typeof StudioSettingsTeamRoute
   StudioSettingsWorkflowRoute: typeof StudioSettingsWorkflowRoute
+  StudioSettingsEmailsEmailTypeRoute: typeof StudioSettingsEmailsEmailTypeRoute
+  StudioSettingsEmailsIndexRoute: typeof StudioSettingsEmailsIndexRoute
 }
 
 const StudioSettingsRouteChildren: StudioSettingsRouteChildren = {
@@ -1011,6 +1053,8 @@ const StudioSettingsRouteChildren: StudioSettingsRouteChildren = {
   StudioSettingsStorageRoute: StudioSettingsStorageRoute,
   StudioSettingsTeamRoute: StudioSettingsTeamRoute,
   StudioSettingsWorkflowRoute: StudioSettingsWorkflowRoute,
+  StudioSettingsEmailsEmailTypeRoute: StudioSettingsEmailsEmailTypeRoute,
+  StudioSettingsEmailsIndexRoute: StudioSettingsEmailsIndexRoute,
 }
 
 const StudioSettingsRouteWithChildren = StudioSettingsRoute._addFileChildren(
