@@ -17,11 +17,12 @@ export const Route = createFileRoute("/portal/questionnaires")({
 
 interface QuestionDef {
   id: string;
-  type: "short_text" | "long_text" | "single_select" | "multi_select" | "date" | "time" | "email" | "phone" | "file_upload";
+  type: "short_text" | "long_text" | "single_select" | "multi_select" | "date" | "time" | "email" | "phone" | "file_upload" | "timeline_events";
   label: string;
   helper?: string;
   required?: boolean;
   options?: string[];
+  conditional?: { on: string; equals: string };
 }
 
 interface Questionnaire {
