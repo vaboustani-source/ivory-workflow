@@ -101,29 +101,19 @@ Deno.serve(async (req) => {
       : `/portal/questionnaires?questionnaire_id=${document_id}`;
     const link = `${baseUrl}${portalPath}`;
 
-    const subject = type === "contract"
-      ? `Your contract is ready — ${BRAND.studioName}`
-      : `We have a few questions for you — ${BRAND.studioName}`;
-    const intro = type === "contract"
-      ? `Your wedding photography contract is ready to review and sign. Take your time — we're here whenever you have questions.`
-      : `When you have a moment, would you mind answering a few questions? It helps us prepare for your day.`;
-    const ctaLabel = type === "contract" ? "Review & sign" : "Open form";
+    const coupleNames = client.couple_name_1 + (client.couple_name_2 ? ` & ${client.couple_name_2}` : "");
+    const ctx: Record<string, string> = {
+      couple_first_names: client.couple_name_1,
+      couple_full_names: coupleNames,
+      studio_name: BRAND.studioName,
+      contract_title: type === "contract" ? "Wedding Photography Agreement" : "",
+      form_title: type === "questionnaire" ? "Wedding day questionnaire" : "",
+    };
 
-    const noteHtml = personal_note
-      ? noteBlock(escapeHtml(personal_note).replace(/\n/g, "<br/>"))
-      : "";
-
-    const contentHtml = `
-      ${heading(`Hi ${client.couple_name_1},`)}
-      ${paragraph(intro)}
-      ${noteHtml}
-      ${button(ctaLabel, link)}
-    `;
-
-    const html = renderEmailTemplate({
-      preheader: intro.slice(0, 100),
-      contentHtml,
-    });
+    const overrides = await loadCopyOverrides(admin, type === "contract" ? "contract_sent" : "form_sent");
+    const { subject, html } = type === "contract"
+      ? buildContractSent(overrides, ctx, { link, personalNote: personal_note })
+      : buildFormSent(overrides, ctx, { link, personalNote: personal_note });
 
     await admin.from("activity_log").insert({
       user_id: callerId,
