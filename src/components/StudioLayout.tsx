@@ -156,15 +156,28 @@ export function StudioLayout({ children }: { children: ReactNode }) {
       }
       const [contractsRes, formsRes] = await Promise.all([contractsQ, formsQ]);
 
-      // Queue badge: rough sum of unread client messages + unread mentions + overdue milestones (scoped).
+      // Queue badge: rough sum of unread client messages + unread mentions + overdue milestones (scoped, filtered).
+      const SYS_TITLES = new Set([
+        "Welcome email", "Full portal unlocked", "Grant inquiry portal access",
+        "Client Welcome Guide surfaces", "Engagement branch activates",
+        "Album branch activates", "Videography branch activates",
+      ]);
+      const HIDDEN_AT = new Set(["reminder", "system_event", "auto"]);
+      const fourteenDaysAgoDate = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
       let overdueMilestonesCount = 0;
       const { data: overdueMsCounts } = await supabase
         .from("timeline_milestones")
-        .select("client_id")
-        .neq("status", "complete")
+        .select("client_id, title, action_type, due_date")
+        .eq("status", "upcoming")
         .lt("due_date", today);
       (overdueMsCounts ?? []).forEach((r: any) => {
-        if (scopedIds === null || (r.client_id && scopedIds.includes(r.client_id))) overdueMilestonesCount += 1;
+        if (scopedIds !== null && (!r.client_id || !scopedIds.includes(r.client_id))) return;
+        if (r.due_date <= fourteenDaysAgoDate) return;
+        if (r.action_type && HIDDEN_AT.has(r.action_type)) return;
+        const t: string = r.title ?? "";
+        if (/^reminder:/i.test(t) || /^internal:/i.test(t)) return;
+        if (SYS_TITLES.has(t)) return;
+        overdueMilestonesCount += 1;
       });
 
       if (!cancelled) {
