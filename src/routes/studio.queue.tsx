@@ -128,22 +128,27 @@ function QueuePage() {
 
       const collected: QueueItem[] = [];
 
-      // ----- 1. Unread client messages (no studio reply yet) -----
-      // Fetch conversations the user participates in, then pull last message and check sender.
-      const { data: parts } = await supabase
-        .from("conversation_participants")
-        .select("conversation_id, last_read_at, conversation:conversations(id, client_id, last_message_at, last_message_preview, client:clients(couple_name_1, couple_name_2, wedding_date))")
-        .eq("user_id", effectiveUserId);
+      // ----- 1. Unanswered client messages (last message from client, no studio reply) -----
+      // Scope: owner sees all conversations; others see conversations for clients they're assigned to.
+      // We do NOT gate on participant.last_read_at — that just tracks UI viewing, not whether
+      // studio actually replied. The authoritative signal is "last message sender role = client".
+      let convosQ = supabase
+        .from("conversations")
+        .select("id, client_id, last_message_at, last_message_preview, client:clients(couple_name_1, couple_name_2, wedding_date)")
+        .not("last_message_at", "is", null);
+      if (scopeFilter !== null) {
+        convosQ = scopeFilter.length > 0
+          ? convosQ.in("client_id", scopeFilter)
+          : convosQ.eq("client_id", "00000000-0000-0000-0000-000000000000");
+      }
+      const { data: allConvos } = await convosQ;
 
       const convoIds: string[] = [];
       const convoMap = new Map<string, any>();
-      (parts ?? []).forEach((p: any) => {
-        const c = p.conversation;
+      (allConvos ?? []).forEach((c: any) => {
         if (!c?.id || !c.last_message_at) return;
-        if (scopeFilter !== null && (!c.client_id || !scopeFilter.includes(c.client_id))) return;
-        if (p.last_read_at && new Date(c.last_message_at) <= new Date(p.last_read_at)) return;
         convoIds.push(c.id);
-        convoMap.set(c.id, { ...c, last_read_at: p.last_read_at });
+        convoMap.set(c.id, c);
       });
 
       if (convoIds.length > 0) {
