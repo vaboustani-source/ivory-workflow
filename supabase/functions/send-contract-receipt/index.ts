@@ -80,23 +80,21 @@ Deno.serve(async (req) => {
     const signedAtFmt = new Date(sig.signed_at).toLocaleString("en-US", {
       dateStyle: "long", timeStyle: "short", timeZone: "UTC",
     }) + " UTC";
-    const subject = "Your signed contract — Stories by Victoria";
 
-    const contentHtml = `
-      ${heading(`Hi ${coupleNames},`)}
-      ${paragraph(`Thank you. Your contract has been signed and recorded.`)}
-      ${paragraph(`We've kept a copy in your portal — you can view it anytime under Documents.`)}
-      ${divider()}
-      ${smallLabel("Signature details")}
-      ${detailRow("Signed by", sig.typed_name)}
-      ${detailRow("Date", signedAtFmt)}
-      ${detailRow("Contract", contract?.title ?? "Wedding contract")}
-      ${detailRow("IP recorded", sig.ip_address ?? "—")}
-    `;
+    const overrides = await loadCopyOverrides(admin, "contract_receipt");
+    const ctx: Record<string, string> = {
+      couple_first_names: client?.couple_name_1 ?? "",
+      couple_full_names: coupleNames,
+      studio_name: BRAND.studioName,
+      contract_title: contract?.title ?? "Wedding contract",
+      signer_name: sig.typed_name,
+    };
 
-    const html = renderEmailTemplate({
-      preheader: "Your contract has been signed and recorded.",
-      contentHtml,
+    const { subject, html } = buildContractReceipt(overrides, ctx, {
+      contractTitle: contract?.title ?? "Wedding contract",
+      signedAtFormatted: signedAtFmt,
+      ipAddress: sig.ip_address ?? "—",
+      signerName: sig.typed_name,
     });
 
     const sendResult = await sendEmail({ to: recipients, subject, html });
