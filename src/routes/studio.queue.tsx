@@ -105,6 +105,7 @@ function QueuePage() {
   const { profile } = useAuth();
   const { effectiveUserId, isRealOwner, viewingAs } = useViewAs();
   const [items, setItems] = useState<QueueItem[]>([]);
+  const [hiddenCount, setHiddenCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [removing, setRemoving] = useState<Set<string>>(new Set());
