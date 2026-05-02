@@ -255,6 +255,8 @@ function ClientDetail() {
           </div>
         ) : tab === "Timeline" ? (
           <ClientTimelineTab clientId={id} />
+        ) : tab === "Photography" ? (
+          <TimelineDisplay clientId={id} editable={true} />
         ) : tab === "Messages" ? (
           <ClientMessagesTab clientId={id} />
         ) : tab === "Documents" ? (
