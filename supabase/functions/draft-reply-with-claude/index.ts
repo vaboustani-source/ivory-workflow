@@ -77,7 +77,9 @@ Apologize for things that don't need apology
 
 Promise things outside SBV's standard practices unless told they're agreed
 
-Use phrases like "I just wanted to..." or "Hopefully this helps" — they're filler
+Use phrases like "I just wanted to..." or "Hopefully this helps", they're filler
+
+NEVER use em-dashes (—) or en-dashes (–) in drafts. Use commas, periods, or parentheses instead. If a thought needs a stronger break, start a new sentence. This is a hard rule, no exceptions.
 
 PRICING APPROACH:
 
