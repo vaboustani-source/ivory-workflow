@@ -75,6 +75,29 @@ function daysSince(iso: string | null | undefined): number {
   return Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / (24 * 60 * 60 * 1000)));
 }
 
+// Filter out reminders, system events, internal tasks, and stale (>14d) milestones.
+const SYSTEM_EVENT_TITLES = new Set<string>([
+  "Welcome email",
+  "Full portal unlocked",
+  "Grant inquiry portal access",
+  "Client Welcome Guide surfaces",
+  "Engagement branch activates",
+  "Album branch activates",
+  "Videography branch activates",
+]);
+const HIDDEN_ACTION_TYPES = new Set<string>(["reminder", "system_event", "auto"]);
+
+function isHumanActionMilestone(m: any, fourteenDaysAgoIsoDate: string): boolean {
+  if (!m?.due_date) return false;
+  if (m.due_date <= fourteenDaysAgoIsoDate) return false;
+  if (m.action_type && HIDDEN_ACTION_TYPES.has(m.action_type)) return false;
+  const title: string = m.title ?? "";
+  if (/^reminder:/i.test(title)) return false;
+  if (/^internal:/i.test(title)) return false;
+  if (SYSTEM_EVENT_TITLES.has(title)) return false;
+  return true;
+}
+
 // =====================================================================
 // Page
 // =====================================================================
@@ -82,6 +105,7 @@ function QueuePage() {
   const { profile } = useAuth();
   const { effectiveUserId, isRealOwner, viewingAs } = useViewAs();
   const [items, setItems] = useState<QueueItem[]>([]);
+  const [hiddenCount, setHiddenCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [removing, setRemoving] = useState<Set<string>>(new Set());
@@ -223,12 +247,19 @@ function QueuePage() {
 
       // ----- 4. Overdue milestones assigned to me (RLS handles scope) -----
       const today = new Date().toISOString().slice(0, 10);
+      const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
       const { data: milestones } = await supabase
         .from("timeline_milestones")
-        .select("id, title, due_date, client_id, client:clients(couple_name_1, couple_name_2, wedding_date)")
-        .neq("status", "complete")
+        .select("id, title, due_date, action_type, client_id, client:clients(couple_name_1, couple_name_2, wedding_date)")
+        .eq("status", "upcoming")
         .lt("due_date", today);
+
+      let hiddenMilestoneCount = 0;
       (milestones ?? []).forEach((m: any) => {
+        if (!isHumanActionMilestone(m, fourteenDaysAgo)) {
+          hiddenMilestoneCount += 1;
+          return;
+        }
         collected.push({
           id: `ms:${m.id}`,
           type: "milestone_overdue",
@@ -244,6 +275,7 @@ function QueuePage() {
           },
         });
       });
+      setHiddenCount(hiddenMilestoneCount);
 
       // ----- 5. Unread mentions of me -----
       const { data: mentions } = await supabase
@@ -338,6 +370,17 @@ function QueuePage() {
               <QueueCard item={it} onRemove={() => removeWithAnim(it.id)} />
             </div>
           ))}
+        </div>
+      )}
+
+      {!loading && hiddenCount > 0 && (
+        <div className="max-w-3xl mt-8 pt-4 border-t border-border/50 text-center">
+          <Link
+            to="/studio/queue/hidden"
+            className="text-xs italic text-muted-foreground hover:text-primary"
+          >
+            {hiddenCount} {hiddenCount === 1 ? "item" : "items"} hidden (reminders, system events, internal tasks)
+          </Link>
         </div>
       )}
     </div>
