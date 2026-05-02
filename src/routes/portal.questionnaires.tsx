@@ -455,3 +455,47 @@ function FieldRow({
     </div>
   );
 }
+
+function TimelineEventsField({ value, readOnly, onChange }: { value: any; readOnly: boolean; onChange: (v: any) => void }) {
+  const events: Array<{ time: string; label: string }> = Array.isArray(value) ? value : [];
+  const update = (idx: number, patch: Partial<{ time: string; label: string }>) => {
+    const next = events.map((e, i) => (i === idx ? { ...e, ...patch } : e));
+    onChange(next);
+  };
+  const remove = (idx: number) => onChange(events.filter((_, i) => i !== idx));
+  const add = () => onChange([...events, { time: "", label: "" }]);
+  return (
+    <div className="space-y-2">
+      {events.length === 0 && (
+        <p className="text-sm text-muted-foreground italic">No events yet. Add your reception schedule below.</p>
+      )}
+      {events.map((ev, i) => (
+        <div key={i} className="flex gap-2 items-center">
+          <input
+            type="time"
+            disabled={readOnly}
+            value={ev.time ?? ""}
+            onChange={(e) => update(i, { time: e.target.value })}
+            className="px-2 py-1 border border-border rounded-md text-sm w-[120px] bg-background"
+          />
+          <input
+            type="text"
+            disabled={readOnly}
+            value={ev.label ?? ""}
+            placeholder="e.g. Grand entrance"
+            onChange={(e) => update(i, { label: e.target.value })}
+            className="flex-1 px-2 py-1 border border-border rounded-md text-sm bg-background"
+          />
+          {!readOnly && (
+            <button type="button" onClick={() => remove(i)} className="text-magenta text-xs hover:underline px-2">Remove</button>
+          )}
+        </div>
+      ))}
+      {!readOnly && (
+        <button type="button" onClick={add} className="border border-dashed border-gold text-gold px-3 py-1.5 rounded-md text-xs hover:bg-gold/10">
+          + Add event
+        </button>
+      )}
+    </div>
+  );
+}
