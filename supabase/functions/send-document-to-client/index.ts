@@ -1,10 +1,10 @@
 // Supabase Edge Function: send-document-to-client
 // Sends a contract or questionnaire notification email to the couple via Resend.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
-import { renderEmailTemplate } from "../_emails/template.ts";
-import { heading, paragraph, button, noteBlock, escapeHtml } from "../_emails/components.ts";
 import { sendEmail } from "../_emails/send.ts";
 import { BRAND } from "../_emails/brand.ts";
+import { buildContractSent, buildFormSent } from "../_emails/renderers.ts";
+import { loadCopyOverrides } from "../_emails/load_overrides.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
