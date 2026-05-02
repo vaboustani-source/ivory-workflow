@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useEffectiveScope, useViewAs } from "@/lib/view-as";
 import { editorialDate, firstName, shortDate, relativeTime } from "@/lib/dates";
-import { AlertCircle, Check } from "lucide-react";
+import { AlertCircle, Check, Mail } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/studio/")({
   component: Dashboard,
