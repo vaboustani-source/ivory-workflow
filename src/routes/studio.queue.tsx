@@ -453,11 +453,17 @@ function useDraft(itemType: ItemType, ctx: any, enabled: boolean) {
   const [source, setSource] = useState<"claude" | "fallback" | null>(null);
   const generated = useRef(false);
 
+  const ctxRef = useRef(ctx);
+  ctxRef.current = ctx;
+  const itemTypeRef = useRef(itemType);
+  itemTypeRef.current = itemType;
+
   const generate = useCallback(async () => {
     setLoading(true);
     try {
+      console.log("[useDraft] invoking draft-reply-with-claude", { item_type: itemTypeRef.current });
       const { data, error } = await supabase.functions.invoke("draft-reply-with-claude", {
-        body: { item_type: itemType, context: ctx },
+        body: { item_type: itemTypeRef.current, context: ctxRef.current },
       });
       if (error) throw error;
       setDraft(data?.draft ?? "");
@@ -469,12 +475,12 @@ function useDraft(itemType: ItemType, ctx: any, enabled: boolean) {
     } finally {
       setLoading(false);
     }
-  }, [itemType, JSON.stringify(ctx)]);
+  }, []);
 
   useEffect(() => {
     if (!enabled || generated.current) return;
     generated.current = true;
-    const t = setTimeout(generate, 500);
+    const t = setTimeout(() => { generate(); }, 500);
     return () => clearTimeout(t);
   }, [enabled, generate]);
 
