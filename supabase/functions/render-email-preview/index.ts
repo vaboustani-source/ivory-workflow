@@ -1,8 +1,7 @@
-// Supabase Edge Function: preview-emails
-// Owner-only QA tool. Sends sample versions of each transactional email using the
-// shared renderers + saved copy overrides so previews match production output.
+// Supabase Edge Function: render-email-preview
+// Owner-only. Returns the rendered HTML + subject for a given email type using
+// inline overrides (the user's unsaved edits) merged on top of saved overrides.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
-import { sendEmail } from "../_emails/send.ts";
 import { buildPreviewEmail, EmailType } from "../_emails/renderers.ts";
 import { loadCopyOverrides } from "../_emails/load_overrides.ts";
 import { SAMPLE_CONTEXT } from "../_emails/copy_schemas.ts";
@@ -41,31 +40,34 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { recipient, types } = body as { recipient?: string; types?: EmailType[] };
-    if (!recipient || !Array.isArray(types) || types.length === 0) {
-      return new Response(JSON.stringify({ error: "recipient and types[] required" }), {
+    const {
+      email_type,
+      overrides_inline,
+      context,
+    } = body as {
+      email_type?: EmailType;
+      overrides_inline?: Record<string, string>;
+      context?: Record<string, string>;
+    };
+
+    if (!email_type) {
+      return new Response(JSON.stringify({ error: "email_type required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const results: Array<{ type: string; emailed: boolean; warn?: string }> = [];
-    for (const t of types) {
-      try {
-        const overrides = await loadCopyOverrides(admin, t);
-        const { subject, html } = buildPreviewEmail(t, overrides, SAMPLE_CONTEXT);
-        const r = await sendEmail({ to: recipient, subject: `[PREVIEW] ${subject}`, html });
-        results.push({ type: t, emailed: r.emailed, warn: r.warn });
-      } catch (e) {
-        console.error("preview build/send failed", t, e);
-        results.push({ type: t, emailed: false, warn: String(e) });
-      }
-    }
+    // Merge: saved overrides ← inline (live editor) overrides
+    const saved = await loadCopyOverrides(admin, email_type);
+    const overrides: Record<string, string> = { ...saved, ...(overrides_inline ?? {}) };
+    const ctx = { ...SAMPLE_CONTEXT, ...(context ?? {}) };
 
-    return new Response(JSON.stringify({ ok: true, recipient, results }), {
+    const { subject, html } = buildPreviewEmail(email_type, overrides, ctx);
+
+    return new Response(JSON.stringify({ ok: true, subject, html }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("preview-emails error", e);
+    console.error("render-email-preview error", e);
     return new Response(JSON.stringify({ error: String(e) }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
