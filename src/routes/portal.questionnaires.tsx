@@ -259,6 +259,16 @@ function QuestionnaireModal({
       target_id: questionnaire.id,
       description: `Questionnaire submitted: ${questionnaire.template?.name ?? ""}`,
     }).then(() => {});
+    // Auto-regenerate photography timeline if this is the logistics form
+    if (questionnaire.template?.name === "Wedding Day Logistics") {
+      const { data: cu } = await supabase
+        .from("questionnaires").select("client_id").eq("id", questionnaire.id).maybeSingle();
+      if (cu?.client_id) {
+        supabase.functions.invoke("generate-photography-timeline", {
+          body: { client_id: cu.client_id, questionnaire_id: questionnaire.id },
+        }).then(() => {});
+      }
+    }
     setDone(true);
     setSubmitting(false);
     await onSubmitted();
