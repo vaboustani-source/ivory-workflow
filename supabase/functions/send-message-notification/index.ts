@@ -80,6 +80,8 @@ Deno.serve(async (req) => {
     const preview = (msg.content ?? "").substring(0, 120);
     const portalUrl = "https://storiesbyvictoria.lovable.app/studio/messages";
 
+    const overrides = await loadCopyOverrides(supabase, "message_notification");
+
     const sent: string[] = [];
     const skipped: string[] = [];
 
@@ -91,23 +93,17 @@ Deno.serve(async (req) => {
       if (!p.user?.email) { skipped.push(p.user_id + ":no_email"); continue; }
 
       const isMentioned = mentionedIds.has(p.user_id);
-      const subject = isMentioned
-        ? `${senderName} mentioned you — ${BRAND.studioName}`
-        : `New message from ${senderName} — ${BRAND.studioName}`;
+      const ctx: Record<string, string> = {
+        couple_first_names: couple?.couple_name_1 ?? "",
+        sender_name: senderName,
+        studio_name: BRAND.studioName,
+      };
 
-      const previewSafe = escapeHtml(preview).replace(/\n/g, "<br/>") +
-        ((msg.content ?? "").length > 120 ? "…" : "");
-
-      const contentHtml = `
-        ${heading(isMentioned ? `${senderName} mentioned you.` : `A new message from ${senderName}.`)}
-        ${smallLabel(`Re: ${coupleNames}`)}
-        ${noteBlock(previewSafe)}
-        ${button("Open in Studio", portalUrl)}
-      `;
-
-      const html = renderEmailTemplate({
-        preheader: `${senderName}: ${preview.slice(0, 80)}${preview.length > 80 ? "…" : ""}`,
-        contentHtml,
+      const { subject, html } = buildMessageNotification(overrides, ctx, {
+        link: portalUrl,
+        isMentioned,
+        reLabel: `Re: ${coupleNames}`,
+        messagePreview: msg.content ?? "",
       });
 
       const r = await sendEmail({ to: p.user.email, subject, html });
