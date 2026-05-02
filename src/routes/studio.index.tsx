@@ -113,9 +113,12 @@ function Dashboard() {
 
   return (
     <div>
-      <header className="mb-10">
-        <h1 className="font-serif italic text-[32px] text-primary leading-tight">Good morning, {firstName(profile?.full_name)}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{editorialDate()}</p>
+      <header className="mb-10 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-serif italic text-[32px] text-primary leading-tight">Good morning, {firstName(profile?.full_name)}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{editorialDate()}</p>
+        </div>
+        {profile?.role === "owner" && <SendEmailPreviewsButton email={profile?.email ?? null} />}
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
