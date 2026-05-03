@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Home, Calendar, MessageCircle, FileText, Image, Receipt, BookOpen, User,
-  Bell, LogOut, Menu, ClipboardList, Heart,
+  Bell, LogOut, Menu, ClipboardList, Heart, Camera,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { firstName, shortDate } from "@/lib/dates";
@@ -18,12 +18,14 @@ type NavItem = {
   exact?: boolean;
   matchPrefix?: string;
   hideForLead?: boolean;
-  badgeKey?: "messages" | "documents" | "questionnaires";
+  badgeKey?: "messages" | "documents" | "questionnaires" | "portrait_sequence";
+  requireFlag?: "portrait_sequence";
 };
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Home", to: "/portal", icon: Home, exact: true },
   { label: "Timeline", to: "/portal/timeline", icon: Calendar, hideForLead: true },
+  { label: "Portrait sequence", to: "/portal/portrait-sequence", icon: Camera, hideForLead: true, badgeKey: "portrait_sequence", requireFlag: "portrait_sequence" },
   { label: "Messages", to: "/portal/messages", icon: MessageCircle, badgeKey: "messages" },
   { label: "Documents", to: "/portal/documents", icon: FileText, badgeKey: "documents" },
   { label: "Forms", to: "/portal/questionnaires", icon: ClipboardList, badgeKey: "questionnaires" },
@@ -49,7 +51,12 @@ export function PortalLayout({
   const [badges, setBadges] = useState<Record<string, NavBadge>>({});
 
   const isLead = client?.status === "lead";
-  const visibleNav = NAV_ITEMS.filter((i) => !(isLead && i.hideForLead));
+  const hasPortraitSeq = !!badges["portrait_sequence"];
+  const visibleNav = NAV_ITEMS.filter((i) => {
+    if (isLead && i.hideForLead) return false;
+    if (i.requireFlag === "portrait_sequence" && !hasPortraitSeq) return false;
+    return true;
+  });
   const isActive = (i: NavItem) => {
     if (i.exact) return location.pathname === i.to;
     if (i.matchPrefix) return location.pathname.startsWith(i.matchPrefix);
@@ -96,6 +103,13 @@ export function PortalLayout({
         .from("questionnaires").select("id, status").eq("client_id", clientId);
       const hasOpenQ = (qs ?? []).some((q: any) => q.status === "not_started" || q.status === "in_progress");
       if (hasOpenQ) next["questionnaires"] = { kind: "gold" };
+
+      // PORTRAIT SEQUENCE: exists → mark presence; gold dot if not yet approved
+      const { data: seq } = await supabase
+        .from("portrait_sequences").select("id, approved_at").eq("client_id", clientId).maybeSingle();
+      if (seq?.id) {
+        next["portrait_sequence"] = { kind: seq.approved_at ? "none" : "gold" };
+      }
 
       if (!cancelled) setBadges(next);
     };

@@ -387,6 +387,8 @@ Deno.serve(async (req) => {
       extended_shots,
       total_minutes,
       notes: fam1.notes || fam2.notes ? [fam1.notes, fam2.notes].filter(Boolean).join("\n\n") : null,
+      approved_at: null,
+      approved_by: null,
     };
 
     const { data: up, error: upErr } = await admin
