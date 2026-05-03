@@ -579,6 +579,8 @@ interface FamilyData {
   siblings?: SiblingEntry[];
   grandparents?: string;
   notes?: string;
+  include_sibling_couples?: boolean;
+  include_sibling_couples_with_us?: boolean;
 }
 function FamilyPortraitField({ value, readOnly, onChange }: { value: any; readOnly: boolean; onChange: (v: any) => void }) {
   const data: FamilyData = value && typeof value === "object" ? value : {};
