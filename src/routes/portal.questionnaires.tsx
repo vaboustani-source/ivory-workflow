@@ -412,6 +412,15 @@ function FieldRow({
 }) {
   const baseInput = "w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:bg-background-alt disabled:cursor-not-allowed";
 
+  if (q.type === "section_header") {
+    return (
+      <div ref={registerRef as any} className="pt-4 pb-2 border-b border-gold/40 mt-4">
+        <h3 className="font-serif italic text-2xl text-primary">{q.label}</h3>
+        {q.helper && <p className="text-sm text-muted-foreground mt-1">{q.helper}</p>}
+      </div>
+    );
+  }
+
   return (
     <div ref={registerRef as any} className="space-y-2">
       <label className="block text-sm text-foreground">
