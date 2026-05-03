@@ -17,12 +17,25 @@ export const Route = createFileRoute("/portal/questionnaires")({
 
 interface QuestionDef {
   id: string;
-  type: "short_text" | "long_text" | "single_select" | "multi_select" | "date" | "time" | "email" | "phone" | "file_upload" | "timeline_events";
+  type:
+    | "short_text" | "long_text" | "single_select" | "multi_select"
+    | "date" | "time" | "email" | "phone" | "file_upload" | "timeline_events"
+    | "section_header" | "vendor_entry" | "family_portrait_sequence"
+    | "wedding_party_shots" | "extended_portrait_shots";
   label: string;
   helper?: string;
   required?: boolean;
   options?: string[];
   conditional?: { on: string; equals: string };
+}
+
+const NON_QUESTION_TYPES = new Set(["section_header"]);
+function isAnswered(q: QuestionDef, v: any): boolean {
+  if (NON_QUESTION_TYPES.has(q.type)) return true;
+  if (v === undefined || v === null) return false;
+  if (Array.isArray(v)) return v.length > 0;
+  if (typeof v === "object") return Object.values(v).some((x) => x !== undefined && x !== null && String(x).trim().length > 0);
+  return String(v).trim().length > 0;
 }
 
 interface Questionnaire {
