@@ -25,13 +25,25 @@ function toHHMM(mins: number): string {
 }
 function parseCeremonyLength(s: string | undefined): number {
   if (!s) return 30;
+  // Handle ranges like "15-20 min" → midpoint 17
+  const range = /(\d+)\s*[-–]\s*(\d+)/.exec(s);
+  if (range) return Math.round((parseInt(range[1], 10) + parseInt(range[2], 10)) / 2);
   const m = /(\d+)/.exec(s);
   return m ? parseInt(m[1], 10) : 30;
 }
 function bool(v: unknown, def = false): boolean {
-  if (typeof v === "string") return v.trim().toLowerCase() === "yes";
+  if (typeof v === "string") {
+    const t = v.trim().toLowerCase();
+    return t === "yes" || t.startsWith("yes");
+  }
   if (typeof v === "boolean") return v;
   return def;
+}
+function firstAddressLine(s: string | undefined): string {
+  if (!s) return "";
+  // Accept first non-empty line as the primary address
+  const line = s.split(/\r?\n/).map((x) => x.trim()).filter(Boolean)[0];
+  return line ?? "";
 }
 function computeGroupPortraitMinutes(text: string | undefined, hasWeddingParty: boolean): number {
   if (!text || !text.trim()) return hasWeddingParty ? 60 : 30;
