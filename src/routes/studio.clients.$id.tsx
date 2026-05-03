@@ -50,6 +50,7 @@ interface ClientDetailRow {
   venue_postal_code: string | null;
   guest_count: number | null;
   package_price: number | null;
+  coverage_hours: number | null;
   status: string;
   last_contacted_at: string | null;
   portal_invited_at: string | null;
@@ -99,7 +100,7 @@ function ClientDetail() {
     const [{ data }, openCount, doneCount] = await Promise.all([
       supabase.from("clients").select(`
         id, couple_name_1, couple_name_2, primary_email, secondary_email, phone,
-        wedding_date, venue_name, venue_address, venue_street, venue_city, venue_state, venue_postal_code, guest_count, package_price, status,
+        wedding_date, venue_name, venue_address, venue_street, venue_city, venue_state, venue_postal_code, guest_count, package_price, coverage_hours, status,
         last_contacted_at, portal_invited_at, portal_first_login_at,
         package:packages(name),
         photographer:profiles!clients_photographer_id_fkey(full_name),
@@ -211,6 +212,7 @@ function ClientDetail() {
                 <Row label="Guest count" value={client.guest_count?.toString() ?? "—"} />
                 <Row label="Package" value={client.package?.name ?? "—"} />
                 <Row label="Investment" value={client.package_price ? `$${Number(client.package_price).toLocaleString()}` : "—"} />
+                <CoverageHoursRow clientId={client.id} initial={client.coverage_hours} onSaved={(v: number | null) => setClient((c) => c ? { ...c, coverage_hours: v } : c)} />
               </Card>
             </div>
 
@@ -335,6 +337,48 @@ function AddressRow({ client }: { client: ClientDetailRow }) {
           <>{[client.venue_city, client.venue_state].filter(Boolean).join(", ")}{client.venue_postal_code ? ` ${client.venue_postal_code}` : ""}</>
         )}
       </a>
+    </div>
+  );
+}
+
+function CoverageHoursRow({ clientId, initial, onSaved }: { clientId: string; initial: number | null; onSaved: (v: number | null) => void }) {
+  const [val, setVal] = useState<string>(initial != null ? String(initial) : "");
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { setVal(initial != null ? String(initial) : ""); }, [initial]);
+
+  const save = async () => {
+    const trimmed = val.trim();
+    const parsed = trimmed === "" ? null : Number(trimmed);
+    if (parsed !== null && (Number.isNaN(parsed) || parsed < 0)) return;
+    setSaving(true);
+    const { error } = await supabase.from("clients").update({ coverage_hours: parsed }).eq("id", clientId);
+    setSaving(false);
+    if (error) { toast.error("Couldn't save coverage hours."); return; }
+    onSaved(parsed);
+  };
+
+  return (
+    <div className="flex justify-between items-start gap-4 py-2 border-b border-border last:border-0">
+      <div className="flex-1">
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">Booked coverage hours</p>
+        <p className="text-[11px] text-muted-foreground/80 mt-0.5 italic">
+          Total photography coverage time the couple has paid for, including any add-ons. Used to flag upsell opportunities.
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          type="number"
+          step="0.5"
+          min="0"
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onBlur={save}
+          placeholder="—"
+          className="w-20 px-2 py-1 bg-background border border-border rounded-md text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/20"
+        />
+        <span className="text-xs text-muted-foreground">hr</span>
+        {saving && <span className="text-[10px] text-muted-foreground">…</span>}
+      </div>
     </div>
   );
 }

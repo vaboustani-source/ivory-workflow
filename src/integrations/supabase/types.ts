@@ -344,6 +344,7 @@ export type Database = {
           booked_at: string | null
           couple_name_1: string
           couple_name_2: string | null
+          coverage_hours: number | null
           created_at: string
           guest_count: number | null
           has_album: boolean | null
@@ -382,6 +383,7 @@ export type Database = {
           booked_at?: string | null
           couple_name_1: string
           couple_name_2?: string | null
+          coverage_hours?: number | null
           created_at?: string
           guest_count?: number | null
           has_album?: boolean | null
@@ -420,6 +422,7 @@ export type Database = {
           booked_at?: string | null
           couple_name_1?: string
           couple_name_2?: string | null
+          coverage_hours?: number | null
           created_at?: string
           guest_count?: number | null
           has_album?: boolean | null
@@ -1318,14 +1321,18 @@ export type Database = {
       photography_timelines: {
         Row: {
           blocks: Json
+          booked_coverage_hours: number | null
           ceremony_address: string | null
           ceremony_length_minutes: number
           ceremony_start_time: string
           client_id: string
           coverage_end_time: string
+          coverage_overage_hours: number | null
+          coverage_status: string | null
           created_at: string
           dinner_end_time: string | null
           generated_at: string
+          generated_coverage_hours: number | null
           generated_from: string
           getting_ready_address: string | null
           golden_hour_start_time: string | null
@@ -1347,14 +1354,18 @@ export type Database = {
         }
         Insert: {
           blocks?: Json
+          booked_coverage_hours?: number | null
           ceremony_address?: string | null
           ceremony_length_minutes?: number
           ceremony_start_time: string
           client_id: string
           coverage_end_time: string
+          coverage_overage_hours?: number | null
+          coverage_status?: string | null
           created_at?: string
           dinner_end_time?: string | null
           generated_at?: string
+          generated_coverage_hours?: number | null
           generated_from?: string
           getting_ready_address?: string | null
           golden_hour_start_time?: string | null
@@ -1376,14 +1387,18 @@ export type Database = {
         }
         Update: {
           blocks?: Json
+          booked_coverage_hours?: number | null
           ceremony_address?: string | null
           ceremony_length_minutes?: number
           ceremony_start_time?: string
           client_id?: string
           coverage_end_time?: string
+          coverage_overage_hours?: number | null
+          coverage_status?: string | null
           created_at?: string
           dinner_end_time?: string | null
           generated_at?: string
+          generated_coverage_hours?: number | null
           generated_from?: string
           getting_ready_address?: string | null
           golden_hour_start_time?: string | null
