@@ -30,7 +30,6 @@ import { Route as PortalWelcomeRouteImport } from './routes/portal.welcome'
 import { Route as PortalTimelineRouteImport } from './routes/portal.timeline'
 import { Route as PortalResourcesRouteImport } from './routes/portal.resources'
 import { Route as PortalQuestionnairesRouteImport } from './routes/portal.questionnaires'
-import { Route as PortalPortraitSequenceRouteImport } from './routes/portal.portrait-sequence'
 import { Route as PortalMessagesRouteImport } from './routes/portal.messages'
 import { Route as PortalInvoicesRouteImport } from './routes/portal.invoices'
 import { Route as PortalGalleryRouteImport } from './routes/portal.gallery'
@@ -163,11 +162,6 @@ const PortalResourcesRoute = PortalResourcesRouteImport.update({
 const PortalQuestionnairesRoute = PortalQuestionnairesRouteImport.update({
   id: '/questionnaires',
   path: '/questionnaires',
-  getParentRoute: () => PortalRoute,
-} as any)
-const PortalPortraitSequenceRoute = PortalPortraitSequenceRouteImport.update({
-  id: '/portrait-sequence',
-  path: '/portrait-sequence',
   getParentRoute: () => PortalRoute,
 } as any)
 const PortalMessagesRoute = PortalMessagesRouteImport.update({
@@ -331,7 +325,6 @@ export interface FileRoutesByFullPath {
   '/portal/gallery': typeof PortalGalleryRoute
   '/portal/invoices': typeof PortalInvoicesRoute
   '/portal/messages': typeof PortalMessagesRoute
-  '/portal/portrait-sequence': typeof PortalPortraitSequenceRoute
   '/portal/questionnaires': typeof PortalQuestionnairesRoute
   '/portal/resources': typeof PortalResourcesRoute
   '/portal/timeline': typeof PortalTimelineRoute
@@ -380,7 +373,6 @@ export interface FileRoutesByTo {
   '/portal/gallery': typeof PortalGalleryRoute
   '/portal/invoices': typeof PortalInvoicesRoute
   '/portal/messages': typeof PortalMessagesRoute
-  '/portal/portrait-sequence': typeof PortalPortraitSequenceRoute
   '/portal/questionnaires': typeof PortalQuestionnairesRoute
   '/portal/resources': typeof PortalResourcesRoute
   '/portal/timeline': typeof PortalTimelineRoute
@@ -433,7 +425,6 @@ export interface FileRoutesById {
   '/portal/gallery': typeof PortalGalleryRoute
   '/portal/invoices': typeof PortalInvoicesRoute
   '/portal/messages': typeof PortalMessagesRoute
-  '/portal/portrait-sequence': typeof PortalPortraitSequenceRoute
   '/portal/questionnaires': typeof PortalQuestionnairesRoute
   '/portal/resources': typeof PortalResourcesRoute
   '/portal/timeline': typeof PortalTimelineRoute
@@ -487,7 +478,6 @@ export interface FileRouteTypes {
     | '/portal/gallery'
     | '/portal/invoices'
     | '/portal/messages'
-    | '/portal/portrait-sequence'
     | '/portal/questionnaires'
     | '/portal/resources'
     | '/portal/timeline'
@@ -536,7 +526,6 @@ export interface FileRouteTypes {
     | '/portal/gallery'
     | '/portal/invoices'
     | '/portal/messages'
-    | '/portal/portrait-sequence'
     | '/portal/questionnaires'
     | '/portal/resources'
     | '/portal/timeline'
@@ -588,7 +577,6 @@ export interface FileRouteTypes {
     | '/portal/gallery'
     | '/portal/invoices'
     | '/portal/messages'
-    | '/portal/portrait-sequence'
     | '/portal/questionnaires'
     | '/portal/resources'
     | '/portal/timeline'
@@ -784,13 +772,6 @@ declare module '@tanstack/react-router' {
       path: '/questionnaires'
       fullPath: '/portal/questionnaires'
       preLoaderRoute: typeof PortalQuestionnairesRouteImport
-      parentRoute: typeof PortalRoute
-    }
-    '/portal/portrait-sequence': {
-      id: '/portal/portrait-sequence'
-      path: '/portrait-sequence'
-      fullPath: '/portal/portrait-sequence'
-      preLoaderRoute: typeof PortalPortraitSequenceRouteImport
       parentRoute: typeof PortalRoute
     }
     '/portal/messages': {
@@ -1017,7 +998,6 @@ interface PortalRouteChildren {
   PortalGalleryRoute: typeof PortalGalleryRoute
   PortalInvoicesRoute: typeof PortalInvoicesRoute
   PortalMessagesRoute: typeof PortalMessagesRoute
-  PortalPortraitSequenceRoute: typeof PortalPortraitSequenceRoute
   PortalQuestionnairesRoute: typeof PortalQuestionnairesRoute
   PortalResourcesRoute: typeof PortalResourcesRoute
   PortalTimelineRoute: typeof PortalTimelineRoute
@@ -1032,7 +1012,6 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalGalleryRoute: PortalGalleryRoute,
   PortalInvoicesRoute: PortalInvoicesRoute,
   PortalMessagesRoute: PortalMessagesRoute,
-  PortalPortraitSequenceRoute: PortalPortraitSequenceRoute,
   PortalQuestionnairesRoute: PortalQuestionnairesRoute,
   PortalResourcesRoute: PortalResourcesRoute,
   PortalTimelineRoute: PortalTimelineRoute,

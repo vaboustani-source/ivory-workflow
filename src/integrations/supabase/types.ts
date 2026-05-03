@@ -1351,11 +1351,8 @@ export type Database = {
       }
       portrait_sequences: {
         Row: {
-          approved_at: string | null
-          approved_by: string | null
           client_id: string
           combined_sequence: Json | null
-          couple_review_notes: string | null
           created_at: string
           extended_shots: Json | null
           generated_at: string
@@ -1371,11 +1368,8 @@ export type Database = {
           wedding_party_shots: Json | null
         }
         Insert: {
-          approved_at?: string | null
-          approved_by?: string | null
           client_id: string
           combined_sequence?: Json | null
-          couple_review_notes?: string | null
           created_at?: string
           extended_shots?: Json | null
           generated_at?: string
@@ -1391,11 +1385,8 @@ export type Database = {
           wedding_party_shots?: Json | null
         }
         Update: {
-          approved_at?: string | null
-          approved_by?: string | null
           client_id?: string
           combined_sequence?: Json | null
-          couple_review_notes?: string | null
           created_at?: string
           extended_shots?: Json | null
           generated_at?: string
@@ -1411,13 +1402,6 @@ export type Database = {
           wedding_party_shots?: Json | null
         }
         Relationships: [
-          {
-            foreignKeyName: "portrait_sequences_approved_by_fkey"
-            columns: ["approved_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "portrait_sequences_client_id_fkey"
             columns: ["client_id"]

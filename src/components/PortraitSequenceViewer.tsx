@@ -24,8 +24,6 @@ interface PortraitSequence {
   total_minutes: number | null;
   notes: string | null;
   generated_at: string;
-  approved_at: string | null;
-  approved_by: string | null;
 }
 
 type ListKey = "partner_1_sequence" | "partner_2_sequence" | "combined_sequence" | "wedding_party_shots" | "extended_shots";
@@ -56,7 +54,7 @@ function renderPeople(people: PersonLike[]): string {
     .join(", ");
 }
 
-export function PortraitSequenceViewer({ clientId, editable = false, coupleView = false }: { clientId: string; editable?: boolean; coupleView?: boolean }) {
+export function PortraitSequenceViewer({ clientId, editable = false }: { clientId: string; editable?: boolean }) {
   const [seq, setSeq] = useState<PortraitSequence | null>(null);
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
@@ -178,39 +176,24 @@ export function PortraitSequenceViewer({ clientId, editable = false, coupleView 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3 bg-surface rounded-md p-3 border border-border">
-        <div className="flex items-center gap-3">
-          <div className="text-xs text-muted-foreground">
-            Generated {new Date(seq.generated_at).toLocaleString()} · Total ~{visibleTotal} min
-          </div>
-          {seq.approved_at ? (
-            <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-sage/15 text-sage border border-sage/30">
-              Approved {new Date(seq.approved_at).toLocaleDateString()}
-            </span>
-          ) : (
-            <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-gold/15 text-gold border border-gold/30">
-              Pending review
-            </span>
-          )}
+        <div className="text-xs text-muted-foreground">
+          Generated {new Date(seq.generated_at).toLocaleString()} · Total ~{visibleTotal} min
         </div>
         <div className="flex items-center gap-2">
-          {!coupleView && (
-            <>
-              <button
-                onClick={() => setShowSibCouples((v) => !v)}
-                className={`px-2 py-1 text-[11px] rounded-md border inline-flex items-center gap-1 ${showSibCouples ? "border-gold text-gold bg-gold/10" : "border-border text-muted-foreground"}`}
-                title="Show sibling couple shots"
-              >
-                {showSibCouples ? <Eye size={11} /> : <EyeOff size={11} />} Sib couples
-              </button>
-              <button
-                onClick={() => setShowSibCouplesWithUs((v) => !v)}
-                className={`px-2 py-1 text-[11px] rounded-md border inline-flex items-center gap-1 ${showSibCouplesWithUs ? "border-gold text-gold bg-gold/10" : "border-border text-muted-foreground"}`}
-                title="Show 4-person couples shots"
-              >
-                {showSibCouplesWithUs ? <Eye size={11} /> : <EyeOff size={11} />} Couples (us + sib)
-              </button>
-            </>
-          )}
+          <button
+            onClick={() => setShowSibCouples((v) => !v)}
+            className={`px-2 py-1 text-[11px] rounded-md border inline-flex items-center gap-1 ${showSibCouples ? "border-gold text-gold bg-gold/10" : "border-border text-muted-foreground"}`}
+            title="Show sibling couple shots"
+          >
+            {showSibCouples ? <Eye size={11} /> : <EyeOff size={11} />} Sib couples
+          </button>
+          <button
+            onClick={() => setShowSibCouplesWithUs((v) => !v)}
+            className={`px-2 py-1 text-[11px] rounded-md border inline-flex items-center gap-1 ${showSibCouplesWithUs ? "border-gold text-gold bg-gold/10" : "border-border text-muted-foreground"}`}
+            title="Show 4-person couples shots"
+          >
+            {showSibCouplesWithUs ? <Eye size={11} /> : <EyeOff size={11} />} Couples (us + sib)
+          </button>
           {editable && (
             <button onClick={regenerate} disabled={regenerating} className="border border-gold text-gold px-3 py-1.5 rounded-md text-xs hover:bg-gold/10 inline-flex items-center gap-2">
               {regenerating && <Loader2 size={12} className="animate-spin" />}
@@ -226,7 +209,7 @@ export function PortraitSequenceViewer({ clientId, editable = false, coupleView 
       <Section title="Wedding party" list="wedding_party_shots" items={seq.wedding_party_shots ?? []} />
       <Section title="Extended / friend groups" list="extended_shots" items={seq.extended_shots ?? []} />
 
-      {editable && !coupleView && (
+      {editable && (
         <div className="bg-surface rounded-md p-4 border border-border">
           <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Notes</label>
           <textarea
