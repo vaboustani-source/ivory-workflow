@@ -1349,6 +1349,68 @@ export type Database = {
           },
         ]
       }
+      portrait_sequences: {
+        Row: {
+          client_id: string
+          combined_sequence: Json | null
+          created_at: string
+          extended_shots: Json | null
+          generated_at: string
+          generated_from: string
+          id: string
+          manual_overrides: Json
+          notes: string | null
+          partner_1_sequence: Json | null
+          partner_2_sequence: Json | null
+          questionnaire_response_id: string | null
+          total_minutes: number | null
+          updated_at: string
+          wedding_party_shots: Json | null
+        }
+        Insert: {
+          client_id: string
+          combined_sequence?: Json | null
+          created_at?: string
+          extended_shots?: Json | null
+          generated_at?: string
+          generated_from?: string
+          id?: string
+          manual_overrides?: Json
+          notes?: string | null
+          partner_1_sequence?: Json | null
+          partner_2_sequence?: Json | null
+          questionnaire_response_id?: string | null
+          total_minutes?: number | null
+          updated_at?: string
+          wedding_party_shots?: Json | null
+        }
+        Update: {
+          client_id?: string
+          combined_sequence?: Json | null
+          created_at?: string
+          extended_shots?: Json | null
+          generated_at?: string
+          generated_from?: string
+          id?: string
+          manual_overrides?: Json
+          notes?: string | null
+          partner_1_sequence?: Json | null
+          partner_2_sequence?: Json | null
+          questionnaire_response_id?: string | null
+          total_minutes?: number | null
+          updated_at?: string
+          wedding_party_shots?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portrait_sequences_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
