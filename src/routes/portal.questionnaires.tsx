@@ -655,6 +655,11 @@ function FamilyPortraitField({ value, readOnly, onChange }: { value: any; readOn
         </label>
       </div>
       <textarea disabled={readOnly} value={data.notes ?? ""} placeholder="Anything else we should know about this side?" onChange={(e) => set({ notes: e.target.value })} rows={2} className={cls + " w-full"} />
+      <div>
+        <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Anything else we should know about your family?</label>
+        <p className="text-[11px] text-muted-foreground mb-1.5 italic">Step-parents we should include or exclude. Family members who shouldn't be photographed together. Recent illness or sensitivity. Anything that affects how the day unfolds.</p>
+        <textarea disabled={readOnly} value={data.dynamics_notes ?? ""} onChange={(e) => set({ dynamics_notes: e.target.value })} rows={3} className={cls + " w-full"} />
+      </div>
     </div>
   );
 }
