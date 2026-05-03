@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Home, Calendar, MessageCircle, FileText, Image, Receipt, BookOpen, User,
-  Bell, LogOut, Menu, ClipboardList, Heart,
+  Bell, LogOut, Menu, ClipboardList, Heart, Camera,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { firstName, shortDate } from "@/lib/dates";
@@ -18,7 +18,8 @@ type NavItem = {
   exact?: boolean;
   matchPrefix?: string;
   hideForLead?: boolean;
-  badgeKey?: "messages" | "documents" | "questionnaires";
+  badgeKey?: "messages" | "documents" | "questionnaires" | "portrait";
+  showOnlyIfKey?: "portraitExists";
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -27,6 +28,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Messages", to: "/portal/messages", icon: MessageCircle, badgeKey: "messages" },
   { label: "Documents", to: "/portal/documents", icon: FileText, badgeKey: "documents" },
   { label: "Forms", to: "/portal/questionnaires", icon: ClipboardList, badgeKey: "questionnaires" },
+  { label: "Family Portraits", to: "/portal/portrait-sequence", icon: Camera, hideForLead: true, badgeKey: "portrait", showOnlyIfKey: "portraitExists" },
   { label: "Gallery", to: "/portal/gallery", icon: Image, hideForLead: true },
   { label: "Invoices", to: "/portal/invoices", icon: Receipt, badgeKey: "documents" },
   { label: "Resources", to: "/portal/resources", icon: BookOpen, hideForLead: true },
@@ -47,9 +49,14 @@ export function PortalLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [badges, setBadges] = useState<Record<string, NavBadge>>({});
+  const [flags, setFlags] = useState<{ portraitExists?: boolean }>({});
 
   const isLead = client?.status === "lead";
-  const visibleNav = NAV_ITEMS.filter((i) => !(isLead && i.hideForLead));
+  const visibleNav = NAV_ITEMS.filter((i) => {
+    if (isLead && i.hideForLead) return false;
+    if (i.showOnlyIfKey && !flags[i.showOnlyIfKey]) return false;
+    return true;
+  });
   const isActive = (i: NavItem) => {
     if (i.exact) return location.pathname === i.to;
     if (i.matchPrefix) return location.pathname.startsWith(i.matchPrefix);
@@ -97,7 +104,13 @@ export function PortalLayout({
       const hasOpenQ = (qs ?? []).some((q: any) => q.status === "not_started" || q.status === "in_progress");
       if (hasOpenQ) next["questionnaires"] = { kind: "gold" };
 
-      if (!cancelled) setBadges(next);
+      // PORTRAIT SEQUENCE: show item when row exists; gold dot if not yet approved
+      const { data: ps } = await supabase
+        .from("portrait_sequences").select("id, approved_at").eq("client_id", clientId).maybeSingle();
+      const portraitExists = !!ps?.id;
+      if (ps?.id && !ps.approved_at) next["portrait"] = { kind: "gold" };
+
+      if (!cancelled) { setBadges(next); setFlags({ portraitExists }); }
     };
     compute();
     const id = setInterval(compute, 30000);

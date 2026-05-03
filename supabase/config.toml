@@ -47,3 +47,9 @@ verify_jwt = true
 
 [functions.generate-photography-timeline]
 verify_jwt = true
+
+[functions.generate-portrait-sequence]
+verify_jwt = true
+
+[functions.notify-portrait-approval]
+verify_jwt = true

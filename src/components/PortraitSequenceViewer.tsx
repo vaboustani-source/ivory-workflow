@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Plus, Pencil, X, Check, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
+import { Loader2, Plus, Pencil, X, Check, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 
 type Role = "subject" | "partner" | "parent" | "step_parent" | "sibling" | "sibling_partner" | "other";
 type PersonLike = string | { name: string; role?: Role };
@@ -24,6 +25,9 @@ interface PortraitSequence {
   total_minutes: number | null;
   notes: string | null;
   generated_at: string;
+  approved_at?: string | null;
+  approved_by?: string | null;
+  couple_review_notes?: string | null;
 }
 
 type ListKey = "partner_1_sequence" | "partner_2_sequence" | "combined_sequence" | "wedding_party_shots" | "extended_shots";
@@ -54,7 +58,7 @@ function renderPeople(people: PersonLike[]): string {
     .join(", ");
 }
 
-export function PortraitSequenceViewer({ clientId, editable = false }: { clientId: string; editable?: boolean }) {
+export function PortraitSequenceViewer({ clientId, editable = false, coupleApproval = false }: { clientId: string; editable?: boolean; coupleApproval?: boolean }) {
   const [seq, setSeq] = useState<PortraitSequence | null>(null);
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
@@ -77,6 +81,22 @@ export function PortraitSequenceViewer({ clientId, editable = false }: { clientI
     const { error } = await supabase.functions.invoke("generate-portrait-sequence", { body: { client_id: clientId } });
     setRegenerating(false);
     if (error) { alert("Couldn't regenerate: " + error.message); return; }
+    await load();
+  };
+
+  const [approving, setApproving] = useState(false);
+  const approve = async () => {
+    if (!seq) return;
+    setApproving(true);
+    const { data: userData } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from("portrait_sequences")
+      .update({ approved_at: new Date().toISOString(), approved_by: userData?.user?.id ?? null })
+      .eq("id", seq.id);
+    if (error) { toast.error("Couldn't save approval: " + error.message); setApproving(false); return; }
+    supabase.functions.invoke("notify-portrait-approval", { body: { client_id: clientId } }).catch(() => {});
+    toast.success("Thanks! Victoria has been notified.");
+    setApproving(false);
     await load();
   };
 
@@ -176,8 +196,15 @@ export function PortraitSequenceViewer({ clientId, editable = false }: { clientI
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3 bg-surface rounded-md p-3 border border-border">
-        <div className="text-xs text-muted-foreground">
-          Generated {new Date(seq.generated_at).toLocaleString()} · Total ~{visibleTotal} min
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>Generated {new Date(seq.generated_at).toLocaleString()} · Total ~{visibleTotal} min</span>
+          {seq.approved_at ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sage/15 text-sage text-[11px] font-medium">
+              <CheckCircle2 size={11} /> Approved {new Date(seq.approved_at).toLocaleDateString()}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gold/15 text-gold text-[11px] font-medium">Pending review</span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -220,6 +247,29 @@ export function PortraitSequenceViewer({ clientId, editable = false }: { clientI
             className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
+      )}
+
+      {coupleApproval && (
+        seq.approved_at ? (
+          <div className="bg-sage/10 border border-sage/30 rounded-md p-6 text-center">
+            <CheckCircle2 className="mx-auto text-sage mb-2" size={28} />
+            <p className="font-serif italic text-xl text-primary">Approved on {new Date(seq.approved_at).toLocaleDateString()}.</p>
+            <p className="text-xs text-muted-foreground mt-1">Thanks! We'll use this on your wedding day.</p>
+          </div>
+        ) : (
+          <div className="bg-surface rounded-md p-6 border-t-2 border-gold text-center">
+            <p className="font-serif italic text-lg text-primary mb-3">Does this look right?</p>
+            <p className="text-xs text-muted-foreground mb-4">Once approved, we'll lock this in for your wedding day. Message us if anything needs to change.</p>
+            <button
+              onClick={approve}
+              disabled={approving}
+              className="bg-primary text-primary-foreground px-5 py-2 rounded-md text-sm hover:bg-primary/90 inline-flex items-center gap-2 disabled:opacity-60"
+            >
+              {approving && <Loader2 size={14} className="animate-spin" />}
+              Yes, this looks great
+            </button>
+          </div>
+        )
       )}
     </div>
   );
