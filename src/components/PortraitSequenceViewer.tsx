@@ -56,7 +56,7 @@ function renderPeople(people: PersonLike[]): string {
     .join(", ");
 }
 
-export function PortraitSequenceViewer({ clientId, editable = false }: { clientId: string; editable?: boolean }) {
+export function PortraitSequenceViewer({ clientId, editable = false, coupleView = false }: { clientId: string; editable?: boolean; coupleView?: boolean }) {
   const [seq, setSeq] = useState<PortraitSequence | null>(null);
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
