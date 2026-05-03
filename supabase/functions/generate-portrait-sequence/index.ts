@@ -413,7 +413,14 @@ Deno.serve(async (req) => {
       wedding_party_shots,
       extended_shots,
       total_minutes,
-      notes: fam1.notes || fam2.notes ? [fam1.notes, fam2.notes].filter(Boolean).join("\n\n") : null,
+      notes: (() => {
+        const parts: string[] = [];
+        if (fam1.dynamics_notes?.trim()) parts.push(`Partner 1 family dynamics:\n${fam1.dynamics_notes.trim()}`);
+        if (fam2.dynamics_notes?.trim()) parts.push(`Partner 2 family dynamics:\n${fam2.dynamics_notes.trim()}`);
+        if (fam1.notes?.trim()) parts.push(`Partner 1 side notes:\n${fam1.notes.trim()}`);
+        if (fam2.notes?.trim()) parts.push(`Partner 2 side notes:\n${fam2.notes.trim()}`);
+        return parts.length ? parts.join("\n\n") : null;
+      })(),
       // Reset couple approval whenever sequence is regenerated
       approved_at: null,
       approved_by: null,
