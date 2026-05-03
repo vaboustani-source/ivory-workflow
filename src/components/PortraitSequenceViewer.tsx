@@ -24,6 +24,8 @@ interface PortraitSequence {
   total_minutes: number | null;
   notes: string | null;
   generated_at: string;
+  approved_at: string | null;
+  approved_by: string | null;
 }
 
 type ListKey = "partner_1_sequence" | "partner_2_sequence" | "combined_sequence" | "wedding_party_shots" | "extended_shots";
