@@ -228,10 +228,11 @@ function QuestionnaireModal({
   const validate = (): boolean => {
     const next: Record<string, string> = {};
     for (const q of schema) {
+      if (NON_QUESTION_TYPES.has(q.type)) continue;
+      if (q.conditional && responses[q.conditional.on] !== q.conditional.equals) continue;
       if (!q.required) continue;
       const v = responses[q.id];
-      const empty = v === undefined || v === null || (Array.isArray(v) ? v.length === 0 : String(v).trim().length === 0);
-      if (empty) next[q.id] = "This field is required.";
+      if (!isAnswered(q, v)) next[q.id] = "This field is required.";
       else if (q.type === "email" && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(v))) next[q.id] = "Please enter a valid email.";
     }
     setErrors(next);
