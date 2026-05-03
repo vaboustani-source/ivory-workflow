@@ -151,7 +151,9 @@ export function TimelineDisplay({ clientId, editable = false }: { clientId: stri
     );
   }
 
-  const blocks = (timeline.blocks ?? []).map((b, i) => applyOverride(b, i, timeline.manual_overrides ?? {}));
+  const blocks = (timeline.blocks ?? [])
+    .map((b, i) => applyOverride(b, i, timeline.manual_overrides ?? {}))
+    .sort((a, b) => (a.start ?? "").localeCompare(b.start ?? ""));
 
   return (
     <div className="space-y-6">
