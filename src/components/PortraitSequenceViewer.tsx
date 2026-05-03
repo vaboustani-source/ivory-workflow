@@ -53,7 +53,7 @@ export function PortraitSequenceViewer({ clientId, editable = false }: { clientI
     const total = ([
       "partner_1_sequence","partner_2_sequence","combined_sequence","wedding_party_shots","extended_shots",
     ] as ListKey[]).reduce((acc, k) => acc + (k === list ? items : (seq[k] ?? [])).reduce((a, s) => a + (s.minutes ?? 0), 0), 0);
-    await supabase.from("portrait_sequences").update({ [list]: items as any, total_minutes: total }).eq("id", seq.id);
+    await supabase.from("portrait_sequences").update({ [list]: items, total_minutes: total } as any).eq("id", seq.id);
     setSeq({ ...seq, [list]: items, total_minutes: total } as any);
   };
 
