@@ -341,6 +341,48 @@ function AddressRow({ client }: { client: ClientDetailRow }) {
   );
 }
 
+function CoverageHoursRow({ clientId, initial, onSaved }: { clientId: string; initial: number | null; onSaved: (v: number | null) => void }) {
+  const [val, setVal] = useState<string>(initial != null ? String(initial) : "");
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { setVal(initial != null ? String(initial) : ""); }, [initial]);
+
+  const save = async () => {
+    const trimmed = val.trim();
+    const parsed = trimmed === "" ? null : Number(trimmed);
+    if (parsed !== null && (Number.isNaN(parsed) || parsed < 0)) return;
+    setSaving(true);
+    const { error } = await supabase.from("clients").update({ coverage_hours: parsed }).eq("id", clientId);
+    setSaving(false);
+    if (error) { toast.error("Couldn't save coverage hours."); return; }
+    onSaved(parsed);
+  };
+
+  return (
+    <div className="flex justify-between items-start gap-4 py-2 border-b border-border last:border-0">
+      <div className="flex-1">
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">Booked coverage hours</p>
+        <p className="text-[11px] text-muted-foreground/80 mt-0.5 italic">
+          Total photography coverage time the couple has paid for, including any add-ons. Used to flag upsell opportunities.
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          type="number"
+          step="0.5"
+          min="0"
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onBlur={save}
+          placeholder="—"
+          className="w-20 px-2 py-1 bg-background border border-border rounded-md text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/20"
+        />
+        <span className="text-xs text-muted-foreground">hr</span>
+        {saving && <span className="text-[10px] text-muted-foreground">…</span>}
+      </div>
+    </div>
+  );
+}
+
 function PersonBlock({ name, email, phone }: { name: string; email: string | null; phone: string | null }) {
   return (
     <div>
