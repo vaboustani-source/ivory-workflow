@@ -315,7 +315,7 @@ Deno.serve(async (req) => {
 
     const r = (q.responses ?? {}) as Record<string, any>;
     const { data: client } = await admin.from("clients").select("couple_name_1, couple_name_2").eq("id", client_id).maybeSingle();
-    const coupleNames = [client?.couple_name_1, client?.couple_name_2].filter(Boolean) as string[];
+    const coupleNames = [firstName(client?.couple_name_1), firstName(client?.couple_name_2)].filter(Boolean) as string[];
 
     const fam1: FamilyData = (r.partner_1_family ?? {}) as FamilyData;
     const fam2: FamilyData = (r.partner_2_family ?? {}) as FamilyData;
