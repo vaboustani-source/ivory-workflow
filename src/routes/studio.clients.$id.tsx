@@ -50,6 +50,7 @@ interface ClientDetailRow {
   venue_postal_code: string | null;
   guest_count: number | null;
   package_price: number | null;
+  coverage_hours: number | null;
   status: string;
   last_contacted_at: string | null;
   portal_invited_at: string | null;
