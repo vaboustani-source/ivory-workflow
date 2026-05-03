@@ -151,7 +151,9 @@ export function TimelineDisplay({ clientId, editable = false }: { clientId: stri
     );
   }
 
-  const blocks = (timeline.blocks ?? []).map((b, i) => applyOverride(b, i, timeline.manual_overrides ?? {}));
+  const blocks = (timeline.blocks ?? [])
+    .map((b, i) => applyOverride(b, i, timeline.manual_overrides ?? {}))
+    .sort((a, b) => (a.start ?? "").localeCompare(b.start ?? ""));
 
   return (
     <div className="space-y-6">
@@ -178,7 +180,7 @@ export function TimelineDisplay({ clientId, editable = false }: { clientId: stri
         {blocks.map((b, idx) => (
           <div key={idx} className="relative mb-4 last:mb-0">
             <span className="absolute -left-[26px] top-3 h-3 w-3 rounded-full bg-gold" />
-            <div className="bg-surface rounded-md shadow-soft p-4 border-l-2" style={{ borderLeftColor: borderForType(b.type) }}>
+            <div className={`rounded-md shadow-soft p-4 border-l-2 ${b.type === "golden_hour" ? "bg-gold/10" : "bg-surface"}`} style={{ borderLeftColor: borderForType(b.type) }}>
               {editingIdx === idx ? (
                 <BlockEditor
                   block={b}
@@ -247,12 +249,12 @@ export function TimelineDisplay({ clientId, editable = false }: { clientId: stri
 
 function borderForType(t: TimelineBlock["type"]): string {
   switch (t) {
-    case "shoot": return "hsl(var(--primary))";
-    case "ceremony": return "hsl(var(--plum, 280 30% 30%))";
-    case "travel": return "hsl(var(--muted-foreground))";
-    case "reception": return "hsl(var(--sage, 140 25% 45%))";
-    case "golden_hour": return "hsl(var(--gold, 40 70% 55%))";
-    case "buffer": return "hsl(var(--magenta, 320 60% 50%))";
+    case "shoot": return "var(--primary)";
+    case "ceremony": return "var(--plum)";
+    case "travel": return "var(--muted-foreground)";
+    case "reception": return "var(--sage)";
+    case "golden_hour": return "var(--gold)";
+    case "buffer": return "var(--magenta)";
   }
 }
 
