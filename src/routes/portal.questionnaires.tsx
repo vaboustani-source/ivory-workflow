@@ -276,6 +276,7 @@ function QuestionnaireModal({
       const { data: cu } = await supabase
         .from("questionnaires").select("client_id").eq("id", questionnaire.id).maybeSingle();
       if (cu?.client_id) {
+        console.log("[auto-regen] firing for client", cu.client_id, "questionnaire", questionnaire.id);
         const calls = [
           supabase.functions.invoke("generate-photography-timeline", {
             body: { client_id: cu.client_id, questionnaire_id: questionnaire.id },
@@ -284,7 +285,11 @@ function QuestionnaireModal({
             body: { client_id: cu.client_id, questionnaire_id: questionnaire.id },
           }),
         ];
-        Promise.allSettled(calls).then(() => {});
+        Promise.allSettled(calls).then((results) => {
+          console.log("[auto-regen] results", results);
+        });
+      } else {
+        console.warn("[auto-regen] no client_id resolved for questionnaire", questionnaire.id);
       }
     }
     setDone(true);
