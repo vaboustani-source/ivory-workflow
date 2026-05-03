@@ -1,5 +1,5 @@
 import { createFileRoute, useSearch, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Component, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PortalGate } from "@/components/PortalLayout";
 import { shortDate } from "@/lib/dates";
@@ -352,15 +352,16 @@ function QuestionnaireModal({
                   schema
                     .filter((q) => !q.conditional || responses[q.conditional.on] === q.conditional.equals)
                     .map((q) => (
-                      <FieldRow
-                        key={q.id}
-                        q={q}
-                        value={responses[q.id]}
-                        error={errors[q.id]}
-                        readOnly={isReadOnly}
-                        onChange={(v) => setVal(q.id, v)}
-                        registerRef={(el) => { if (el) fieldRefs.current.set(q.id, el); else fieldRefs.current.delete(q.id); }}
-                      />
+                      <FieldErrorBoundary key={q.id} questionId={q.id} questionType={q.type}>
+                        <FieldRow
+                          q={q}
+                          value={responses[q.id]}
+                          error={errors[q.id]}
+                          readOnly={isReadOnly}
+                          onChange={(v) => setVal(q.id, v)}
+                          registerRef={(el) => { if (el) fieldRefs.current.set(q.id, el); else fieldRefs.current.delete(q.id); }}
+                        />
+                      </FieldErrorBoundary>
                     ))
                 )}
               </div>
@@ -400,6 +401,24 @@ function relTime(d: Date): string {
   return d.toLocaleTimeString();
 }
 
+class FieldErrorBoundary extends Component<{ questionId: string; questionType: string; children: ReactNode }, { err: Error | null }> {
+  state = { err: null as Error | null };
+  static getDerivedStateFromError(err: Error) { return { err }; }
+  componentDidCatch(err: Error) {
+    console.error(`[Questionnaire] field "${this.props.questionId}" (type=${this.props.questionType}) crashed:`, err);
+  }
+  render() {
+    if (this.state.err) {
+      return (
+        <div className="rounded-md border border-magenta/40 bg-magenta/5 p-3 text-xs text-magenta">
+          Couldn't render field <code>{this.props.questionId}</code> (type <code>{this.props.questionType}</code>): {this.state.err.message}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function FieldRow({
   q, value, error, readOnly, onChange, registerRef,
 }: {
@@ -410,7 +429,9 @@ function FieldRow({
   onChange: (v: any) => void;
   registerRef: (el: HTMLElement | null) => void;
 }) {
+  if (typeof console !== "undefined") console.debug("[FieldRow] render", q.id, q.type);
   const baseInput = "w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:bg-background-alt disabled:cursor-not-allowed";
+
 
   if (q.type === "section_header") {
     return (
