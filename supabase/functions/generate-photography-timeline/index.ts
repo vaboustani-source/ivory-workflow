@@ -367,6 +367,10 @@ Deno.serve(async (req) => {
       coverage_end_time: toHHMM(coverageEndM),
       has_extended_dancing: hasExtendedDancing,
       blocks,
+      booked_coverage_hours: bookedCoverageHours,
+      generated_coverage_hours: generatedCoverageHours,
+      coverage_overage_hours: coverageOverageHours,
+      coverage_status: coverageStatus,
     };
 
     const { data: up, error: upErr } = await admin
