@@ -19,7 +19,7 @@ function PortalPortraitSequencePage({ clientId }: { clientId: string }) {
           We've planned out your family portraits. Take a look and let us know if anything looks off.
         </p>
       </header>
-      <PortraitSequenceViewer clientId={clientId} editable={false} coupleApproval={true} />
+      <PortraitSequenceViewer clientId={clientId} editable={false} coupleApproval={true} coupleEditable={true} />
     </div>
   );
 }
