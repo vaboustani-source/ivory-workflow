@@ -208,6 +208,183 @@ function buildCanonicalSide(params: {
   return steps.map((s, i) => ({ ...s, order: i + 1 }));
 }
 
+function buildDivorcedFriendlySequence(params: {
+  subject: string;
+  partner: string;
+  parent1Name?: string;
+  parent2Name?: string;
+  stepParent1Name?: string;
+  stepParent2Name?: string;
+  siblings: SiblingEntry[];
+  sideLabel: string;
+  includeSibCouples?: boolean;
+  includeSibCouplesWithUs?: boolean;
+}): SequenceStep[] {
+  const {
+    subject, partner, parent1Name, parent2Name,
+    stepParent1Name, stepParent2Name, siblings, sideLabel,
+    includeSibCouples, includeSibCouplesWithUs,
+  } = params;
+
+  const steps: SequenceStep[] = [];
+  const push = (label: string, people: Person[], extra: Partial<SequenceStep> = {}) => {
+    steps.push({ order: steps.length + 1, label, people, minutes: minutesFor(people), ...extra });
+  };
+  const pushBuffer = (label: string) => {
+    steps.push({ order: steps.length + 1, label, people: [], minutes: SETUP_BUFFER_MIN });
+  };
+
+  if (!subject) return steps;
+  const subj = firstName(subject);
+  const subjectP: Person = { name: subj, role: "subject" };
+  const partnerP = p(partner, "partner");
+
+  const sibsClean = siblings.filter((s) => s?.name?.trim());
+  const sibPeople: Person[] = sibsClean.map((s) => ({ name: firstName(s.name), role: "sibling" }));
+  const sibPartnerPeople: Person[] = sibsClean
+    .filter((s) => s.has_partner && s.partner_name?.trim())
+    .map((s) => ({ name: firstName(s.partner_name), role: "sibling_partner" }));
+
+  const buildMini = (
+    parentName: string | undefined,
+    stepName: string | undefined,
+    sideTag: string,
+  ) => {
+    const parentP = p(parentName, "parent");
+    const stepP = p(stepName, "step_parent");
+    if (!parentP) return;
+
+    // Step 1: Subject + Parent
+    push(`${subj} + ${parentP.name}`, [subjectP, parentP]);
+
+    // Step 2: Add Step-Parent
+    if (stepP) {
+      push(
+        `^ Add ${stepP.name} (${subj} + ${parentP.name} + ${stepP.name})`,
+        [subjectP, parentP, stepP],
+      );
+    }
+
+    // Step 3: Add Subject's spouse
+    if (partnerP) {
+      const withStep = stepP ? ` + ${stepP.name}` : "";
+      push(
+        `^ Add ${partnerP.name} (Couple with ${parentP.name}${withStep})`,
+        clean([subjectP, partnerP, parentP, stepP]),
+      );
+    }
+
+    // Step 4: Add siblings
+    if (sibsClean.length > 0) {
+      const sibLabelParts = sibsClean.map((s) =>
+        s.has_partner && s.partner_name?.trim() && sibsClean.length === 1
+          ? `${firstName(s.name)} + ${firstName(s.partner_name)}`
+          : firstName(s.name),
+      );
+      const anyPartners = sibPartnerPeople.length > 0 && sibsClean.length > 1;
+      const fullLabel =
+        sibsClean.length === 1
+          ? `^ Add ${sibLabelParts[0]} (Full Family — ${sideTag})`
+          : `^ Add ${sibLabelParts.join(", ")}${anyPartners ? " (and partners)" : ""} (Full Family — ${sideTag})`;
+      push(
+        fullLabel,
+        clean([subjectP, partnerP, parentP, stepP, ...sibPeople, ...sibPartnerPeople]),
+      );
+    }
+
+    // Step 5: Take out spouse + step-parent + sibling partners → OG family
+    if (sibsClean.length > 0 || partnerP || stepP) {
+      const removed: string[] = [];
+      if (partnerP) removed.push(partnerP.name);
+      if (stepP) removed.push(stepP.name);
+      if (sibPartnerPeople.length > 0) removed.push("sibling partners");
+      if (removed.length > 0) {
+        push(
+          `> Take out ${removed.join(" + ")} (OG Family — ${sideTag})`,
+          clean([subjectP, parentP, ...sibPeople]),
+        );
+      }
+    }
+  };
+
+  // Mini 1
+  buildMini(parent1Name, stepParent1Name, `${firstName(parent1Name) || "Parent 1"} side`);
+  pushBuffer(`(${sideLabel}) Setup buffer`);
+  // Mini 2
+  buildMini(parent2Name, stepParent2Name, `${firstName(parent2Name) || "Parent 2"} side`);
+  pushBuffer(`(${sideLabel}) Setup buffer`);
+
+  // Mini 3: Combined (biological parents only)
+  const par1P = p(parent1Name, "parent");
+  const par2P = p(parent2Name, "parent");
+  if (par1P && par2P) {
+    push(`${subj} + ${par1P.name} + ${par2P.name}`, [subjectP, par1P, par2P]);
+    if (partnerP) {
+      push(
+        `^ Add ${partnerP.name} (Couple with both parents)`,
+        [subjectP, partnerP, par1P, par2P],
+      );
+    }
+    if (sibsClean.length > 0) {
+      const sibLabelParts = sibsClean.map((s) =>
+        s.has_partner && s.partner_name?.trim() && sibsClean.length === 1
+          ? `${firstName(s.name)} + ${firstName(s.partner_name)}`
+          : firstName(s.name),
+      );
+      const anyPartners = sibPartnerPeople.length > 0 && sibsClean.length > 1;
+      push(
+        sibsClean.length === 1
+          ? `^ Add ${sibLabelParts[0]} (Full Family combined)`
+          : `^ Add ${sibLabelParts.join(", ")}${anyPartners ? " (and partners)" : ""} (Full Family combined)`,
+        clean([subjectP, partnerP, par1P, par2P, ...sibPeople, ...sibPartnerPeople]),
+      );
+    }
+  }
+
+  // Individual sibling beats
+  for (const s of sibsClean) {
+    const sn = firstName(s.name);
+    push(`${subj} + ${sn}`, [subjectP, { name: sn, role: "sibling" }]);
+  }
+  if (includeSibCouples) {
+    for (const s of sibsClean) {
+      if (s.has_partner && s.partner_name?.trim()) {
+        const sn = firstName(s.name);
+        const pn = firstName(s.partner_name);
+        push(
+          `${sn} + ${pn} (sib couple)`,
+          [{ name: sn, role: "sibling" }, { name: pn, role: "sibling_partner" }],
+          { optional: "sibling_couples" },
+        );
+      }
+    }
+  }
+  if (includeSibCouplesWithUs && partnerP) {
+    for (const s of sibsClean) {
+      if (s.has_partner && s.partner_name?.trim()) {
+        const sn = firstName(s.name);
+        const pn = firstName(s.partner_name);
+        push(
+          `Couples: ${subj} & ${partnerP.name} + ${sn} & ${pn}`,
+          [subjectP, partnerP, { name: sn, role: "sibling" }, { name: pn, role: "sibling_partner" }],
+          { optional: "sibling_couples_with_us" },
+        );
+      }
+    }
+  }
+
+  // Final beat: parents + step-parents alone
+  const stepP1 = p(stepParent1Name, "step_parent");
+  const stepP2 = p(stepParent2Name, "step_parent");
+  const parentsFinal = clean([par1P, par2P, stepP1, stepP2]);
+  if (parentsFinal.length >= 2) {
+    const names = parentsFinal.map((x) => x.name).join(" + ");
+    push(`${names} (Parents${stepP1 || stepP2 ? " + step-parents" : ""} alone)`, parentsFinal);
+  }
+
+  return steps.map((s, i) => ({ ...s, order: i + 1 }));
+}
+
 function buildForSide(coupleNames: string[], fam: FamilyData, sideIndex: 0 | 1): SequenceStep[] {
   const subject = coupleNames[sideIndex] ?? `Partner ${sideIndex + 1}`;
   const partner = coupleNames[1 - sideIndex] ?? "";
