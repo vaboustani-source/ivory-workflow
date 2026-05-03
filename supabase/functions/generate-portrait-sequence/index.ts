@@ -17,6 +17,7 @@ interface ParentInfo { name?: string; deceased?: boolean; honor_in_photo?: boole
 interface SiblingEntry { name: string; has_partner?: boolean; partner_name?: string; has_kids?: boolean; }
 interface FamilyData {
   parents_status?: string;
+  dynamics_notes?: string;
   parent_1?: ParentInfo;
   parent_2?: ParentInfo;
   step_parent_1?: string;
