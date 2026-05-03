@@ -401,6 +401,24 @@ function relTime(d: Date): string {
   return d.toLocaleTimeString();
 }
 
+class FieldErrorBoundary extends Component<{ questionId: string; questionType: string; children: ReactNode }, { err: Error | null }> {
+  state = { err: null as Error | null };
+  static getDerivedStateFromError(err: Error) { return { err }; }
+  componentDidCatch(err: Error) {
+    console.error(`[Questionnaire] field "${this.props.questionId}" (type=${this.props.questionType}) crashed:`, err);
+  }
+  render() {
+    if (this.state.err) {
+      return (
+        <div className="rounded-md border border-magenta/40 bg-magenta/5 p-3 text-xs text-magenta">
+          Couldn't render field <code>{this.props.questionId}</code> (type <code>{this.props.questionType}</code>): {this.state.err.message}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function FieldRow({
   q, value, error, readOnly, onChange, registerRef,
 }: {
