@@ -579,6 +579,8 @@ interface FamilyData {
   siblings?: SiblingEntry[];
   grandparents?: string;
   notes?: string;
+  include_sibling_couples?: boolean;
+  include_sibling_couples_with_us?: boolean;
 }
 function FamilyPortraitField({ value, readOnly, onChange }: { value: any; readOnly: boolean; onChange: (v: any) => void }) {
   const data: FamilyData = value && typeof value === "object" ? value : {};
@@ -636,6 +638,16 @@ function FamilyPortraitField({ value, readOnly, onChange }: { value: any; readOn
         </div>
       </div>
       <input disabled={readOnly} value={data.grandparents ?? ""} placeholder="Grandparents (names, optional)" onChange={(e) => set({ grandparents: e.target.value })} className={cls + " w-full"} />
+      <div className="space-y-1.5 pt-1">
+        <label className="flex items-center gap-2 text-xs text-foreground">
+          <input type="checkbox" disabled={readOnly} checked={!!data.include_sibling_couples} onChange={(e) => set({ include_sibling_couples: e.target.checked })} />
+          Include each sibling + their partner as a separate couple shot
+        </label>
+        <label className="flex items-center gap-2 text-xs text-foreground">
+          <input type="checkbox" disabled={readOnly} checked={!!data.include_sibling_couples_with_us} onChange={(e) => set({ include_sibling_couples_with_us: e.target.checked })} />
+          Include couples photos (us + each sibling couple)
+        </label>
+      </div>
       <textarea disabled={readOnly} value={data.notes ?? ""} placeholder="Anything else we should know about this side?" onChange={(e) => set({ notes: e.target.value })} rows={2} className={cls + " w-full"} />
     </div>
   );

@@ -1,12 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Plus, Pencil, X, Check } from "lucide-react";
+import { Loader2, Plus, Pencil, X, Check, Eye, EyeOff } from "lucide-react";
 
+type Role = "subject" | "partner" | "parent" | "step_parent" | "sibling" | "sibling_partner" | "other";
+type PersonLike = string | { name: string; role?: Role };
 interface SequenceStep {
   order: number;
   label: string;
-  people: string[];
+  people: PersonLike[];
   minutes: number;
+  note?: string;
+  optional?: "sibling_couples" | "sibling_couples_with_us";
 }
 
 interface PortraitSequence {
@@ -24,12 +28,40 @@ interface PortraitSequence {
 
 type ListKey = "partner_1_sequence" | "partner_2_sequence" | "combined_sequence" | "wedding_party_shots" | "extended_shots";
 
+const ROLE_LABEL: Record<Role, string> = {
+  subject: "you",
+  partner: "partner",
+  parent: "parent",
+  step_parent: "step-parent",
+  sibling: "sibling",
+  sibling_partner: "sib partner",
+  other: "other",
+};
+
+function normPerson(p: PersonLike): { name: string; role?: Role } {
+  return typeof p === "string" ? { name: p } : { name: p.name, role: p.role };
+}
+
+function renderPeople(people: PersonLike[]): string {
+  const arr = people.map(normPerson);
+  const counts = new Map<string, number>();
+  for (const p of arr) counts.set(p.name, (counts.get(p.name) ?? 0) + 1);
+  return arr
+    .map((p) => {
+      if ((counts.get(p.name) ?? 0) > 1 && p.role) return `${p.name} (${ROLE_LABEL[p.role]})`;
+      return p.name;
+    })
+    .join(", ");
+}
+
 export function PortraitSequenceViewer({ clientId, editable = false }: { clientId: string; editable?: boolean }) {
   const [seq, setSeq] = useState<PortraitSequence | null>(null);
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
   const [editing, setEditing] = useState<{ list: ListKey; idx: number } | null>(null);
   const [notes, setNotes] = useState("");
+  const [showSibCouples, setShowSibCouples] = useState(false);
+  const [showSibCouplesWithUs, setShowSibCouplesWithUs] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -57,6 +89,18 @@ export function PortraitSequenceViewer({ clientId, editable = false }: { clientI
     setSeq({ ...seq, [list]: items, total_minutes: total } as any);
   };
 
+  const visibleTotal = useMemo(() => {
+    if (!seq) return 0;
+    const lists: SequenceStep[][] = [seq.partner_1_sequence, seq.partner_2_sequence, seq.combined_sequence, seq.wedding_party_shots, seq.extended_shots];
+    let t = 0;
+    for (const list of lists) for (const s of list ?? []) {
+      if (s.optional === "sibling_couples" && !showSibCouples) continue;
+      if (s.optional === "sibling_couples_with_us" && !showSibCouplesWithUs) continue;
+      t += s.minutes ?? 0;
+    }
+    return t;
+  }, [seq, showSibCouples, showSibCouplesWithUs]);
+
   if (loading) return <p className="font-serif italic text-primary">Loading sequence…</p>;
 
   if (!seq) {
@@ -82,8 +126,12 @@ export function PortraitSequenceViewer({ clientId, editable = false }: { clientI
       <div className="bg-surface rounded-md shadow-soft p-5 border-l-2 border-gold">
         <h3 className="font-serif italic text-xl text-primary mb-3">{title}</h3>
         <ol className="space-y-2">
-          {items.map((step, idx) => (
-            <li key={idx} className="flex items-start gap-3 group">
+          {items.map((step, idx) => {
+            const faded =
+              (step.optional === "sibling_couples" && !showSibCouples) ||
+              (step.optional === "sibling_couples_with_us" && !showSibCouplesWithUs);
+            return (
+            <li key={idx} className={`flex items-start gap-3 group ${faded ? "opacity-50" : ""}`}>
               <span className="text-[11px] uppercase tracking-wider text-muted-foreground w-6 mt-1">{step.order ?? idx + 1}.</span>
               {editing?.list === list && editing.idx === idx ? (
                 <StepEditor
@@ -94,11 +142,14 @@ export function PortraitSequenceViewer({ clientId, editable = false }: { clientI
                 />
               ) : (
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground">{step.label}</p>
+                  <p className="text-sm text-foreground">
+                    {step.label}
+                    {step.optional && <span className="ml-2 text-[10px] uppercase tracking-wider text-gold">optional</span>}
+                  </p>
                   {step.people?.length > 0 && (
-                    <p className="text-[11px] italic text-muted-foreground">{step.people.join(", ")}</p>
+                    <p className="text-[11px] italic text-muted-foreground">{renderPeople(step.people)}</p>
                   )}
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">{step.minutes} min</p>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">{step.minutes} min{step.note ? ` · ${step.note}` : ""}</p>
                 </div>
               )}
               {editable && editing?.idx !== idx && (
@@ -107,7 +158,8 @@ export function PortraitSequenceViewer({ clientId, editable = false }: { clientI
                 </button>
               )}
             </li>
-          ))}
+            );
+          })}
         </ol>
         {editable && (
           <button
@@ -125,14 +177,30 @@ export function PortraitSequenceViewer({ clientId, editable = false }: { clientI
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3 bg-surface rounded-md p-3 border border-border">
         <div className="text-xs text-muted-foreground">
-          Generated {new Date(seq.generated_at).toLocaleString()} · Total ~{seq.total_minutes ?? 0} min
+          Generated {new Date(seq.generated_at).toLocaleString()} · Total ~{visibleTotal} min
         </div>
-        {editable && (
-          <button onClick={regenerate} disabled={regenerating} className="border border-gold text-gold px-3 py-1.5 rounded-md text-xs hover:bg-gold/10 inline-flex items-center gap-2">
-            {regenerating && <Loader2 size={12} className="animate-spin" />}
-            Regenerate
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowSibCouples((v) => !v)}
+            className={`px-2 py-1 text-[11px] rounded-md border inline-flex items-center gap-1 ${showSibCouples ? "border-gold text-gold bg-gold/10" : "border-border text-muted-foreground"}`}
+            title="Show sibling couple shots"
+          >
+            {showSibCouples ? <Eye size={11} /> : <EyeOff size={11} />} Sib couples
           </button>
-        )}
+          <button
+            onClick={() => setShowSibCouplesWithUs((v) => !v)}
+            className={`px-2 py-1 text-[11px] rounded-md border inline-flex items-center gap-1 ${showSibCouplesWithUs ? "border-gold text-gold bg-gold/10" : "border-border text-muted-foreground"}`}
+            title="Show 4-person couples shots"
+          >
+            {showSibCouplesWithUs ? <Eye size={11} /> : <EyeOff size={11} />} Couples (us + sib)
+          </button>
+          {editable && (
+            <button onClick={regenerate} disabled={regenerating} className="border border-gold text-gold px-3 py-1.5 rounded-md text-xs hover:bg-gold/10 inline-flex items-center gap-2">
+              {regenerating && <Loader2 size={12} className="animate-spin" />}
+              Regenerate
+            </button>
+          )}
+        </div>
       </div>
 
       <Section title="Partner 1 side" list="partner_1_sequence" items={seq.partner_1_sequence ?? []} />
@@ -160,7 +228,7 @@ export function PortraitSequenceViewer({ clientId, editable = false }: { clientI
 function StepEditor({ step, onSave, onCancel, onDelete }: { step: SequenceStep; onSave: (s: SequenceStep) => void; onCancel: () => void; onDelete: () => void; }) {
   const [label, setLabel] = useState(step.label);
   const [minutes, setMinutes] = useState(step.minutes);
-  const [people, setPeople] = useState((step.people ?? []).join(", "));
+  const [people, setPeople] = useState((step.people ?? []).map((p) => (typeof p === "string" ? p : p.name)).join(", "));
   return (
     <div className="flex-1 space-y-2">
       <input value={label} onChange={(e) => setLabel(e.target.value)} className="w-full px-2 py-1 border border-border rounded-md text-sm" placeholder="Label" />
@@ -170,7 +238,7 @@ function StepEditor({ step, onSave, onCancel, onDelete }: { step: SequenceStep; 
         <div className="flex gap-2">
           <button onClick={onDelete} className="text-xs text-magenta hover:underline">Delete</button>
           <button onClick={onCancel} className="px-2 py-1 text-xs border border-border rounded-md inline-flex items-center gap-1"><X size={12} /> Cancel</button>
-          <button onClick={() => onSave({ ...step, label, minutes, people: people.split(",").map((s) => s.trim()).filter(Boolean) })} className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded-md inline-flex items-center gap-1"><Check size={12} /> Save</button>
+          <button onClick={() => onSave({ ...step, label, minutes, people: people.split(",").map((s) => ({ name: s.trim() })).filter((p) => p.name) })} className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded-md inline-flex items-center gap-1"><Check size={12} /> Save</button>
         </div>
       </div>
     </div>
