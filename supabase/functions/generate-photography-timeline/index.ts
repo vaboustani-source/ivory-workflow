@@ -111,13 +111,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Find the Wedding Day Logistics questionnaire if not provided
+    // Find the Wedding Details & Logistics questionnaire if not provided
     if (!questionnaire_id) {
       const { data: q } = await admin
         .from("questionnaires")
         .select("id, template:questionnaire_templates!inner(name)")
         .eq("client_id", client_id)
-        .eq("template.name", "Wedding Day Logistics")
+        .eq("template.name", "Wedding Details & Logistics")
         .order("completed_at", { ascending: false, nullsFirst: false })
         .limit(1)
         .maybeSingle();
@@ -135,26 +135,44 @@ Deno.serve(async (req) => {
     if (!q) {
       return new Response(JSON.stringify({ error: "questionnaire_not_found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    const r = (q.responses ?? {}) as Record<string, unknown>;
+    const r = (q.responses ?? {}) as Record<string, any>;
 
     const ceremonyStart = String(r.ceremony_start_time ?? "16:00");
     const ceremonyLength = parseCeremonyLength(r.ceremony_length as string | undefined);
     const hasFirstLook = bool(r.has_first_look);
     const ketubahDesc = (r.ketubah_or_ritual as string | undefined)?.trim();
-    const hasJewishKetubah = !!(ketubahDesc && ketubahDesc.length > 0 && !/^no$/i.test(ketubahDesc));
-    const hasWeddingParty = bool(r.has_wedding_party, true);
-    const groupPortraitMinutes = computeGroupPortraitMinutes(r.group_shots as string | undefined, hasWeddingParty);
+    const hasJewishKetubah = !!(ketubahDesc && ketubahDesc.length > 0 && !/^no(ne)?$/i.test(ketubahDesc));
 
-    const grAddress = String(r.getting_ready_address ?? "").trim();
-    const sameCer = bool(r.same_address_ceremony, true);
-    const cerAddress = sameCer ? grAddress : String(r.ceremony_address ?? "").trim() || grAddress;
-    const sameRec = bool(r.same_address_reception, true);
-    const recAddress = sameRec ? cerAddress : String(r.reception_address ?? "").trim() || cerAddress;
+    // Wedding party: derive from wedding_party.party_size > 0
+    const wp = (r.wedding_party ?? {}) as any;
+    const partySize = Number(wp?.party_size ?? 0);
+    const hasWeddingParty = partySize > 0;
+
+    // Group portrait minutes derived from family + extended structured data
+    const fam1 = (r.partner_1_family ?? {}) as any;
+    const fam2 = (r.partner_2_family ?? {}) as any;
+    const sib1 = Array.isArray(fam1.siblings) ? fam1.siblings.length : 0;
+    const sib2 = Array.isArray(fam2.siblings) ? fam2.siblings.length : 0;
+    const extendedShots = Array.isArray(r.extended_portraits) ? r.extended_portraits.length : 0;
+    let groupPortraitMinutes = 0;
+    // ~2 min per immediate family unit on each side, plus combined, plus wedding party formals, plus extended
+    groupPortraitMinutes += (1 + Math.max(0, sib1)) * 2; // P1 side
+    groupPortraitMinutes += (1 + Math.max(0, sib2)) * 2; // P2 side
+    if (typeof r.combined_family_photo === "string" && r.combined_family_photo.startsWith("Yes")) groupPortraitMinutes += 5;
+    if (hasWeddingParty) groupPortraitMinutes += Math.min(20, 8 + Math.ceil(partySize / 2));
+    groupPortraitMinutes += extendedShots * 2;
+    if (groupPortraitMinutes < 30) groupPortraitMinutes = 30;
+    if (groupPortraitMinutes > 90) groupPortraitMinutes = 90;
+
+    const grAddress = firstAddressLine(r.getting_ready_address as string | undefined);
+    const cerAddress = String(r.ceremony_address ?? "").trim() || grAddress;
+    const sameRec = typeof r.same_address_reception === "string" && r.same_address_reception.startsWith("Yes");
+    const recAddress = sameRec ? cerAddress : (String(r.reception_address ?? "").trim() || cerAddress);
 
     const receptionEvents = Array.isArray(r.reception_schedule) ? (r.reception_schedule as Array<{ time: string; label: string }>) : [];
     const dinnerEnd = (r.dinner_end_time as string | undefined) ?? null;
-    const extDance = (r.extended_dancing as string | undefined) ?? "";
-    const hasExtendedDancing = /yes/i.test(extDance);
+    const special = String(r.special_reception_moments ?? "");
+    const hasExtendedDancing = /(extended|extra hour|late night|after.?party)/i.test(special);
 
     // External calls — best-effort
     const fnUrl = (name: string) => `${supabaseUrl}/functions/v1/${name}`;
