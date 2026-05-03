@@ -460,7 +460,18 @@ function buildForSide(coupleNames: string[], fam: FamilyData, sideIndex: 0 | 1):
     });
   }
 
-  // married OR divorced_friendly: standard sequence with mom + dad.
+  if (variant === "divorced_friendly") {
+    return buildDivorcedFriendlySequence({
+      subject, partner,
+      parent1Name: p1, parent2Name: p2,
+      stepParent1Name: fam.step_parent_1?.trim() || undefined,
+      stepParent2Name: fam.step_parent_2?.trim() || undefined,
+      siblings: sibs, sideLabel: sideLabelBase,
+      includeSibCouples, includeSibCouplesWithUs,
+    });
+  }
+
+  // married: standard sequence with mom + dad.
   // Step-parents are captured in the questionnaire but not auto-inserted —
   // studio inline edit handles inclusion.
   return buildCanonicalSide({
