@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { ClientTimelineTab } from "@/components/ClientTimelineTab";
 import { TimelineDisplay } from "@/components/TimelineDisplay";
+import { PortraitSequenceViewer } from "@/components/PortraitSequenceViewer";
 import { ClientMessagesTab } from "@/components/messages/ClientMessagesTab";
 import { StudioDocumentsTab } from "@/components/studio/DocumentsTab";
 import { StudioFormsTab } from "@/components/studio/FormsTab";
@@ -22,11 +23,11 @@ export const Route = createFileRoute("/studio/clients/$id")({
   component: ClientDetail,
 });
 
-const TABS = ["Overview", "Timeline", "Photography", "Messages", "Documents", "Forms", "Gallery", "Notes"] as const;
+const TABS = ["Overview", "Timeline", "Photography", "Portrait Sequence", "Messages", "Documents", "Forms", "Gallery", "Notes"] as const;
 type Tab = typeof TABS[number];
 
 const TAB_KEY: Record<Tab, string> = {
-  Overview: "overview", Timeline: "timeline", Photography: "photography", Messages: "messages",
+  Overview: "overview", Timeline: "timeline", Photography: "photography", "Portrait Sequence": "portrait-sequence", Messages: "messages",
   Documents: "documents", Forms: "forms", Gallery: "gallery", Notes: "notes",
 };
 const KEY_TO_TAB: Record<string, Tab> = Object.fromEntries(
@@ -257,6 +258,8 @@ function ClientDetail() {
           <ClientTimelineTab clientId={id} />
         ) : tab === "Photography" ? (
           <TimelineDisplay clientId={id} editable={true} />
+        ) : tab === "Portrait Sequence" ? (
+          <PortraitSequenceViewer clientId={id} editable={true} />
         ) : tab === "Messages" ? (
           <ClientMessagesTab clientId={id} />
         ) : tab === "Documents" ? (
