@@ -249,12 +249,12 @@ export function TimelineDisplay({ clientId, editable = false }: { clientId: stri
 
 function borderForType(t: TimelineBlock["type"]): string {
   switch (t) {
-    case "shoot": return "hsl(var(--primary))";
-    case "ceremony": return "hsl(var(--plum, 280 30% 30%))";
-    case "travel": return "hsl(var(--muted-foreground))";
-    case "reception": return "hsl(var(--sage, 140 25% 45%))";
-    case "golden_hour": return "hsl(var(--gold, 40 70% 55%))";
-    case "buffer": return "hsl(var(--magenta, 320 60% 50%))";
+    case "shoot": return "var(--primary)";
+    case "ceremony": return "var(--plum)";
+    case "travel": return "var(--muted-foreground)";
+    case "reception": return "var(--sage)";
+    case "golden_hour": return "var(--gold)";
+    case "buffer": return "var(--magenta)";
   }
 }
 
