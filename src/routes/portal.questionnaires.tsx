@@ -485,8 +485,208 @@ function FieldRow({
       {q.type === "timeline_events" && (
         <TimelineEventsField value={value} readOnly={readOnly} onChange={onChange} />
       )}
+      {q.type === "vendor_entry" && (
+        <VendorEntryField value={value} readOnly={readOnly} onChange={onChange} />
+      )}
+      {q.type === "family_portrait_sequence" && (
+        <FamilyPortraitField value={value} readOnly={readOnly} onChange={onChange} />
+      )}
+      {q.type === "wedding_party_shots" && (
+        <WeddingPartyField value={value} readOnly={readOnly} onChange={onChange} />
+      )}
+      {q.type === "extended_portrait_shots" && (
+        <ExtendedPortraitField value={value} readOnly={readOnly} onChange={onChange} />
+      )}
 
       {error && <p className="text-[12px] text-magenta">{error}</p>}
+    </div>
+  );
+}
+
+function SectionProgress({ schema, responses }: { schema: QuestionDef[]; responses: Record<string, any> }) {
+  const sections: { id: string; label: string; total: number; answered: number }[] = [];
+  let cur: { id: string; label: string; items: QuestionDef[] } | null = null;
+  for (const q of schema) {
+    if (q.type === "section_header") {
+      if (cur) sections.push({ id: cur.id, label: cur.label, total: cur.items.length, answered: cur.items.filter((x) => isAnswered(x, responses[x.id])).length });
+      cur = { id: q.id, label: q.label, items: [] };
+    } else if (cur) {
+      if (q.conditional && responses[q.conditional.on] !== q.conditional.equals) continue;
+      cur.items.push(q);
+    }
+  }
+  if (cur) sections.push({ id: cur.id, label: cur.label, total: cur.items.length, answered: cur.items.filter((x) => isAnswered(x, responses[x.id])).length });
+  if (sections.length === 0) return null;
+  return (
+    <div className="mb-6 flex flex-wrap gap-2">
+      {sections.map((s) => {
+        const done = s.total > 0 && s.answered === s.total;
+        const started = s.answered > 0;
+        const dotClass = done ? "bg-sage" : started ? "bg-gold" : "bg-muted";
+        return (
+          <div key={s.id} className="flex items-center gap-1.5 bg-background-alt px-2.5 py-1 rounded-full" title={`${s.answered}/${s.total}`}>
+            <span className={`h-2 w-2 rounded-full ${dotClass}`} />
+            <span className="text-[11px] text-muted-foreground">{s.answered}/{s.total}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function VendorEntryField({ value, readOnly, onChange }: { value: any; readOnly: boolean; onChange: (v: any) => void }) {
+  const v = value && typeof value === "object" ? value : {};
+  const set = (k: string, x: string) => onChange({ ...v, [k]: x });
+  const cls = "px-2 py-1.5 border border-border rounded-md text-sm bg-background flex-1 min-w-[150px]";
+  return (
+    <div className="flex flex-wrap gap-2">
+      <input disabled={readOnly} value={v.name ?? ""} placeholder="Business name" onChange={(e) => set("name", e.target.value)} className={cls} />
+      <input disabled={readOnly} value={v.instagram ?? ""} placeholder="@instagram" onChange={(e) => set("instagram", e.target.value)} className={cls} />
+      <input disabled={readOnly} value={v.contact ?? ""} placeholder="Contact (phone or email)" onChange={(e) => set("contact", e.target.value)} className={cls} />
+    </div>
+  );
+}
+
+interface ParentEntry { name: string; status: "Together" | "Divorced" | "Single parent" | "Deceased" | ""; }
+interface SiblingEntry { name: string; has_partner: boolean; partner_name?: string; }
+interface FamilyData {
+  parents_status?: "Married/together" | "Divorced — friendly" | "Divorced — separate photos" | "Single parent" | "One deceased" | "Both deceased";
+  parent_1?: ParentEntry;
+  parent_2?: ParentEntry;
+  step_parent_1?: string;
+  step_parent_2?: string;
+  siblings?: SiblingEntry[];
+  grandparents?: string;
+  notes?: string;
+}
+function FamilyPortraitField({ value, readOnly, onChange }: { value: any; readOnly: boolean; onChange: (v: any) => void }) {
+  const data: FamilyData = value && typeof value === "object" ? value : {};
+  const set = (patch: Partial<FamilyData>) => onChange({ ...data, ...patch });
+  const siblings = data.siblings ?? [];
+  const setSibling = (i: number, p: Partial<SiblingEntry>) => set({ siblings: siblings.map((s, idx) => idx === i ? { ...s, ...p } : s) });
+  const cls = "px-2 py-1.5 border border-border rounded-md text-sm bg-background";
+  return (
+    <div className="space-y-3 bg-background-alt/40 rounded-md p-4 border border-border">
+      <div>
+        <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Parents' situation</label>
+        <select disabled={readOnly} value={data.parents_status ?? ""} onChange={(e) => set({ parents_status: e.target.value as any })} className={cls + " w-full"}>
+          <option value="">Select…</option>
+          <option>Married/together</option>
+          <option>Divorced — friendly</option>
+          <option>Divorced — separate photos</option>
+          <option>Single parent</option>
+          <option>One deceased</option>
+          <option>Both deceased</option>
+        </select>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <input disabled={readOnly} value={data.parent_1?.name ?? ""} placeholder="Parent 1 name (e.g. Mom)" onChange={(e) => set({ parent_1: { ...(data.parent_1 ?? { status: "" }), name: e.target.value } })} className={cls} />
+        <input disabled={readOnly} value={data.parent_2?.name ?? ""} placeholder="Parent 2 name (e.g. Dad)" onChange={(e) => set({ parent_2: { ...(data.parent_2 ?? { status: "" }), name: e.target.value } })} className={cls} />
+      </div>
+      {(data.parents_status === "Divorced — friendly" || data.parents_status === "Divorced — separate photos") && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <input disabled={readOnly} value={data.step_parent_1 ?? ""} placeholder="Step-parent on Parent 1's side (optional)" onChange={(e) => set({ step_parent_1: e.target.value })} className={cls} />
+          <input disabled={readOnly} value={data.step_parent_2 ?? ""} placeholder="Step-parent on Parent 2's side (optional)" onChange={(e) => set({ step_parent_2: e.target.value })} className={cls} />
+        </div>
+      )}
+      <div>
+        <label className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Siblings</label>
+        <div className="space-y-2">
+          {siblings.map((s, i) => (
+            <div key={i} className="flex flex-wrap gap-2 items-center">
+              <input disabled={readOnly} value={s.name} placeholder="Sibling name" onChange={(e) => setSibling(i, { name: e.target.value })} className={cls + " flex-1 min-w-[140px]"} />
+              <label className="flex items-center gap-1 text-xs text-foreground">
+                <input type="checkbox" disabled={readOnly} checked={s.has_partner} onChange={(e) => setSibling(i, { has_partner: e.target.checked })} />
+                Has partner
+              </label>
+              {s.has_partner && (
+                <input disabled={readOnly} value={s.partner_name ?? ""} placeholder="Partner name" onChange={(e) => setSibling(i, { partner_name: e.target.value })} className={cls + " flex-1 min-w-[140px]"} />
+              )}
+              {!readOnly && (
+                <button type="button" onClick={() => set({ siblings: siblings.filter((_, idx) => idx !== i) })} className="text-magenta text-xs hover:underline">Remove</button>
+              )}
+            </div>
+          ))}
+          {!readOnly && (
+            <button type="button" onClick={() => set({ siblings: [...siblings, { name: "", has_partner: false }] })} className="border border-dashed border-gold text-gold px-3 py-1 rounded-md text-xs hover:bg-gold/10">
+              + Add sibling
+            </button>
+          )}
+        </div>
+      </div>
+      <input disabled={readOnly} value={data.grandparents ?? ""} placeholder="Grandparents (names, optional)" onChange={(e) => set({ grandparents: e.target.value })} className={cls + " w-full"} />
+      <textarea disabled={readOnly} value={data.notes ?? ""} placeholder="Anything else we should know about this side?" onChange={(e) => set({ notes: e.target.value })} rows={2} className={cls + " w-full"} />
+    </div>
+  );
+}
+
+function WeddingPartyField({ value, readOnly, onChange }: { value: any; readOnly: boolean; onChange: (v: any) => void }) {
+  const data = value && typeof value === "object" ? value : {};
+  const set = (patch: any) => onChange({ ...data, ...patch });
+  const shots: string[] = Array.isArray(data.shots) ? data.shots : [];
+  const cls = "px-2 py-1.5 border border-border rounded-md text-sm bg-background";
+  const SHOT_OPTIONS = [
+    "Full wedding party together",
+    "Each side individually",
+    "Couple with each WP member 1:1",
+    "Couple with WP side A",
+    "Couple with WP side B",
+    "Fun/candid group shot",
+  ];
+  return (
+    <div className="space-y-3 bg-background-alt/40 rounded-md p-4 border border-border">
+      <div className="flex flex-wrap gap-3 items-end">
+        <label className="text-xs">
+          <span className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Total party size</span>
+          <input type="number" min={0} disabled={readOnly} value={data.party_size ?? ""} onChange={(e) => set({ party_size: e.target.value === "" ? null : Number(e.target.value) })} className={cls + " w-[100px]"} />
+        </label>
+        <label className="text-xs">
+          <span className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Side A count</span>
+          <input type="number" min={0} disabled={readOnly} value={data.side_a_count ?? ""} onChange={(e) => set({ side_a_count: e.target.value === "" ? null : Number(e.target.value) })} className={cls + " w-[100px]"} />
+        </label>
+        <label className="text-xs">
+          <span className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Side B count</span>
+          <input type="number" min={0} disabled={readOnly} value={data.side_b_count ?? ""} onChange={(e) => set({ side_b_count: e.target.value === "" ? null : Number(e.target.value) })} className={cls + " w-[100px]"} />
+        </label>
+      </div>
+      <div>
+        <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Wedding party shots you want</p>
+        <div className="space-y-1">
+          {SHOT_OPTIONS.map((opt) => {
+            const checked = shots.includes(opt);
+            return (
+              <label key={opt} className="flex items-center gap-2 text-sm">
+                <input type="checkbox" disabled={readOnly} checked={checked} onChange={(e) => set({ shots: e.target.checked ? [...shots, opt] : shots.filter((s) => s !== opt) })} />
+                {opt}
+              </label>
+            );
+          })}
+        </div>
+      </div>
+      <textarea disabled={readOnly} value={data.notes ?? ""} placeholder="Special requests for the wedding party shots" onChange={(e) => set({ notes: e.target.value })} rows={2} className={cls + " w-full"} />
+    </div>
+  );
+}
+
+function ExtendedPortraitField({ value, readOnly, onChange }: { value: any; readOnly: boolean; onChange: (v: any) => void }) {
+  const rows: Array<{ label: string; people: string }> = Array.isArray(value) ? value : [];
+  const cls = "px-2 py-1.5 border border-border rounded-md text-sm bg-background";
+  const update = (i: number, p: Partial<{ label: string; people: string }>) => onChange(rows.map((r, idx) => idx === i ? { ...r, ...p } : r));
+  return (
+    <div className="space-y-2">
+      {rows.length === 0 && <p className="text-sm text-muted-foreground italic">No extended shots yet. Add cousins, college friends, etc. below.</p>}
+      {rows.map((r, i) => (
+        <div key={i} className="flex flex-wrap gap-2 items-center">
+          <input disabled={readOnly} value={r.label} placeholder="Group label (e.g. Cousins)" onChange={(e) => update(i, { label: e.target.value })} className={cls + " flex-1 min-w-[160px]"} />
+          <input disabled={readOnly} value={r.people} placeholder="People in shot" onChange={(e) => update(i, { people: e.target.value })} className={cls + " flex-[2] min-w-[200px]"} />
+          {!readOnly && <button type="button" onClick={() => onChange(rows.filter((_, idx) => idx !== i))} className="text-magenta text-xs hover:underline px-2">Remove</button>}
+        </div>
+      ))}
+      {!readOnly && (
+        <button type="button" onClick={() => onChange([...rows, { label: "", people: "" }])} className="border border-dashed border-gold text-gold px-3 py-1.5 rounded-md text-xs hover:bg-gold/10">
+          + Add extended shot
+        </button>
+      )}
     </div>
   );
 }
