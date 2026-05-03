@@ -20,6 +20,10 @@ interface PhotographyTimeline {
   generated_at: string;
   sunset_time: string | null;
   golden_hour_start_time: string | null;
+  booked_coverage_hours: number | null;
+  generated_coverage_hours: number | null;
+  coverage_overage_hours: number | null;
+  coverage_status: string | null;
 }
 
 const TYPE_PILL: Record<TimelineBlock["type"], string> = {
