@@ -192,7 +192,7 @@ function buildCanonicalSide(params: {
   if (parentsBoth.length >= 2 && momP && dadP) {
     push(`${momP.name} + ${dadP.name} (Parents alone)`, parentsBoth);
   } else if (parentsBoth.length === 1) {
-    push(`${parentsBoth[0].name} + ${subject} (final beat)`, [parentsBoth[0], subjectP]);
+    push(`${parentsBoth[0].name} + ${subj} (final beat)`, [parentsBoth[0], subjectP]);
   }
 
   // 13: setup buffer
