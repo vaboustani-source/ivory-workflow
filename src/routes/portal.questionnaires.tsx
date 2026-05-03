@@ -584,6 +584,7 @@ interface FamilyData {
   siblings?: SiblingEntry[];
   grandparents?: string;
   notes?: string;
+  dynamics_notes?: string;
   include_sibling_couples?: boolean;
   include_sibling_couples_with_us?: boolean;
 }
