@@ -211,7 +211,6 @@ function buildCanonicalSide(params: {
 function buildForSide(coupleNames: string[], fam: FamilyData, sideIndex: 0 | 1): SequenceStep[] {
   const subject = coupleNames[sideIndex] ?? `Partner ${sideIndex + 1}`;
   const partner = coupleNames[1 - sideIndex] ?? "";
-  const status = (fam.parents_status ?? "married_together").toLowerCase();
   const sibs = fam.siblings ?? [];
   const p1 = fam.parent_1?.name?.trim();
   const p2 = fam.parent_2?.name?.trim();
@@ -219,7 +218,31 @@ function buildForSide(coupleNames: string[], fam: FamilyData, sideIndex: 0 | 1):
   const includeSibCouples = !!fam.include_sibling_couples;
   const includeSibCouplesWithUs = !!fam.include_sibling_couples_with_us;
 
-  if (status.includes("separate")) {
+  const statusLower = (fam.parents_status ?? "").toLowerCase();
+  let variant: "married" | "divorced_separate" | "divorced_friendly" | "single" | "deceased" | "complicated" = "married";
+  if (statusLower.includes("divorced") && statusLower.includes("separate")) {
+    variant = "divorced_separate";
+  } else if (statusLower.includes("divorced")) {
+    variant = "divorced_friendly";
+  } else if (statusLower.includes("single")) {
+    variant = "single";
+  } else if (statusLower.includes("deceased")) {
+    variant = "deceased";
+  } else if (statusLower.includes("complicated")) {
+    variant = "complicated";
+  }
+
+  if (variant === "complicated") {
+    return [{
+      order: 1,
+      label: "Family dynamics complex — Dexter will build this manually based on couple's notes",
+      people: [],
+      minutes: 0,
+      note: "See Family Notes above.",
+    }];
+  }
+
+  if (variant === "divorced_separate") {
     const sideA = buildCanonicalSide({
       subject, partner, momName: p1, momRole: "parent",
       dadName: fam.step_parent_1?.trim() || undefined, dadRole: "step_parent",
@@ -235,7 +258,7 @@ function buildForSide(coupleNames: string[], fam: FamilyData, sideIndex: 0 | 1):
     return [...sideA, ...sideB].map((s, i) => ({ ...s, order: i + 1 }));
   }
 
-  if (status.includes("single")) {
+  if (variant === "single") {
     const only = p1 || p2;
     return buildCanonicalSide({
       subject, partner, momName: only, dadName: undefined,
@@ -244,7 +267,7 @@ function buildForSide(coupleNames: string[], fam: FamilyData, sideIndex: 0 | 1):
     });
   }
 
-  if (status.includes("deceased")) {
+  if (variant === "deceased") {
     const dec1 = fam.parent_1?.deceased;
     const dec2 = fam.parent_2?.deceased;
     const honor =
@@ -260,6 +283,9 @@ function buildForSide(coupleNames: string[], fam: FamilyData, sideIndex: 0 | 1):
     });
   }
 
+  // married OR divorced_friendly: standard sequence with mom + dad.
+  // Step-parents are captured in the questionnaire but not auto-inserted —
+  // studio inline edit handles inclusion.
   return buildCanonicalSide({
     subject, partner, momName: p1, dadName: p2,
     siblings: sibs, sideLabel: sideLabelBase,
