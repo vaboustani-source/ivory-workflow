@@ -344,6 +344,7 @@ function QuestionnaireModal({
                   </button>
                 </div>
               )}
+              <SectionProgress schema={schema} responses={responses} />
               <div className="space-y-7">
                 {schema.length === 0 ? (
                   <p className="font-serif italic text-muted-foreground">This form has no questions yet.</p>
