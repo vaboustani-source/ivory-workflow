@@ -588,6 +588,131 @@ export type Database = {
           },
         ]
       }
+      contractor_service_requests: {
+        Row: {
+          accepted_at: string | null
+          agreed_hourly_rate: number | null
+          agreed_hours: number | null
+          agreed_total: number | null
+          client_id: string
+          contractor_id: string
+          contractor_response_notes: string | null
+          created_at: string
+          id: string
+          message_to_contractor: string | null
+          notes: string | null
+          requested_at: string
+          requested_by: string | null
+          requested_role: string
+          responded_at: string | null
+          status: Database["public"]["Enums"]["contractor_request_status"]
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          agreed_hourly_rate?: number | null
+          agreed_hours?: number | null
+          agreed_total?: number | null
+          client_id: string
+          contractor_id: string
+          contractor_response_notes?: string | null
+          created_at?: string
+          id?: string
+          message_to_contractor?: string | null
+          notes?: string | null
+          requested_at?: string
+          requested_by?: string | null
+          requested_role: string
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["contractor_request_status"]
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          agreed_hourly_rate?: number | null
+          agreed_hours?: number | null
+          agreed_total?: number | null
+          client_id?: string
+          contractor_id?: string
+          contractor_response_notes?: string | null
+          created_at?: string
+          id?: string
+          message_to_contractor?: string | null
+          notes?: string | null
+          requested_at?: string
+          requested_by?: string | null
+          requested_role?: string
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["contractor_request_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_service_requests_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractors: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string | null
+          full_name: string
+          id: string
+          instagram: string | null
+          is_active: boolean
+          notes: string | null
+          phone: string | null
+          preferred_max_hourly_rate: number | null
+          preferred_min_hourly_rate: number | null
+          primary_role: string | null
+          roles: string[]
+          tags: string[]
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          instagram?: string | null
+          is_active?: boolean
+          notes?: string | null
+          phone?: string | null
+          preferred_max_hourly_rate?: number | null
+          preferred_min_hourly_rate?: number | null
+          primary_role?: string | null
+          roles?: string[]
+          tags?: string[]
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          instagram?: string | null
+          is_active?: boolean
+          notes?: string | null
+          phone?: string | null
+          preferred_max_hourly_rate?: number | null
+          preferred_min_hourly_rate?: number | null
+          primary_role?: string | null
+          roles?: string[]
+          tags?: string[]
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       contracts: {
         Row: {
           client_id: string | null
@@ -1975,6 +2100,72 @@ export type Database = {
           },
         ]
       }
+      wedding_team: {
+        Row: {
+          added_by: string | null
+          agreed_hourly_rate: number
+          agreed_hours: number
+          agreed_total: number | null
+          client_id: string
+          contractor_id: string
+          coverage_window_end: string | null
+          coverage_window_start: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          role: string
+          service_request_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          added_by?: string | null
+          agreed_hourly_rate: number
+          agreed_hours: number
+          agreed_total?: number | null
+          client_id: string
+          contractor_id: string
+          coverage_window_end?: string | null
+          coverage_window_start?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          role: string
+          service_request_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          added_by?: string | null
+          agreed_hourly_rate?: number
+          agreed_hours?: number
+          agreed_total?: number | null
+          client_id?: string
+          contractor_id?: string
+          coverage_window_end?: string | null
+          coverage_window_start?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          role?: string
+          service_request_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_team_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wedding_team_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workflow_step_branches: {
         Row: {
           branch_type: Database["public"]["Enums"]["workflow_branch"]
@@ -2295,6 +2486,11 @@ export type Database = {
         | "skipped"
         | "edited"
       contract_status: "draft" | "sent" | "signed"
+      contractor_request_status:
+        | "pending"
+        | "accepted"
+        | "declined"
+        | "withdrawn"
       engagement_status:
         | "pending_scheduling"
         | "scheduled"
@@ -2515,6 +2711,12 @@ export const Constants = {
         "edited",
       ],
       contract_status: ["draft", "sent", "signed"],
+      contractor_request_status: [
+        "pending",
+        "accepted",
+        "declined",
+        "withdrawn",
+      ],
       engagement_status: [
         "pending_scheduling",
         "scheduled",
