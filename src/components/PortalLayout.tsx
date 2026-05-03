@@ -51,7 +51,11 @@ export function PortalLayout({
   const [badges, setBadges] = useState<Record<string, NavBadge>>({});
 
   const isLead = client?.status === "lead";
-  const visibleNav = NAV_ITEMS.filter((i) => !(isLead && i.hideForLead));
+  const visibleNav = NAV_ITEMS.filter((i) => {
+    if (isLead && i.hideForLead) return false;
+    if (i.showOnlyIfBadge && !badges[i.badgeKey!]) return false;
+    return true;
+  });
   const isActive = (i: NavItem) => {
     if (i.exact) return location.pathname === i.to;
     if (i.matchPrefix) return location.pathname.startsWith(i.matchPrefix);
@@ -98,6 +102,11 @@ export function PortalLayout({
         .from("questionnaires").select("id, status").eq("client_id", clientId);
       const hasOpenQ = (qs ?? []).some((q: any) => q.status === "not_started" || q.status === "in_progress");
       if (hasOpenQ) next["questionnaires"] = { kind: "gold" };
+
+      // PORTRAIT SEQUENCE: gold dot if exists and not yet approved
+      const { data: ps } = await supabase
+        .from("portrait_sequences").select("id, approved_at").eq("client_id", clientId).maybeSingle();
+      if (ps?.id && !ps.approved_at) next["portrait"] = { kind: "gold" };
 
       if (!cancelled) setBadges(next);
     };
