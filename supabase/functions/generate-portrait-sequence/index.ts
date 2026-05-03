@@ -1,7 +1,7 @@
 // Edge Function: generate-portrait-sequence
-// Builds a stacked family portrait shot order for a couple from their family questionnaire data.
-// Input: { client_id: string, questionnaire_id?: string }
-// Output: { sequence_id, total_minutes, partner_1_sequence, partner_2_sequence, combined_sequence }
+// SBV canonical build-up-then-break-down family portrait sequence.
+// Variants: married_together | divorced_friendly | divorced_separate | single_parent | deceased
+// Each step = 1 min; +2 min if 7+ people; +4 min setup buffer per side.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -10,10 +10,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface ParentInfo { name: string; }
-interface SiblingEntry { name: string; has_partner: boolean; partner_name?: string; }
+interface ParentInfo { name?: string; deceased?: boolean; honor_in_photo?: boolean; }
+interface SiblingEntry { name: string; has_partner?: boolean; partner_name?: string; has_kids?: boolean; }
 interface FamilyData {
-  parents_status?: string;
+  parents_status?: string; // "married_together" | "divorced_friendly" | "divorced_separate" | "single_parent" | "deceased"
   parent_1?: ParentInfo;
   parent_2?: ParentInfo;
   step_parent_1?: string;
@@ -28,79 +28,185 @@ interface SequenceStep {
   label: string;
   people: string[];
   minutes: number;
+  note?: string;
 }
 
-const MIN_PER_SHOT = 2;
+const SETUP_BUFFER_MIN = 4;
 
-function joinPeople(arr: string[]): string {
-  const filtered = arr.filter(Boolean);
-  if (filtered.length <= 2) return filtered.join(" + ");
-  return filtered.slice(0, -1).join(", ") + " + " + filtered[filtered.length - 1];
+function minutesFor(people: string[]): number {
+  return people.length >= 7 ? 3 : 1;
 }
 
-// Build the stacked sequence for ONE side of the family.
-// Strategy: start tightest (couple + immediate parents), add siblings, add sibling partners,
-// then peel back layers (parents alone, individual parent w/ couple), then grandparents.
-// For divorced — separate, this generator is called twice (once per parent).
-function buildSideSequence(
-  coupleNames: string[],
-  fam: FamilyData,
-  opts: { onlyParent?: "p1" | "p2"; sideLabel: string } = { sideLabel: "" }
-): SequenceStep[] {
+// Build the canonical sequence for ONE side (one parent unit).
+// momName/dadName: the two parents on this side (one may be a step-parent for divorced-separate).
+// Either may be undefined for single_parent. If a parent is "deceased", pass their name as undefined
+// (their solo shot is skipped) but they remain absent from group shots.
+function buildCanonicalSide(params: {
+  subject: string;             // the partner whose family this is
+  partner: string;             // the other half of the couple
+  momName?: string;            // primary parent on this side (e.g. Mom or Dad-side dad)
+  dadName?: string;            // secondary parent (e.g. Dad or step-parent). undefined if single/deceased.
+  siblings: SiblingEntry[];
+  sideLabel: string;           // for logging/labeling; e.g. "Mom side" or "Partner 1"
+  honorDeceased?: { name?: string };
+}): SequenceStep[] {
+  const { subject, partner, momName, dadName, siblings, sideLabel, honorDeceased } = params;
   const steps: SequenceStep[] = [];
-  const p1 = fam.parent_1?.name?.trim();
-  const p2 = fam.parent_2?.name?.trim();
-  const sp1 = fam.step_parent_1?.trim();
-  const sp2 = fam.step_parent_2?.trim();
-  const sibs = (fam.siblings ?? []).filter((s) => s.name?.trim());
-  const grandparents = fam.grandparents?.trim();
-
-  let parents: string[] = [];
-  if (opts.onlyParent === "p1") parents = [p1, sp1].filter(Boolean) as string[];
-  else if (opts.onlyParent === "p2") parents = [p2, sp2].filter(Boolean) as string[];
-  else parents = [p1, p2].filter(Boolean) as string[];
-
-  if (parents.length === 0 && sibs.length === 0 && !grandparents) return steps;
-
   let order = 0;
-  const push = (label: string, people: string[], minutes = MIN_PER_SHOT) => {
-    steps.push({ order: ++order, label, people, minutes });
+  const push = (label: string, people: string[], note?: string) => {
+    const filtered = people.filter(Boolean);
+    steps.push({ order: ++order, label, people: filtered, minutes: minutesFor(filtered), note });
   };
 
-  const sibAll = sibs.map((s) => s.name);
-  const sibPartners = sibs.filter((s) => s.has_partner && s.partner_name?.trim()).map((s) => s.partner_name!.trim());
+  if (!subject) return steps;
+  if (!momName && !dadName && siblings.length === 0) return steps;
 
-  // 1. Couple + everyone (parents + sibs + sib partners)
-  if (parents.length || sibAll.length) {
+  const sibsClean = siblings.filter((s) => s?.name?.trim());
+  const sibNames = sibsClean.map((s) => s.name.trim());
+  const sibPartners = sibsClean
+    .filter((s) => s.has_partner && s.partner_name?.trim())
+    .map((s) => s.partner_name!.trim());
+
+  // Step 1 & 2: subject + each parent solo (skip if deceased/missing)
+  if (momName) push(`${subject} + ${momName}`, [subject, momName]);
+  if (dadName) {
+    if (momName) push(`Switch ${momName} for ${dadName}`, [subject, dadName]);
+    else push(`${subject} + ${dadName}`, [subject, dadName]);
+  }
+
+  const parentsBoth = [momName, dadName].filter(Boolean) as string[];
+
+  // Step 3: ^ Add the other parent → subject + parents
+  if (parentsBoth.length >= 2) {
+    push(`^ Add ${momName} (Parents + ${subject})`, [subject, ...parentsBoth]);
+  }
+
+  // Step 4: ^ Add Partner (Couple with Parents)
+  if (parentsBoth.length > 0 && partner) {
+    push(`^ Add ${partner} (Couple with Parents)`, [subject, partner, ...parentsBoth]);
+  }
+
+  // Steps 5..N: ^ Add each sibling (+ their partner) one at a time, building to full family
+  let running = [subject, partner, ...parentsBoth].filter(Boolean) as string[];
+  for (let i = 0; i < sibsClean.length; i++) {
+    const sib = sibsClean[i];
+    const addBits = [sib.name.trim()];
+    let label = `^ Add ${sib.name.trim()}`;
+    if (sib.has_partner && sib.partner_name?.trim()) {
+      addBits.push(sib.partner_name.trim());
+      label = `^ Add ${sib.name.trim()} + ${sib.partner_name.trim()}`;
+    }
+    running = [...running, ...addBits];
+    const isLast = i === sibsClean.length - 1;
+    push(isLast ? `${label} (Full Family)` : label, [...running], sib.has_kids ? "Include kids in family group?" : undefined);
+  }
+
+  // Step (peel 1): > Take out partners (couple's partner + sib partners) → OG Family
+  if (sibsClean.length > 0 && (sibPartners.length > 0 || partner)) {
     push(
-      `Couple + ${opts.sideLabel} immediate family`,
-      [...coupleNames, ...parents, ...sibAll, ...sibPartners]
+      `> Take out ${partner}${sibPartners.length ? " + sibling partners" : ""} (OG Family)`,
+      [subject, ...parentsBoth, ...sibNames]
     );
   }
-  // 2. Without sib partners
-  if (sibPartners.length > 0 && (parents.length || sibAll.length)) {
+
+  // Step (peel 2): > Take out Parents (OG Siblings)
+  if (sibsClean.length > 0 && parentsBoth.length > 0) {
+    push(`> Take out Parents (OG Siblings)`, [subject, ...sibNames]);
+  }
+
+  // Step (rebuild): ^ Add back Partner + sibling partners (Sibs & Spouses)
+  if (sibsClean.length > 0 && (partner || sibPartners.length > 0)) {
     push(
-      `Couple + ${opts.sideLabel} parents + siblings`,
-      [...coupleNames, ...parents, ...sibAll]
+      `^ Add back ${partner}${sibPartners.length ? " + sibling partners" : ""} (Sibs & Spouses)`,
+      [subject, partner, ...sibNames, ...sibPartners].filter(Boolean) as string[]
     );
   }
-  // 3. Couple + parents only
-  if (parents.length > 0 && sibAll.length > 0) {
-    push(`Couple + ${opts.sideLabel} parents`, [...coupleNames, ...parents]);
+
+  // Final beat: parents alone
+  if (parentsBoth.length >= 2) {
+    push(`${momName} + ${dadName} (Parents alone)`, parentsBoth);
+  } else if (parentsBoth.length === 1) {
+    push(`${parentsBoth[0]} + ${subject} (final beat)`, [parentsBoth[0], subject]);
   }
-  // 4. Each individual parent with couple
-  if (parents.length >= 2) {
-    for (const p of parents) push(`Couple + ${p}`, [...coupleNames, p]);
+
+  // Sib pair shots: each sibling + their partner
+  for (const s of sibsClean) {
+    if (s.has_partner && s.partner_name?.trim()) {
+      push(`${s.name.trim()} + ${s.partner_name.trim()} (sib pair)`, [s.name.trim(), s.partner_name.trim()]);
+    }
   }
-  // 5. Siblings with couple (no parents)
-  if (sibAll.length > 0 && parents.length > 0) {
-    push(`Couple + ${opts.sideLabel} siblings`, [...coupleNames, ...sibAll, ...sibPartners]);
+
+  // Setup buffer
+  push(`(${sideLabel}) Setup buffer`, []);
+  steps[steps.length - 1].minutes = SETUP_BUFFER_MIN;
+
+  // Honor deceased note (no shot)
+  if (honorDeceased?.name) {
+    push(`Moment of remembrance for ${honorDeceased.name}`, [], "No shot — plan a quiet moment.");
+    steps[steps.length - 1].minutes = 0;
   }
-  // 6. Grandparents
-  if (grandparents) {
-    push(`Couple + ${opts.sideLabel} grandparents`, [...coupleNames, grandparents]);
-  }
+
   return steps.map((s, i) => ({ ...s, order: i + 1 }));
+}
+
+function buildForSide(coupleNames: string[], fam: FamilyData, sideIndex: 0 | 1): SequenceStep[] {
+  const subject = coupleNames[sideIndex] ?? `Partner ${sideIndex + 1}`;
+  const partner = coupleNames[1 - sideIndex] ?? "";
+  const status = (fam.parents_status ?? "married_together").toLowerCase();
+  const sibs = fam.siblings ?? [];
+  const p1 = fam.parent_1?.name?.trim();
+  const p2 = fam.parent_2?.name?.trim();
+  const sideLabelBase = `Partner ${sideIndex + 1}`;
+
+  // Divorced — separate: two sequences, one per parent (with their step-partner), no combined parent shot
+  if (status.includes("separate")) {
+    const sideA = buildCanonicalSide({
+      subject, partner,
+      momName: p1,
+      dadName: fam.step_parent_1?.trim() || undefined,
+      siblings: sibs,
+      sideLabel: `${sideLabelBase} — ${p1 ?? "Parent 1"} side`,
+    });
+    const sideB = buildCanonicalSide({
+      subject, partner,
+      momName: p2,
+      dadName: fam.step_parent_2?.trim() || undefined,
+      siblings: sibs,
+      sideLabel: `${sideLabelBase} — ${p2 ?? "Parent 2"} side`,
+    });
+    return [...sideA, ...sideB].map((s, i) => ({ ...s, order: i + 1 }));
+  }
+
+  // Single parent: one parent only
+  if (status.includes("single")) {
+    const only = p1 || p2;
+    return buildCanonicalSide({
+      subject, partner, momName: only, dadName: undefined,
+      siblings: sibs, sideLabel: sideLabelBase,
+    });
+  }
+
+  // Deceased: skip deceased parent's solo (omit their name as a parent, but keep honoring note if requested)
+  if (status.includes("deceased")) {
+    const dec1 = fam.parent_1?.deceased;
+    const dec2 = fam.parent_2?.deceased;
+    const honor =
+      (dec1 && fam.parent_1?.honor_in_photo && fam.parent_1?.name) ? { name: fam.parent_1.name } :
+      (dec2 && fam.parent_2?.honor_in_photo && fam.parent_2?.name) ? { name: fam.parent_2.name } :
+      undefined;
+    return buildCanonicalSide({
+      subject, partner,
+      momName: dec1 ? undefined : p1,
+      dadName: dec2 ? undefined : p2,
+      siblings: sibs, sideLabel: sideLabelBase, honorDeceased: honor,
+    });
+  }
+
+  // married_together OR divorced_friendly → standard sequence
+  return buildCanonicalSide({
+    subject, partner, momName: p1, dadName: p2,
+    siblings: sibs, sideLabel: sideLabelBase,
+  });
 }
 
 Deno.serve(async (req) => {
@@ -156,33 +262,25 @@ Deno.serve(async (req) => {
 
     const fam1: FamilyData = (r.partner_1_family ?? {}) as FamilyData;
     const fam2: FamilyData = (r.partner_2_family ?? {}) as FamilyData;
-    const combinedChoice: string = r.combined_family_photo ?? "";
+    const combinedChoice: string = (r.combined_family_photo ?? "").toString();
     const wp = (r.wedding_party ?? {}) as any;
     const extended = Array.isArray(r.extended_portraits) ? r.extended_portraits : [];
 
-    const buildForSide = (fam: FamilyData, label: string): SequenceStep[] => {
-      if (fam.parents_status === "Divorced — separate photos") {
-        const a = buildSideSequence(coupleNames, fam, { onlyParent: "p1", sideLabel: `${label} (${fam.parent_1?.name ?? "Parent 1"})` });
-        const b = buildSideSequence(coupleNames, fam, { onlyParent: "p2", sideLabel: `${label} (${fam.parent_2?.name ?? "Parent 2"})` });
-        return [...a, ...b].map((s, i) => ({ ...s, order: i + 1 }));
-      }
-      return buildSideSequence(coupleNames, fam, { sideLabel: label });
-    };
-
-    const partner_1_sequence = buildForSide(fam1, "Partner 1");
-    const partner_2_sequence = buildForSide(fam2, "Partner 2");
+    const partner_1_sequence = buildForSide(coupleNames, fam1, 0);
+    const partner_2_sequence = buildForSide(coupleNames, fam2, 1);
 
     const combined_sequence: SequenceStep[] = [];
-    if (combinedChoice.startsWith("Yes")) {
+    const lc = combinedChoice.toLowerCase();
+    if (lc.startsWith("yes")) {
       const all1 = [fam1.parent_1?.name, fam1.parent_2?.name, fam1.step_parent_1, fam1.step_parent_2].filter(Boolean) as string[];
       const all2 = [fam2.parent_1?.name, fam2.parent_2?.name, fam2.step_parent_1, fam2.step_parent_2].filter(Boolean) as string[];
       const sibs1 = (fam1.siblings ?? []).filter((s) => s.name?.trim()).map((s) => s.name);
       const sibs2 = (fam2.siblings ?? []).filter((s) => s.name?.trim()).map((s) => s.name);
-      if (combinedChoice.includes("only parents")) {
-        combined_sequence.push({ order: 1, label: "Both families — parents only", people: [...coupleNames, ...all1, ...all2], minutes: 3 });
-      } else {
-        combined_sequence.push({ order: 1, label: "Both families — everyone", people: [...coupleNames, ...all1, ...all2, ...sibs1, ...sibs2], minutes: 4 });
-        combined_sequence.push({ order: 2, label: "Both families — parents only", people: [...coupleNames, ...all1, ...all2], minutes: 3 });
+      const parentsOnly = [...coupleNames, ...all1, ...all2];
+      combined_sequence.push({ order: 1, label: "Couple + All Parents", people: parentsOnly, minutes: minutesFor(parentsOnly) });
+      if (!lc.includes("only parents")) {
+        const everyone = [...parentsOnly, ...sibs1, ...sibs2];
+        combined_sequence.push({ order: 2, label: "^ Add all siblings (one big family shot)", people: everyone, minutes: minutesFor(everyone) });
       }
     }
 
