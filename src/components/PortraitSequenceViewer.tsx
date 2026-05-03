@@ -24,6 +24,9 @@ interface PortraitSequence {
   total_minutes: number | null;
   notes: string | null;
   generated_at: string;
+  approved_at?: string | null;
+  approved_by?: string | null;
+  couple_review_notes?: string | null;
 }
 
 type ListKey = "partner_1_sequence" | "partner_2_sequence" | "combined_sequence" | "wedding_party_shots" | "extended_shots";
@@ -54,7 +57,7 @@ function renderPeople(people: PersonLike[]): string {
     .join(", ");
 }
 
-export function PortraitSequenceViewer({ clientId, editable = false }: { clientId: string; editable?: boolean }) {
+export function PortraitSequenceViewer({ clientId, editable = false, coupleApproval = false }: { clientId: string; editable?: boolean; coupleApproval?: boolean }) {
   const [seq, setSeq] = useState<PortraitSequence | null>(null);
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
