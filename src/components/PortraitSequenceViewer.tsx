@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Plus, Pencil, X, Check, Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import { Loader2, Plus, Pencil, X, Check, Eye, EyeOff, CheckCircle2, Trash2, ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
 
 type Role = "subject" | "partner" | "parent" | "step_parent" | "sibling" | "sibling_partner" | "other";
 type PersonLike = string | { name: string; role?: Role };
@@ -12,6 +12,19 @@ interface SequenceStep {
   minutes: number;
   note?: string;
   optional?: "sibling_couples" | "sibling_couples_with_us";
+  custom?: boolean;
+}
+
+type EditAction = "edited" | "deleted" | "added" | "reordered" | "toggled_optional";
+interface EditLogEntry {
+  timestamp: string;
+  user_id: string | null;
+  user_name: string;
+  action: EditAction;
+  side: "partner_1" | "partner_2" | "combined" | "wedding_party" | "extended";
+  step_label: string;
+  before?: any;
+  after?: any;
 }
 
 interface PortraitSequence {
@@ -28,9 +41,18 @@ interface PortraitSequence {
   approved_at?: string | null;
   approved_by?: string | null;
   couple_review_notes?: string | null;
+  couple_edits_log?: EditLogEntry[] | null;
+  couple_comments?: string | null;
 }
 
 type ListKey = "partner_1_sequence" | "partner_2_sequence" | "combined_sequence" | "wedding_party_shots" | "extended_shots";
+const LIST_TO_SIDE: Record<ListKey, EditLogEntry["side"]> = {
+  partner_1_sequence: "partner_1",
+  partner_2_sequence: "partner_2",
+  combined_sequence: "combined",
+  wedding_party_shots: "wedding_party",
+  extended_shots: "extended",
+};
 
 const ROLE_LABEL: Record<Role, string> = {
   subject: "you",
@@ -58,20 +80,34 @@ function renderPeople(people: PersonLike[]): string {
     .join(", ");
 }
 
-export function PortraitSequenceViewer({ clientId, editable = false, coupleApproval = false }: { clientId: string; editable?: boolean; coupleApproval?: boolean }) {
+export function PortraitSequenceViewer({
+  clientId,
+  editable = false,
+  coupleApproval = false,
+  coupleEditable = false,
+}: {
+  clientId: string;
+  editable?: boolean;
+  coupleApproval?: boolean;
+  coupleEditable?: boolean;
+}) {
   const [seq, setSeq] = useState<PortraitSequence | null>(null);
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
   const [editing, setEditing] = useState<{ list: ListKey; idx: number } | null>(null);
+  const [adding, setAdding] = useState<ListKey | null>(null);
   const [notes, setNotes] = useState("");
+  const [coupleComments, setCoupleComments] = useState("");
   const [showSibCouples, setShowSibCouples] = useState(false);
   const [showSibCouplesWithUs, setShowSibCouplesWithUs] = useState(false);
+  const [changesOpen, setChangesOpen] = useState(true);
 
   const load = async () => {
     setLoading(true);
     const { data } = await supabase.from("portrait_sequences").select("*").eq("client_id", clientId).maybeSingle();
     setSeq(data as any);
     setNotes((data as any)?.notes ?? "");
+    setCoupleComments((data as any)?.couple_comments ?? "");
     setLoading(false);
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [clientId]);
@@ -100,13 +136,60 @@ export function PortraitSequenceViewer({ clientId, editable = false, coupleAppro
     await load();
   };
 
-  const updateList = async (list: ListKey, items: SequenceStep[]) => {
+  // Auto-save couple_comments (1s debounce)
+  const commentsSaveTimer = useRef<number | null>(null);
+  const onCoupleCommentsChange = (val: string) => {
+    setCoupleComments(val);
+    if (!seq || !coupleEditable) return;
+    if (commentsSaveTimer.current) window.clearTimeout(commentsSaveTimer.current);
+    commentsSaveTimer.current = window.setTimeout(async () => {
+      await supabase.from("portrait_sequences").update({ couple_comments: val } as any).eq("id", seq.id);
+    }, 1000);
+  };
+
+  const buildLogEntry = async (
+    action: EditAction,
+    list: ListKey,
+    step_label: string,
+    before?: any,
+    after?: any,
+  ): Promise<EditLogEntry> => {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id ?? null;
+    let userName = "Couple";
+    if (userId) {
+      const { data: prof } = await supabase.from("profiles").select("full_name, email").eq("id", userId).maybeSingle();
+      userName = (prof as any)?.full_name || (prof as any)?.email || userName;
+    }
+    return {
+      timestamp: new Date().toISOString(),
+      user_id: userId,
+      user_name: userName,
+      action,
+      side: LIST_TO_SIDE[list],
+      step_label,
+      before,
+      after,
+    };
+  };
+
+  const updateList = async (
+    list: ListKey,
+    items: SequenceStep[],
+    log?: EditLogEntry,
+  ) => {
     if (!seq) return;
     const total = ([
       "partner_1_sequence","partner_2_sequence","combined_sequence","wedding_party_shots","extended_shots",
     ] as ListKey[]).reduce((acc, k) => acc + (k === list ? items : (seq[k] ?? [])).reduce((a, s) => a + (s.minutes ?? 0), 0), 0);
-    await supabase.from("portrait_sequences").update({ [list]: items, total_minutes: total } as any).eq("id", seq.id);
-    setSeq({ ...seq, [list]: items, total_minutes: total } as any);
+    const patch: any = { [list]: items, total_minutes: total };
+    let nextLog = seq.couple_edits_log ?? [];
+    if (log) {
+      nextLog = [...nextLog, log];
+      patch.couple_edits_log = nextLog;
+    }
+    await supabase.from("portrait_sequences").update(patch).eq("id", seq.id);
+    setSeq({ ...seq, [list]: items, total_minutes: total, couple_edits_log: nextLog } as any);
   };
 
   const visibleTotal = useMemo(() => {
@@ -140,8 +223,45 @@ export function PortraitSequenceViewer({ clientId, editable = false, coupleAppro
     );
   }
 
+  const canCoupleEdit = coupleEditable && !editable;
+  const canEditAny = editable || canCoupleEdit;
+  const editLog = seq.couple_edits_log ?? [];
+
+  const onSaveEdit = async (list: ListKey, idx: number, items: SequenceStep[], updated: SequenceStep) => {
+    const before = items[idx];
+    const next = items.map((x, i) => (i === idx ? updated : x));
+    let log: EditLogEntry | undefined;
+    if (canCoupleEdit) {
+      log = await buildLogEntry("edited", list, updated.label, { label: before.label }, { label: updated.label });
+    }
+    await updateList(list, next, log);
+    setEditing(null);
+  };
+
+  const onDelete = async (list: ListKey, idx: number, items: SequenceStep[]) => {
+    const removed = items[idx];
+    const next = items.filter((_, i) => i !== idx);
+    let log: EditLogEntry | undefined;
+    if (canCoupleEdit) {
+      log = await buildLogEntry("deleted", list, removed.label, { label: removed.label });
+    }
+    await updateList(list, next, log);
+    setEditing(null);
+  };
+
+  const onAdd = async (list: ListKey, items: SequenceStep[], step: SequenceStep) => {
+    const flagged: SequenceStep = canCoupleEdit ? { ...step, custom: true } : step;
+    const next = [...items, { ...flagged, order: items.length + 1 }];
+    let log: EditLogEntry | undefined;
+    if (canCoupleEdit) {
+      log = await buildLogEntry("added", list, step.label, undefined, { label: step.label });
+    }
+    await updateList(list, next, log);
+    setAdding(null);
+  };
+
   const Section = ({ title, list, items }: { title: string; list: ListKey; items: SequenceStep[] }) => {
-    if (!items || items.length === 0) return null;
+    if ((!items || items.length === 0) && adding !== list) return null;
     return (
       <div className="bg-surface rounded-md shadow-soft p-5 border-l-2 border-gold">
         <h3 className="font-serif italic text-xl text-primary mb-3">{title}</h3>
@@ -150,44 +270,66 @@ export function PortraitSequenceViewer({ clientId, editable = false, coupleAppro
             const faded =
               (step.optional === "sibling_couples" && !showSibCouples) ||
               (step.optional === "sibling_couples_with_us" && !showSibCouplesWithUs);
+            const isEditing = editing?.list === list && editing.idx === idx;
             return (
-            <li key={idx} className={`flex items-start gap-3 group ${faded ? "opacity-50" : ""}`}>
-              <span className="text-[11px] uppercase tracking-wider text-muted-foreground w-6 mt-1">{step.order ?? idx + 1}.</span>
-              {editing?.list === list && editing.idx === idx ? (
-                <StepEditor
-                  step={step}
-                  onSave={(s) => { updateList(list, items.map((x, i) => i === idx ? s : x)); setEditing(null); }}
-                  onCancel={() => setEditing(null)}
-                  onDelete={() => { updateList(list, items.filter((_, i) => i !== idx)); setEditing(null); }}
-                />
-              ) : (
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground">
-                    {step.label}
-                    {step.optional && <span className="ml-2 text-[10px] uppercase tracking-wider text-gold">optional</span>}
-                  </p>
-                  {step.people?.length > 0 && (
-                    <p className="text-[11px] italic text-muted-foreground">{renderPeople(step.people)}</p>
-                  )}
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">{step.minutes} min{step.note ? ` · ${step.note}` : ""}</p>
-                </div>
-              )}
-              {editable && editing?.idx !== idx && (
-                <button onClick={() => setEditing({ list, idx })} className="text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100" aria-label="Edit">
-                  <Pencil size={12} />
-                </button>
-              )}
-            </li>
+              <li key={idx} className={`flex items-start gap-3 group ${faded ? "opacity-50" : ""}`}>
+                <span className="text-[11px] uppercase tracking-wider text-muted-foreground w-6 mt-1">{step.order ?? idx + 1}.</span>
+                {isEditing ? (
+                  <StepEditor
+                    step={step}
+                    labelOnly={canCoupleEdit}
+                    onSave={(s) => onSaveEdit(list, idx, items, s)}
+                    onCancel={() => setEditing(null)}
+                    onDelete={() => onDelete(list, idx, items)}
+                  />
+                ) : (
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-foreground">
+                      {step.label}
+                      {step.optional && <span className="ml-2 text-[10px] uppercase tracking-wider text-gold">optional</span>}
+                      {step.custom && <span className="ml-2 text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-magenta/15 text-magenta">Added by you</span>}
+                    </p>
+                    {step.people?.length > 0 && (
+                      <p className="text-[11px] italic text-muted-foreground">{renderPeople(step.people)}</p>
+                    )}
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">{step.minutes} min{step.note ? ` · ${step.note}` : ""}</p>
+                  </div>
+                )}
+                {canEditAny && !isEditing && (
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100">
+                    <button onClick={() => setEditing({ list, idx })} className={`${canCoupleEdit ? "text-primary hover:text-primary/70" : "text-muted-foreground hover:text-primary"}`} aria-label="Edit">
+                      <Pencil size={12} />
+                    </button>
+                    {canCoupleEdit && (
+                      <button onClick={() => onDelete(list, idx, items)} className="text-magenta hover:text-magenta/70" aria-label="Delete">
+                        <Trash2 size={12} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </li>
             );
           })}
         </ol>
-        {editable && (
-          <button
-            onClick={() => updateList(list, [...items, { order: items.length + 1, label: "New step", people: [], minutes: 2 }])}
-            className="mt-3 border border-dashed border-gold text-gold px-3 py-1 rounded-md text-xs hover:bg-gold/10 inline-flex items-center gap-1"
-          >
-            <Plus size={12} /> Add step
-          </button>
+        {canEditAny && (
+          adding === list ? (
+            <div className="mt-3">
+              <StepEditor
+                step={{ order: items.length + 1, label: "", people: [], minutes: 2 }}
+                labelOnly={canCoupleEdit}
+                onSave={(s) => onAdd(list, items, s)}
+                onCancel={() => setAdding(null)}
+                onDelete={() => setAdding(null)}
+              />
+            </div>
+          ) : (
+            <button
+              onClick={() => setAdding(list)}
+              className={`mt-3 border border-dashed px-3 py-1 rounded-md text-xs inline-flex items-center gap-1 ${canCoupleEdit ? "border-primary text-primary hover:bg-primary/10" : "border-gold text-gold hover:bg-gold/10"}`}
+            >
+              <Plus size={12} /> {canCoupleEdit ? "Add a portrait" : "Add step"}
+            </button>
+          )
         )}
       </div>
     );
@@ -195,6 +337,34 @@ export function PortraitSequenceViewer({ clientId, editable = false, coupleAppro
 
   return (
     <div className="space-y-5">
+      {editable && editLog.length > 0 && (
+        <div className="bg-magenta/5 rounded-md border border-magenta/30 overflow-hidden">
+          <button
+            onClick={() => setChangesOpen((v) => !v)}
+            className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-magenta/10"
+          >
+            <span className="font-serif italic text-base text-primary inline-flex items-center gap-2">
+              {changesOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              Changes from couple ({editLog.length})
+            </span>
+          </button>
+          {changesOpen && (
+            <ul className="px-4 pb-4 space-y-1.5">
+              {[...editLog].reverse().map((e, i) => (
+                <li key={i} className="text-sm text-foreground">
+                  <span className="font-medium">{e.user_name}</span>{" "}
+                  <span className="text-muted-foreground">
+                    {e.action === "deleted" ? "removed" : e.action === "added" ? "added" : e.action === "edited" ? "edited" : e.action}
+                  </span>{" "}
+                  <span className="italic">"{e.action === "edited" && e.before?.label ? `${e.before.label}" → "${e.after?.label ?? e.step_label}` : e.step_label}"</span>{" "}
+                  <span className="text-[11px] text-muted-foreground">on {new Date(e.timestamp).toLocaleString()}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center justify-between gap-3 bg-surface rounded-md p-3 border border-border">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>Generated {new Date(seq.generated_at).toLocaleString()} · Total ~{visibleTotal} min</span>
@@ -257,12 +427,40 @@ export function PortraitSequenceViewer({ clientId, editable = false, coupleAppro
         </div>
       )}
 
+      {editable && (seq.couple_comments?.trim() || true) && (
+        <div className="bg-surface rounded-md p-4 border-l-2 border-primary">
+          <h3 className="font-serif italic text-lg text-primary mb-2 inline-flex items-center gap-2">
+            <MessageSquare size={14} /> Notes from couple
+          </h3>
+          {seq.couple_comments?.trim() ? (
+            <p className="text-sm text-foreground whitespace-pre-wrap">{seq.couple_comments}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">No notes from the couple yet.</p>
+          )}
+        </div>
+      )}
+
+      {coupleEditable && (
+        <div className="bg-surface rounded-md p-4 border border-border">
+          <label className="block text-sm font-medium text-foreground mb-1">Notes for Victoria & Dexter</label>
+          <p className="text-xs text-muted-foreground mb-2">
+            Anything you want us to know about your family portraits — sensitivities, requests, things to avoid.
+          </p>
+          <textarea
+            value={coupleComments}
+            onChange={(e) => onCoupleCommentsChange(e.target.value)}
+            rows={4}
+            className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
+        </div>
+      )}
+
       {coupleApproval && (
         seq.approved_at ? (
           <div className="bg-sage/10 border border-sage/30 rounded-md p-6 text-center">
             <CheckCircle2 className="mx-auto text-sage mb-2" size={28} />
             <p className="font-serif italic text-xl text-primary">Approved on {new Date(seq.approved_at).toLocaleDateString()}.</p>
-            <p className="text-xs text-muted-foreground mt-1">Thanks! We'll use this on your wedding day.</p>
+            <p className="text-xs text-muted-foreground mt-1">Thanks! We'll use this on your wedding day. You can still tweak labels or notes anytime.</p>
           </div>
         ) : (
           <div className="bg-surface rounded-md p-6 border-t-2 border-gold text-center">
@@ -283,20 +481,45 @@ export function PortraitSequenceViewer({ clientId, editable = false, coupleAppro
   );
 }
 
-function StepEditor({ step, onSave, onCancel, onDelete }: { step: SequenceStep; onSave: (s: SequenceStep) => void; onCancel: () => void; onDelete: () => void; }) {
+function StepEditor({
+  step,
+  labelOnly = false,
+  onSave,
+  onCancel,
+  onDelete,
+}: {
+  step: SequenceStep;
+  labelOnly?: boolean;
+  onSave: (s: SequenceStep) => void;
+  onCancel: () => void;
+  onDelete: () => void;
+}) {
   const [label, setLabel] = useState(step.label);
   const [minutes, setMinutes] = useState(step.minutes);
   const [people, setPeople] = useState((step.people ?? []).map((p) => (typeof p === "string" ? p : p.name)).join(", "));
   return (
     <div className="flex-1 space-y-2">
       <input value={label} onChange={(e) => setLabel(e.target.value)} className="w-full px-2 py-1 border border-border rounded-md text-sm" placeholder="Label" />
-      <input value={people} onChange={(e) => setPeople(e.target.value)} className="w-full px-2 py-1 border border-border rounded-md text-sm" placeholder="People (comma-separated)" />
+      {!labelOnly && (
+        <input value={people} onChange={(e) => setPeople(e.target.value)} className="w-full px-2 py-1 border border-border rounded-md text-sm" placeholder="People (comma-separated)" />
+      )}
       <div className="flex items-center justify-between gap-2">
-        <input type="number" min={1} value={minutes} onChange={(e) => setMinutes(Number(e.target.value))} className="px-2 py-1 border border-border rounded-md text-sm w-20" />
+        {!labelOnly ? (
+          <input type="number" min={1} value={minutes} onChange={(e) => setMinutes(Number(e.target.value))} className="px-2 py-1 border border-border rounded-md text-sm w-20" />
+        ) : <span />}
         <div className="flex gap-2">
           <button onClick={onDelete} className="text-xs text-magenta hover:underline">Delete</button>
           <button onClick={onCancel} className="px-2 py-1 text-xs border border-border rounded-md inline-flex items-center gap-1"><X size={12} /> Cancel</button>
-          <button onClick={() => onSave({ ...step, label, minutes, people: people.split(",").map((s) => ({ name: s.trim() })).filter((p) => p.name) })} className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded-md inline-flex items-center gap-1"><Check size={12} /> Save</button>
+          <button
+            onClick={() => onSave(
+              labelOnly
+                ? { ...step, label }
+                : { ...step, label, minutes, people: people.split(",").map((s) => ({ name: s.trim() })).filter((p) => p.name) }
+            )}
+            className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded-md inline-flex items-center gap-1"
+          >
+            <Check size={12} /> Save
+          </button>
         </div>
       </div>
     </div>
