@@ -51,7 +51,7 @@ export function PortalLayout({
   const [badges, setBadges] = useState<Record<string, NavBadge>>({});
 
   const isLead = client?.status === "lead";
-  const hasPortraitSeq = !!badges["portrait_sequence"]?.kind || badges["portrait_sequence"]?.kind === "none";
+  const hasPortraitSeq = !!badges["portrait_sequence"];
   const visibleNav = NAV_ITEMS.filter((i) => {
     if (isLead && i.hideForLead) return false;
     if (i.requireFlag === "portrait_sequence" && !hasPortraitSeq) return false;
