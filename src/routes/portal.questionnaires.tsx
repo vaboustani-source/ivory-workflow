@@ -131,11 +131,9 @@ function statusLabel(s: string) {
 
 function QuestionnaireCard({ q, onOpen }: { q: Questionnaire; onOpen: () => void }) {
   const schema: QuestionDef[] = Array.isArray(q.template?.schema) ? q.template!.schema : [];
-  const total = schema.length;
-  const answered = schema.filter((qd) => {
-    const v = q.responses?.[qd.id];
-    return v !== undefined && v !== null && (Array.isArray(v) ? v.length > 0 : String(v).length > 0);
-  }).length;
+  const askable = schema.filter((qd) => !NON_QUESTION_TYPES.has(qd.type));
+  const total = askable.length;
+  const answered = askable.filter((qd) => isAnswered(qd, q.responses?.[qd.id])).length;
 
   const cta = q.status === "complete" ? "View responses" : q.status === "in_progress" ? "Continue form" : "Begin form";
 
