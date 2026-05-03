@@ -37,13 +37,13 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.geocode-address]
-verify_jwt = true
+verify_jwt = false
 
 [functions.compute-sunset-time]
-verify_jwt = true
+verify_jwt = false
 
 [functions.compute-travel-time]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-photography-timeline]
 verify_jwt = true
