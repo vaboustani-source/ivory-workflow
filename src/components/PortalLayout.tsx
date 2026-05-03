@@ -104,6 +104,13 @@ export function PortalLayout({
       const hasOpenQ = (qs ?? []).some((q: any) => q.status === "not_started" || q.status === "in_progress");
       if (hasOpenQ) next["questionnaires"] = { kind: "gold" };
 
+      // PORTRAIT SEQUENCE: exists → mark presence; gold dot if not yet approved
+      const { data: seq } = await supabase
+        .from("portrait_sequences").select("id, approved_at").eq("client_id", clientId).maybeSingle();
+      if (seq?.id) {
+        next["portrait_sequence"] = { kind: seq.approved_at ? "none" : "gold" };
+      }
+
       if (!cancelled) setBadges(next);
     };
     compute();
