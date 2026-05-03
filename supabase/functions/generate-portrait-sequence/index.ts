@@ -39,12 +39,15 @@ interface SequenceStep {
 
 const SETUP_BUFFER_MIN = 4;
 
+const firstName = (full?: string): string =>
+  (full ?? "").trim().split(/\s+/)[0] ?? "";
+
 function minutesFor(people: Person[]): number {
   return people.length >= 7 ? 3 : 1;
 }
 
 function p(name: string | undefined, role: Role): Person | null {
-  const n = (name ?? "").trim();
+  const n = firstName(name);
   return n ? { name: n, role } : null;
 }
 function clean(arr: (Person | null | undefined)[]): Person[] {
@@ -80,28 +83,30 @@ function buildCanonicalSide(params: {
   if (!subject) return steps;
   if (!momName && !dadName && siblings.length === 0) return steps;
 
-  const subjectP: Person = { name: subject, role: "subject" };
+  const subj = firstName(subject);
+  const part = firstName(partner);
+  const subjectP: Person = { name: subj, role: "subject" };
   const partnerP = p(partner, "partner");
   const momP = p(momName, momRole);
   const dadP = p(dadName, dadRole);
   const parentsBoth = clean([momP, dadP]);
 
   const sibsClean = siblings.filter((s) => s?.name?.trim());
-  const sibPeople: Person[] = sibsClean.map((s) => ({ name: s.name.trim(), role: "sibling" }));
+  const sibPeople: Person[] = sibsClean.map((s) => ({ name: firstName(s.name), role: "sibling" }));
   const sibPartnerPeople: Person[] = sibsClean
     .filter((s) => s.has_partner && s.partner_name?.trim())
-    .map((s) => ({ name: s.partner_name!.trim(), role: "sibling_partner" }));
+    .map((s) => ({ name: firstName(s.partner_name), role: "sibling_partner" }));
 
   // 1: subject + Mom
-  if (momP) push(`${subject} + ${momP.name}`, [subjectP, momP]);
+  if (momP) push(`${subj} + ${momP.name}`, [subjectP, momP]);
   // 2: switch Mom for Dad
   if (dadP) {
     if (momP) push(`Switch ${momP.name} for ${dadP.name}`, [subjectP, dadP]);
-    else push(`${subject} + ${dadP.name}`, [subjectP, dadP]);
+    else push(`${subj} + ${dadP.name}`, [subjectP, dadP]);
   }
   // 3: Add back Mom (Parents + subject)
   if (parentsBoth.length >= 2 && momP) {
-    push(`^ Add back ${momP.name} (Parents + ${subject})`, [subjectP, ...parentsBoth]);
+    push(`^ Add back ${momP.name} (Parents + ${subj})`, [subjectP, ...parentsBoth]);
   }
   // 4: Add Partner (Couple with Parents)
   if (parentsBoth.length > 0 && partnerP) {
@@ -112,9 +117,9 @@ function buildCanonicalSide(params: {
   if (sibsClean.length > 0) {
     const sibLabelParts: string[] = sibsClean.map((s) => {
       if (s.has_partner && s.partner_name?.trim()) {
-        return sibsClean.length === 1 ? `${s.name.trim()} + ${s.partner_name.trim()}` : s.name.trim();
+        return sibsClean.length === 1 ? `${firstName(s.name)} + ${firstName(s.partner_name)}` : firstName(s.name);
       }
-      return s.name.trim();
+      return firstName(s.name);
     });
     const fullFamilyLabel =
       sibsClean.length === 1
@@ -148,15 +153,18 @@ function buildCanonicalSide(params: {
 
   // 9: Subject + each sibling (one shot per sibling)
   for (const s of sibsClean) {
-    push(`${subject} + ${s.name.trim()}`, [subjectP, { name: s.name.trim(), role: "sibling" }]);
+    const sn = firstName(s.name);
+    push(`${subj} + ${sn}`, [subjectP, { name: sn, role: "sibling" }]);
   }
 
   // 10 (optional): each sibling + their partner (sib couple)
   for (const s of sibsClean) {
     if (s.has_partner && s.partner_name?.trim()) {
+      const sn = firstName(s.name);
+      const pn = firstName(s.partner_name);
       push(
-        `${s.name.trim()} + ${s.partner_name.trim()} (sib couple)`,
-        [{ name: s.name.trim(), role: "sibling" }, { name: s.partner_name.trim(), role: "sibling_partner" }],
+        `${sn} + ${pn} (sib couple)`,
+        [{ name: sn, role: "sibling" }, { name: pn, role: "sibling_partner" }],
         { optional: "sibling_couples" }
       );
     }
@@ -166,12 +174,14 @@ function buildCanonicalSide(params: {
   if (partnerP) {
     for (const s of sibsClean) {
       if (s.has_partner && s.partner_name?.trim()) {
+        const sn = firstName(s.name);
+        const pn = firstName(s.partner_name);
         push(
-          `Couples: ${subject} & ${partnerP.name} + ${s.name.trim()} & ${s.partner_name.trim()}`,
+          `Couples: ${subj} & ${partnerP.name} + ${sn} & ${pn}`,
           [
             subjectP, partnerP,
-            { name: s.name.trim(), role: "sibling" },
-            { name: s.partner_name.trim(), role: "sibling_partner" },
+            { name: sn, role: "sibling" },
+            { name: pn, role: "sibling_partner" },
           ],
           { optional: "sibling_couples_with_us" }
         );
@@ -179,11 +189,10 @@ function buildCanonicalSide(params: {
     }
   }
 
-  // 12: Parents alone
   if (parentsBoth.length >= 2 && momP && dadP) {
     push(`${momP.name} + ${dadP.name} (Parents alone)`, parentsBoth);
   } else if (parentsBoth.length === 1) {
-    push(`${parentsBoth[0].name} + ${subject} (final beat)`, [parentsBoth[0], subjectP]);
+    push(`${parentsBoth[0].name} + ${subj} (final beat)`, [parentsBoth[0], subjectP]);
   }
 
   // 13: setup buffer
@@ -191,7 +200,7 @@ function buildCanonicalSide(params: {
   steps[steps.length - 1].minutes = SETUP_BUFFER_MIN;
 
   if (honorDeceased?.name) {
-    push(`Moment of remembrance for ${honorDeceased.name}`, [], { note: "No shot — plan a quiet moment." });
+    push(`Moment of remembrance for ${firstName(honorDeceased.name)}`, [], { note: "No shot — plan a quiet moment." });
     steps[steps.length - 1].minutes = 0;
   }
 
@@ -306,7 +315,7 @@ Deno.serve(async (req) => {
 
     const r = (q.responses ?? {}) as Record<string, any>;
     const { data: client } = await admin.from("clients").select("couple_name_1, couple_name_2").eq("id", client_id).maybeSingle();
-    const coupleNames = [client?.couple_name_1, client?.couple_name_2].filter(Boolean) as string[];
+    const coupleNames = [firstName(client?.couple_name_1), firstName(client?.couple_name_2)].filter(Boolean) as string[];
 
     const fam1: FamilyData = (r.partner_1_family ?? {}) as FamilyData;
     const fam2: FamilyData = (r.partner_2_family ?? {}) as FamilyData;
@@ -328,8 +337,8 @@ Deno.serve(async (req) => {
         p(fam2.parent_1?.name, "parent"), p(fam2.parent_2?.name, "parent"),
         p(fam2.step_parent_1, "step_parent"), p(fam2.step_parent_2, "step_parent"),
       ]);
-      const sibs1: Person[] = (fam1.siblings ?? []).filter((s) => s.name?.trim()).map((s) => ({ name: s.name.trim(), role: "sibling" }));
-      const sibs2: Person[] = (fam2.siblings ?? []).filter((s) => s.name?.trim()).map((s) => ({ name: s.name.trim(), role: "sibling" }));
+      const sibs1: Person[] = (fam1.siblings ?? []).filter((s) => s.name?.trim()).map((s) => ({ name: firstName(s.name), role: "sibling" }));
+      const sibs2: Person[] = (fam2.siblings ?? []).filter((s) => s.name?.trim()).map((s) => ({ name: firstName(s.name), role: "sibling" }));
       const couplePeople: Person[] = coupleNames.map((n, i) => ({ name: n, role: i === 0 ? "subject" : "partner" }));
       const parentsOnly = [...couplePeople, ...parents1, ...parents2];
       combined_sequence.push({ order: 1, label: "Couple + All Parents", people: parentsOnly, minutes: minutesFor(parentsOnly) });
