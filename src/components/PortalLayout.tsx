@@ -19,7 +19,7 @@ type NavItem = {
   matchPrefix?: string;
   hideForLead?: boolean;
   badgeKey?: "messages" | "documents" | "questionnaires" | "portrait";
-  showOnlyIfBadge?: boolean;
+  showOnlyIfKey?: "portraitExists";
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -28,7 +28,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Messages", to: "/portal/messages", icon: MessageCircle, badgeKey: "messages" },
   { label: "Documents", to: "/portal/documents", icon: FileText, badgeKey: "documents" },
   { label: "Forms", to: "/portal/questionnaires", icon: ClipboardList, badgeKey: "questionnaires" },
-  { label: "Family Portraits", to: "/portal/portrait-sequence", icon: Camera, hideForLead: true, badgeKey: "portrait", showOnlyIfBadge: true },
+  { label: "Family Portraits", to: "/portal/portrait-sequence", icon: Camera, hideForLead: true, badgeKey: "portrait", showOnlyIfKey: "portraitExists" },
   { label: "Gallery", to: "/portal/gallery", icon: Image, hideForLead: true },
   { label: "Invoices", to: "/portal/invoices", icon: Receipt, badgeKey: "documents" },
   { label: "Resources", to: "/portal/resources", icon: BookOpen, hideForLead: true },
@@ -49,11 +49,12 @@ export function PortalLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [badges, setBadges] = useState<Record<string, NavBadge>>({});
+  const [flags, setFlags] = useState<{ portraitExists?: boolean }>({});
 
   const isLead = client?.status === "lead";
   const visibleNav = NAV_ITEMS.filter((i) => {
     if (isLead && i.hideForLead) return false;
-    if (i.showOnlyIfBadge && !badges[i.badgeKey!]) return false;
+    if (i.showOnlyIfKey && !flags[i.showOnlyIfKey]) return false;
     return true;
   });
   const isActive = (i: NavItem) => {
@@ -103,12 +104,13 @@ export function PortalLayout({
       const hasOpenQ = (qs ?? []).some((q: any) => q.status === "not_started" || q.status === "in_progress");
       if (hasOpenQ) next["questionnaires"] = { kind: "gold" };
 
-      // PORTRAIT SEQUENCE: gold dot if exists and not yet approved
+      // PORTRAIT SEQUENCE: show item when row exists; gold dot if not yet approved
       const { data: ps } = await supabase
         .from("portrait_sequences").select("id, approved_at").eq("client_id", clientId).maybeSingle();
+      const portraitExists = !!ps?.id;
       if (ps?.id && !ps.approved_at) next["portrait"] = { kind: "gold" };
 
-      if (!cancelled) setBadges(next);
+      if (!cancelled) { setBadges(next); setFlags({ portraitExists }); }
     };
     compute();
     const id = setInterval(compute, 30000);
