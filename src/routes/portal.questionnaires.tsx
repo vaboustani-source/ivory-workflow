@@ -352,15 +352,16 @@ function QuestionnaireModal({
                   schema
                     .filter((q) => !q.conditional || responses[q.conditional.on] === q.conditional.equals)
                     .map((q) => (
-                      <FieldRow
-                        key={q.id}
-                        q={q}
-                        value={responses[q.id]}
-                        error={errors[q.id]}
-                        readOnly={isReadOnly}
-                        onChange={(v) => setVal(q.id, v)}
-                        registerRef={(el) => { if (el) fieldRefs.current.set(q.id, el); else fieldRefs.current.delete(q.id); }}
-                      />
+                      <FieldErrorBoundary key={q.id} questionId={q.id} questionType={q.type}>
+                        <FieldRow
+                          q={q}
+                          value={responses[q.id]}
+                          error={errors[q.id]}
+                          readOnly={isReadOnly}
+                          onChange={(v) => setVal(q.id, v)}
+                          registerRef={(el) => { if (el) fieldRefs.current.set(q.id, el); else fieldRefs.current.delete(q.id); }}
+                        />
+                      </FieldErrorBoundary>
                     ))
                 )}
               </div>
