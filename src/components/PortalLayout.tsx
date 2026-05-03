@@ -51,7 +51,12 @@ export function PortalLayout({
   const [badges, setBadges] = useState<Record<string, NavBadge>>({});
 
   const isLead = client?.status === "lead";
-  const visibleNav = NAV_ITEMS.filter((i) => !(isLead && i.hideForLead));
+  const hasPortraitSeq = !!badges["portrait_sequence"]?.kind || badges["portrait_sequence"]?.kind === "none";
+  const visibleNav = NAV_ITEMS.filter((i) => {
+    if (isLead && i.hideForLead) return false;
+    if (i.requireFlag === "portrait_sequence" && !hasPortraitSeq) return false;
+    return true;
+  });
   const isActive = (i: NavItem) => {
     if (i.exact) return location.pathname === i.to;
     if (i.matchPrefix) return location.pathname.startsWith(i.matchPrefix);
