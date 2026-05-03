@@ -1355,6 +1355,8 @@ export type Database = {
           approved_by: string | null
           client_id: string
           combined_sequence: Json | null
+          couple_comments: string | null
+          couple_edits_log: Json
           couple_review_notes: string | null
           created_at: string
           extended_shots: Json | null
@@ -1375,6 +1377,8 @@ export type Database = {
           approved_by?: string | null
           client_id: string
           combined_sequence?: Json | null
+          couple_comments?: string | null
+          couple_edits_log?: Json
           couple_review_notes?: string | null
           created_at?: string
           extended_shots?: Json | null
@@ -1395,6 +1399,8 @@ export type Database = {
           approved_by?: string | null
           client_id?: string
           combined_sequence?: Json | null
+          couple_comments?: string | null
+          couple_edits_log?: Json
           couple_review_notes?: string | null
           created_at?: string
           extended_shots?: Json | null
