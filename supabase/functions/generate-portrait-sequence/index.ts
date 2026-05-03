@@ -200,7 +200,7 @@ function buildCanonicalSide(params: {
   steps[steps.length - 1].minutes = SETUP_BUFFER_MIN;
 
   if (honorDeceased?.name) {
-    push(`Moment of remembrance for ${honorDeceased.name}`, [], { note: "No shot — plan a quiet moment." });
+    push(`Moment of remembrance for ${firstName(honorDeceased.name)}`, [], { note: "No shot — plan a quiet moment." });
     steps[steps.length - 1].minutes = 0;
   }
 
