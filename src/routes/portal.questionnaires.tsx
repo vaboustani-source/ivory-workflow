@@ -271,14 +271,20 @@ function QuestionnaireModal({
       target_id: questionnaire.id,
       description: `Questionnaire submitted: ${questionnaire.template?.name ?? ""}`,
     }).then(() => {});
-    // Auto-regenerate photography timeline if this is the logistics form
-    if (questionnaire.template?.name === "Wedding Day Logistics") {
+    // Auto-regenerate photography timeline + portrait sequence on logistics submit
+    if (questionnaire.template?.name === "Wedding Details & Logistics") {
       const { data: cu } = await supabase
         .from("questionnaires").select("client_id").eq("id", questionnaire.id).maybeSingle();
       if (cu?.client_id) {
-        supabase.functions.invoke("generate-photography-timeline", {
-          body: { client_id: cu.client_id, questionnaire_id: questionnaire.id },
-        }).then(() => {});
+        const calls = [
+          supabase.functions.invoke("generate-photography-timeline", {
+            body: { client_id: cu.client_id, questionnaire_id: questionnaire.id },
+          }),
+          supabase.functions.invoke("generate-portrait-sequence", {
+            body: { client_id: cu.client_id, questionnaire_id: questionnaire.id },
+          }),
+        ];
+        Promise.allSettled(calls).then(() => {});
       }
     }
     setDone(true);
@@ -294,10 +300,7 @@ function QuestionnaireModal({
     return () => { window.removeEventListener("keydown", onEsc); document.body.style.overflow = ""; };
   }, [onClose]);
 
-  const allRequiredFilled = schema.filter((q) => q.required).every((q) => {
-    const v = responses[q.id];
-    return v !== undefined && v !== null && (Array.isArray(v) ? v.length > 0 : String(v).trim().length > 0);
-  });
+  const allRequiredFilled = schema.filter((q) => !NON_QUESTION_TYPES.has(q.type) && q.required && (!q.conditional || responses[q.conditional.on] === q.conditional.equals)).every((q) => isAnswered(q, responses[q.id]));
 
   return (
     <div className="fixed inset-0 z-50 bg-plum/70 flex items-stretch md:items-center justify-center p-0 md:p-6" onClick={onClose}>
