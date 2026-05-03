@@ -212,6 +212,7 @@ function ClientDetail() {
                 <Row label="Guest count" value={client.guest_count?.toString() ?? "—"} />
                 <Row label="Package" value={client.package?.name ?? "—"} />
                 <Row label="Investment" value={client.package_price ? `$${Number(client.package_price).toLocaleString()}` : "—"} />
+                <CoverageHoursRow clientId={client.id} initial={client.coverage_hours} onSaved={(v) => setClient((c) => c ? { ...c, coverage_hours: v } : c)} />
               </Card>
             </div>
 
