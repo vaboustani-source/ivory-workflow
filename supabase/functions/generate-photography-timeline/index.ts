@@ -184,7 +184,10 @@ Deno.serve(async (req) => {
         const tr = await fetch(fnUrl("compute-travel-time"), { method: "POST", headers: fnHeaders, body: JSON.stringify({ from_address: grAddress, to_address: cerAddress }) });
         const tj = await tr.json();
         if (typeof tj.duration_minutes === "number") travelGrToCer = tj.duration_minutes;
-      } catch (_) {}
+        else console.error("[generate-photography-timeline] travel gr→cer returned:", tj);
+      } catch (e) {
+        console.error("[generate-photography-timeline] travel gr→cer failed:", e);
+      }
     }
     let travelCerToRec = 0;
     if (cerAddress && recAddress && cerAddress !== recAddress) {
@@ -192,7 +195,10 @@ Deno.serve(async (req) => {
         const tr = await fetch(fnUrl("compute-travel-time"), { method: "POST", headers: fnHeaders, body: JSON.stringify({ from_address: cerAddress, to_address: recAddress }) });
         const tj = await tr.json();
         if (typeof tj.duration_minutes === "number") travelCerToRec = tj.duration_minutes;
-      } catch (_) {}
+        else console.error("[generate-photography-timeline] travel cer→rec returned:", tj);
+      } catch (e) {
+        console.error("[generate-photography-timeline] travel cer→rec failed:", e);
+      }
     }
 
     // Sunset — needs lat/lng + wedding date
@@ -209,9 +215,15 @@ Deno.serve(async (req) => {
           if (sj.sunset_local) {
             sunsetTime = sj.sunset_local;
             goldenHourStart = sj.golden_hour_start;
+          } else {
+            console.error("[generate-photography-timeline] sunset returned:", sj);
           }
+        } else {
+          console.error("[generate-photography-timeline] geocode returned:", gj);
         }
-      } catch (_) {}
+      } catch (e) {
+        console.error("[generate-photography-timeline] sunset/geocode failed:", e);
+      }
     }
 
     // ----- Build the timeline ------------------------------------------
