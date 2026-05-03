@@ -180,7 +180,7 @@ export function TimelineDisplay({ clientId, editable = false }: { clientId: stri
         {blocks.map((b, idx) => (
           <div key={idx} className="relative mb-4 last:mb-0">
             <span className="absolute -left-[26px] top-3 h-3 w-3 rounded-full bg-gold" />
-            <div className={`rounded-md shadow-soft p-4 border-l-2 ${b.type === "golden_hour" ? "bg-gold/10" : "bg-surface"}`} style={{ borderLeftColor: borderForType(b.type) }}>
+            <div className="bg-surface rounded-md shadow-soft p-4 border-l-2" style={{ borderLeftColor: borderForType(b.type) }}>
               {editingIdx === idx ? (
                 <BlockEditor
                   block={b}
