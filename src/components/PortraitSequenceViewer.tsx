@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Plus, Pencil, X, Check, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
+import { Loader2, Plus, Pencil, X, Check, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 
 type Role = "subject" | "partner" | "parent" | "step_parent" | "sibling" | "sibling_partner" | "other";
 type PersonLike = string | { name: string; role?: Role };
@@ -80,6 +81,22 @@ export function PortraitSequenceViewer({ clientId, editable = false, coupleAppro
     const { error } = await supabase.functions.invoke("generate-portrait-sequence", { body: { client_id: clientId } });
     setRegenerating(false);
     if (error) { alert("Couldn't regenerate: " + error.message); return; }
+    await load();
+  };
+
+  const [approving, setApproving] = useState(false);
+  const approve = async () => {
+    if (!seq) return;
+    setApproving(true);
+    const { data: userData } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from("portrait_sequences")
+      .update({ approved_at: new Date().toISOString(), approved_by: userData?.user?.id ?? null })
+      .eq("id", seq.id);
+    if (error) { toast.error("Couldn't save approval: " + error.message); setApproving(false); return; }
+    supabase.functions.invoke("notify-portrait-approval", { body: { client_id: clientId } }).catch(() => {});
+    toast.success("Thanks! Victoria has been notified.");
+    setApproving(false);
     await load();
   };
 
