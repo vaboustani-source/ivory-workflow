@@ -1,0 +1,1 @@
+DELETE FROM questionnaire_templates WHERE id='fe2a0eb7-8456-4060-8865-fe7629345877' AND name='Wedding Day Logistics';
