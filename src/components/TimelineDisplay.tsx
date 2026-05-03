@@ -159,6 +159,11 @@ export function TimelineDisplay({ clientId, editable = false }: { clientId: stri
     .map((b, i) => applyOverride(b, i, timeline.manual_overrides ?? {}))
     .sort((a, b) => (a.start ?? "").localeCompare(b.start ?? ""));
 
+  const booked = timeline.booked_coverage_hours != null ? Number(timeline.booked_coverage_hours) : null;
+  const generated = timeline.generated_coverage_hours != null ? Number(timeline.generated_coverage_hours) : null;
+  const overage = timeline.coverage_overage_hours != null ? Number(timeline.coverage_overage_hours) : null;
+  const exceeds = timeline.coverage_status === "exceeds";
+
   return (
     <div className="space-y-6">
       {editable && (
@@ -167,6 +172,9 @@ export function TimelineDisplay({ clientId, editable = false }: { clientId: stri
             Generated {new Date(timeline.generated_at).toLocaleString()}
             {timeline.sunset_time && <> · Sunset {fmtTime(timeline.sunset_time)}</>}
             {timeline.golden_hour_start_time && <> · Golden hour {fmtTime(timeline.golden_hour_start_time)}</>}
+            {booked != null && generated != null && (
+              <> · Coverage: {booked}hr booked / {generated}hr generated</>
+            )}
           </div>
           <button
             onClick={regenerate}
@@ -176,6 +184,15 @@ export function TimelineDisplay({ clientId, editable = false }: { clientId: stri
             {regenerating && <Loader2 size={12} className="animate-spin" />}
             Regenerate from questionnaire
           </button>
+        </div>
+      )}
+
+      {exceeds && booked != null && generated != null && overage != null && (
+        <div className="bg-magenta/10 border-l-4 border-gold rounded-md p-4">
+          <p className="font-serif italic text-lg text-primary">Timeline exceeds booked coverage</p>
+          <p className="text-sm text-foreground mt-1">
+            Booked {booked}hr / Generated {generated}hr / Recommend offering {overage}hr add-on to capture the full day.
+          </p>
         </div>
       )}
 
