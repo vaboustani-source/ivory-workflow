@@ -382,7 +382,61 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: upErr.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    return new Response(JSON.stringify({ timeline_id: up.id, blocks }), {
+    // ----- Coverage upsell milestone management ------------------------
+    try {
+      const { data: existing } = await admin
+        .from("timeline_milestones")
+        .select("id, status, metadata")
+        .eq("client_id", client_id)
+        .neq("status", "complete")
+        .neq("status", "skipped");
+      const openCovUpsell = (existing ?? []).filter(
+        (m: any) => m.metadata && m.metadata.type === "coverage_upsell",
+      );
+
+      if (coverageStatus === "exceeds" && coverageOverageHours != null) {
+        if (openCovUpsell.length === 0) {
+          const coupleName =
+            (clientCov?.couple_name_1 ?? "Client") +
+            (clientCov?.couple_name_2 ? " & " + clientCov.couple_name_2 : "");
+          const due = new Date();
+          due.setDate(due.getDate() + 5);
+          await admin.from("timeline_milestones").insert({
+            client_id,
+            title: `Timeline for ${coupleName} exceeds booked coverage`,
+            description: `Generated timeline is ${generatedCoverageHours} hours; booked coverage is ${bookedCoverageHours} hours. Consider offering a ${coverageOverageHours} hour add-on to the couple.`,
+            due_date: due.toISOString().slice(0, 10),
+            status: "upcoming",
+            is_client_visible: false,
+            action_type: "task",
+            responsible_party: "owner",
+            stage: "pre_wedding",
+            metadata: {
+              type: "coverage_upsell",
+              booked_hours: bookedCoverageHours,
+              generated_hours: generatedCoverageHours,
+              overage_hours: coverageOverageHours,
+              client_id,
+            },
+          });
+        }
+      } else if (coverageStatus === "fits" && openCovUpsell.length > 0) {
+        await admin
+          .from("timeline_milestones")
+          .update({ status: "complete", completed_at: new Date().toISOString() })
+          .in("id", openCovUpsell.map((m: any) => m.id));
+      }
+    } catch (e) {
+      console.error("[generate-photography-timeline] coverage milestone failed:", e);
+    }
+
+    return new Response(JSON.stringify({
+      timeline_id: up.id, blocks,
+      coverage_status: coverageStatus,
+      booked_coverage_hours: bookedCoverageHours,
+      generated_coverage_hours: generatedCoverageHours,
+      coverage_overage_hours: coverageOverageHours,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
