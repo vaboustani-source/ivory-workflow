@@ -411,7 +411,9 @@ function FieldRow({
   onChange: (v: any) => void;
   registerRef: (el: HTMLElement | null) => void;
 }) {
+  if (typeof console !== "undefined") console.debug("[FieldRow] render", q.id, q.type);
   const baseInput = "w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:bg-background-alt disabled:cursor-not-allowed";
+
 
   if (q.type === "section_header") {
     return (
