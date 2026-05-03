@@ -318,6 +318,31 @@ Deno.serve(async (req) => {
     // Sort blocks by start time for clean display
     blocks.sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
 
+    // ----- Coverage hours analysis ---------------------------------------
+    const { data: clientCov } = await admin
+      .from("clients")
+      .select("coverage_hours, couple_name_1, couple_name_2")
+      .eq("id", client_id)
+      .maybeSingle();
+    const bookedCoverageHours: number | null =
+      clientCov?.coverage_hours != null ? Number(clientCov.coverage_hours) : null;
+
+    const covStartM = toMinutes(blocks[0].start);
+    const covEndM = toMinutes(blocks[blocks.length - 1].end || blocks[blocks.length - 1].start);
+    const generatedCoverageHours = Math.round(((covEndM - covStartM) / 60) * 10) / 10;
+
+    let coverageStatus: "fits" | "exceeds" | "no_booked_hours" = "no_booked_hours";
+    let coverageOverageHours: number | null = null;
+    if (bookedCoverageHours != null) {
+      const diff = generatedCoverageHours - bookedCoverageHours;
+      if (Math.abs(diff) < 0.25 || diff < 0) {
+        coverageStatus = "fits";
+      } else {
+        coverageStatus = "exceeds";
+        coverageOverageHours = Math.round(diff * 10) / 10;
+      }
+    }
+
     // ----- Persist (upsert by client_id) -------------------------------
     const row = {
       client_id,
