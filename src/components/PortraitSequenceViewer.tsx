@@ -230,6 +230,14 @@ export function PortraitSequenceViewer({ clientId, editable = false, coupleAppro
         </div>
       </div>
 
+      {editable && seq.notes?.trim() && (
+        <div className="bg-gold/5 rounded-md p-4 border-l-2 border-gold">
+          <h3 className="font-serif italic text-lg text-primary mb-2">Family Notes</h3>
+          <p className="text-sm text-foreground whitespace-pre-wrap">{seq.notes}</p>
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground mt-2">Private — not shown to couple</p>
+        </div>
+      )}
+
       <Section title="Partner 1 side" list="partner_1_sequence" items={seq.partner_1_sequence ?? []} />
       <Section title="Partner 2 side" list="partner_2_sequence" items={seq.partner_2_sequence ?? []} />
       <Section title="Combined family" list="combined_sequence" items={seq.combined_sequence ?? []} />

@@ -17,6 +17,7 @@ interface ParentInfo { name?: string; deceased?: boolean; honor_in_photo?: boole
 interface SiblingEntry { name: string; has_partner?: boolean; partner_name?: string; has_kids?: boolean; }
 interface FamilyData {
   parents_status?: string;
+  dynamics_notes?: string;
   parent_1?: ParentInfo;
   parent_2?: ParentInfo;
   step_parent_1?: string;
@@ -210,7 +211,6 @@ function buildCanonicalSide(params: {
 function buildForSide(coupleNames: string[], fam: FamilyData, sideIndex: 0 | 1): SequenceStep[] {
   const subject = coupleNames[sideIndex] ?? `Partner ${sideIndex + 1}`;
   const partner = coupleNames[1 - sideIndex] ?? "";
-  const status = (fam.parents_status ?? "married_together").toLowerCase();
   const sibs = fam.siblings ?? [];
   const p1 = fam.parent_1?.name?.trim();
   const p2 = fam.parent_2?.name?.trim();
@@ -218,7 +218,31 @@ function buildForSide(coupleNames: string[], fam: FamilyData, sideIndex: 0 | 1):
   const includeSibCouples = !!fam.include_sibling_couples;
   const includeSibCouplesWithUs = !!fam.include_sibling_couples_with_us;
 
-  if (status.includes("separate")) {
+  const statusLower = (fam.parents_status ?? "").toLowerCase();
+  let variant: "married" | "divorced_separate" | "divorced_friendly" | "single" | "deceased" | "complicated" = "married";
+  if (statusLower.includes("divorced") && statusLower.includes("separate")) {
+    variant = "divorced_separate";
+  } else if (statusLower.includes("divorced")) {
+    variant = "divorced_friendly";
+  } else if (statusLower.includes("single")) {
+    variant = "single";
+  } else if (statusLower.includes("deceased")) {
+    variant = "deceased";
+  } else if (statusLower.includes("complicated")) {
+    variant = "complicated";
+  }
+
+  if (variant === "complicated") {
+    return [{
+      order: 1,
+      label: "Family dynamics complex — Dexter will build this manually based on couple's notes",
+      people: [],
+      minutes: 0,
+      note: "See Family Notes above.",
+    }];
+  }
+
+  if (variant === "divorced_separate") {
     const sideA = buildCanonicalSide({
       subject, partner, momName: p1, momRole: "parent",
       dadName: fam.step_parent_1?.trim() || undefined, dadRole: "step_parent",
@@ -234,7 +258,7 @@ function buildForSide(coupleNames: string[], fam: FamilyData, sideIndex: 0 | 1):
     return [...sideA, ...sideB].map((s, i) => ({ ...s, order: i + 1 }));
   }
 
-  if (status.includes("single")) {
+  if (variant === "single") {
     const only = p1 || p2;
     return buildCanonicalSide({
       subject, partner, momName: only, dadName: undefined,
@@ -243,7 +267,7 @@ function buildForSide(coupleNames: string[], fam: FamilyData, sideIndex: 0 | 1):
     });
   }
 
-  if (status.includes("deceased")) {
+  if (variant === "deceased") {
     const dec1 = fam.parent_1?.deceased;
     const dec2 = fam.parent_2?.deceased;
     const honor =
@@ -259,6 +283,9 @@ function buildForSide(coupleNames: string[], fam: FamilyData, sideIndex: 0 | 1):
     });
   }
 
+  // married OR divorced_friendly: standard sequence with mom + dad.
+  // Step-parents are captured in the questionnaire but not auto-inserted —
+  // studio inline edit handles inclusion.
   return buildCanonicalSide({
     subject, partner, momName: p1, dadName: p2,
     siblings: sibs, sideLabel: sideLabelBase,
@@ -386,7 +413,14 @@ Deno.serve(async (req) => {
       wedding_party_shots,
       extended_shots,
       total_minutes,
-      notes: fam1.notes || fam2.notes ? [fam1.notes, fam2.notes].filter(Boolean).join("\n\n") : null,
+      notes: (() => {
+        const parts: string[] = [];
+        if (fam1.dynamics_notes?.trim()) parts.push(`Partner 1 family dynamics:\n${fam1.dynamics_notes.trim()}`);
+        if (fam2.dynamics_notes?.trim()) parts.push(`Partner 2 family dynamics:\n${fam2.dynamics_notes.trim()}`);
+        if (fam1.notes?.trim()) parts.push(`Partner 1 side notes:\n${fam1.notes.trim()}`);
+        if (fam2.notes?.trim()) parts.push(`Partner 2 side notes:\n${fam2.notes.trim()}`);
+        return parts.length ? parts.join("\n\n") : null;
+      })(),
       // Reset couple approval whenever sequence is regenerated
       approved_at: null,
       approved_by: null,
