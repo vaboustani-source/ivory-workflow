@@ -337,8 +337,8 @@ Deno.serve(async (req) => {
         p(fam2.parent_1?.name, "parent"), p(fam2.parent_2?.name, "parent"),
         p(fam2.step_parent_1, "step_parent"), p(fam2.step_parent_2, "step_parent"),
       ]);
-      const sibs1: Person[] = (fam1.siblings ?? []).filter((s) => s.name?.trim()).map((s) => ({ name: s.name.trim(), role: "sibling" }));
-      const sibs2: Person[] = (fam2.siblings ?? []).filter((s) => s.name?.trim()).map((s) => ({ name: s.name.trim(), role: "sibling" }));
+      const sibs1: Person[] = (fam1.siblings ?? []).filter((s) => s.name?.trim()).map((s) => ({ name: firstName(s.name), role: "sibling" }));
+      const sibs2: Person[] = (fam2.siblings ?? []).filter((s) => s.name?.trim()).map((s) => ({ name: firstName(s.name), role: "sibling" }));
       const couplePeople: Person[] = coupleNames.map((n, i) => ({ name: n, role: i === 0 ? "subject" : "partner" }));
       const parentsOnly = [...couplePeople, ...parents1, ...parents2];
       combined_sequence.push({ order: 1, label: "Couple + All Parents", people: parentsOnly, minutes: minutesFor(parentsOnly) });
