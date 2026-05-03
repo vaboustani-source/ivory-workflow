@@ -39,12 +39,15 @@ interface SequenceStep {
 
 const SETUP_BUFFER_MIN = 4;
 
+const firstName = (full?: string): string =>
+  (full ?? "").trim().split(/\s+/)[0] ?? "";
+
 function minutesFor(people: Person[]): number {
   return people.length >= 7 ? 3 : 1;
 }
 
 function p(name: string | undefined, role: Role): Person | null {
-  const n = (name ?? "").trim();
+  const n = firstName(name);
   return n ? { name: n, role } : null;
 }
 function clean(arr: (Person | null | undefined)[]): Person[] {
