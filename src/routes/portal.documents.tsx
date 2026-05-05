@@ -474,6 +474,20 @@ function ContractModal({
           .eq("id", contract.id);
       }
 
+      // Activity log
+      try {
+        const { logActivity } = await import("@/lib/activityLog");
+        await logActivity({
+          client_id: clientId,
+          action_type: "contract.signed",
+          target_type: "contract",
+          target_id: contract.id,
+          description: `${typedName} signed the contract`,
+          client_facing_text: "You signed your contract",
+          is_client_visible: true,
+        });
+      } catch { /* noop */ }
+
       // 5. Trigger confirmation email
       supabase.functions.invoke("send-contract-receipt", { body: { signature_id: sigRow.id } })
         .catch((e) => console.warn("send-contract-receipt failed", e));

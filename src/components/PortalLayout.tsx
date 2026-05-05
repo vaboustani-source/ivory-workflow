@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Home, Calendar, MessageCircle, FileText, Image, Receipt, BookOpen, User,
-  Bell, LogOut, Menu, ClipboardList, Heart, Camera,
+  Bell, LogOut, Menu, ClipboardList, Heart, Camera, Activity,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { firstName, shortDate } from "@/lib/dates";
@@ -28,6 +28,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Messages", to: "/portal/messages", icon: MessageCircle, badgeKey: "messages" },
   { label: "Documents", to: "/portal/documents", icon: FileText, badgeKey: "documents" },
   { label: "Forms", to: "/portal/questionnaires", icon: ClipboardList, badgeKey: "questionnaires" },
+  { label: "Activity", to: "/portal/activity", icon: Activity },
   { label: "Family Portraits", to: "/portal/portrait-sequence", icon: Camera, hideForLead: true, badgeKey: "portrait", showOnlyIfKey: "portraitExists" },
   { label: "Gallery", to: "/portal/gallery", icon: Image, hideForLead: true },
   { label: "Invoices", to: "/portal/invoices", icon: Receipt, badgeKey: "documents" },

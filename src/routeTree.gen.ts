@@ -36,6 +36,7 @@ import { Route as PortalInvoicesRouteImport } from './routes/portal.invoices'
 import { Route as PortalGalleryRouteImport } from './routes/portal.gallery'
 import { Route as PortalEngagementRouteImport } from './routes/portal.engagement'
 import { Route as PortalDocumentsRouteImport } from './routes/portal.documents'
+import { Route as PortalActivityRouteImport } from './routes/portal.activity'
 import { Route as PortalAccountRouteImport } from './routes/portal.account'
 import { Route as StudioClientsIndexRouteImport } from './routes/studio.clients.index'
 import { Route as PortalAccountIndexRouteImport } from './routes/portal.account.index'
@@ -195,6 +196,11 @@ const PortalDocumentsRoute = PortalDocumentsRouteImport.update({
   path: '/documents',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalActivityRoute = PortalActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalAccountRoute = PortalAccountRouteImport.update({
   id: '/account',
   path: '/account',
@@ -326,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/portal': typeof PortalRouteWithChildren
   '/studio': typeof StudioRouteWithChildren
   '/portal/account': typeof PortalAccountRouteWithChildren
+  '/portal/activity': typeof PortalActivityRoute
   '/portal/documents': typeof PortalDocumentsRoute
   '/portal/engagement': typeof PortalEngagementRoute
   '/portal/gallery': typeof PortalGalleryRoute
@@ -375,6 +382,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/portal/activity': typeof PortalActivityRoute
   '/portal/documents': typeof PortalDocumentsRoute
   '/portal/engagement': typeof PortalEngagementRoute
   '/portal/gallery': typeof PortalGalleryRoute
@@ -428,6 +436,7 @@ export interface FileRoutesById {
   '/portal': typeof PortalRouteWithChildren
   '/studio': typeof StudioRouteWithChildren
   '/portal/account': typeof PortalAccountRouteWithChildren
+  '/portal/activity': typeof PortalActivityRoute
   '/portal/documents': typeof PortalDocumentsRoute
   '/portal/engagement': typeof PortalEngagementRoute
   '/portal/gallery': typeof PortalGalleryRoute
@@ -482,6 +491,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/studio'
     | '/portal/account'
+    | '/portal/activity'
     | '/portal/documents'
     | '/portal/engagement'
     | '/portal/gallery'
@@ -531,6 +541,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/portal/activity'
     | '/portal/documents'
     | '/portal/engagement'
     | '/portal/gallery'
@@ -583,6 +594,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/studio'
     | '/portal/account'
+    | '/portal/activity'
     | '/portal/documents'
     | '/portal/engagement'
     | '/portal/gallery'
@@ -828,6 +840,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalDocumentsRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/activity': {
+      id: '/portal/activity'
+      path: '/activity'
+      fullPath: '/portal/activity'
+      preLoaderRoute: typeof PortalActivityRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/account': {
       id: '/portal/account'
       path: '/account'
@@ -1012,6 +1031,7 @@ const PortalAccountRouteWithChildren = PortalAccountRoute._addFileChildren(
 
 interface PortalRouteChildren {
   PortalAccountRoute: typeof PortalAccountRouteWithChildren
+  PortalActivityRoute: typeof PortalActivityRoute
   PortalDocumentsRoute: typeof PortalDocumentsRoute
   PortalEngagementRoute: typeof PortalEngagementRoute
   PortalGalleryRoute: typeof PortalGalleryRoute
@@ -1027,6 +1047,7 @@ interface PortalRouteChildren {
 
 const PortalRouteChildren: PortalRouteChildren = {
   PortalAccountRoute: PortalAccountRouteWithChildren,
+  PortalActivityRoute: PortalActivityRoute,
   PortalDocumentsRoute: PortalDocumentsRoute,
   PortalEngagementRoute: PortalEngagementRoute,
   PortalGalleryRoute: PortalGalleryRoute,

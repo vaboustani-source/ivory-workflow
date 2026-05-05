@@ -86,6 +86,17 @@ export function TimelineDisplay({ clientId, editable = false }: { clientId: stri
     });
     setRegenerating(false);
     if (error) { alert("Couldn't regenerate: " + error.message); return; }
+    try {
+      const { logActivity } = await import("@/lib/activityLog");
+      await logActivity({
+        client_id: clientId,
+        action_type: "photography_timeline.regenerated",
+        target_type: "photography_timeline",
+        description: "Photography timeline regenerated",
+        client_facing_text: "Your wedding day timeline was updated",
+        is_client_visible: true,
+      });
+    } catch { /* noop */ }
     await load();
   };
 
