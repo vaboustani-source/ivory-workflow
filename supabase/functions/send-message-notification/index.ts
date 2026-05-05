@@ -179,7 +179,6 @@ Deno.serve(async (req) => {
         to: rec.email,
         subject,
         html: built.html,
-        headers: threadingHeaders,
       });
       if (r.emailed) sent.push(rec.email);
       else skipped.push(rec.email + ":" + (r.warn ?? "send_failed"));
@@ -190,7 +189,7 @@ Deno.serve(async (req) => {
       target_type: "message",
       target_id: message_id,
       description: `Notifications sent: ${sent.length}, skipped: ${skipped.length}`,
-      metadata: { sent, skipped, threading: { message_id: newMessageIdHeader, references_count: priorIds.length } },
+      metadata: { sent, skipped, threading_strategy: "consistent_subject" },
     });
 
     return new Response(JSON.stringify({ status: "ok", sent: sent.length, skipped: skipped.length }), {
