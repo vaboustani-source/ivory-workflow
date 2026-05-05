@@ -148,21 +148,53 @@ Deno.serve(async (req) => {
     const partySize = Number(wp?.party_size ?? 0);
     const hasWeddingParty = partySize > 0;
 
-    // Group portrait minutes derived from family + extended structured data
+    // Group portrait minutes — AUTHORITATIVE source is portrait_sequences.total_minutes.
+    // Fall back to a structured heuristic only if the sequence hasn't been generated yet.
     const fam1 = (r.partner_1_family ?? {}) as any;
     const fam2 = (r.partner_2_family ?? {}) as any;
     const sib1 = Array.isArray(fam1.siblings) ? fam1.siblings.length : 0;
     const sib2 = Array.isArray(fam2.siblings) ? fam2.siblings.length : 0;
     const extendedShots = Array.isArray(r.extended_portraits) ? r.extended_portraits.length : 0;
-    let groupPortraitMinutes = 0;
-    // ~2 min per immediate family unit on each side, plus combined, plus wedding party formals, plus extended
-    groupPortraitMinutes += (1 + Math.max(0, sib1)) * 2; // P1 side
-    groupPortraitMinutes += (1 + Math.max(0, sib2)) * 2; // P2 side
-    if (typeof r.combined_family_photo === "string" && r.combined_family_photo.startsWith("Yes")) groupPortraitMinutes += 5;
-    if (hasWeddingParty) groupPortraitMinutes += Math.min(20, 8 + Math.ceil(partySize / 2));
-    groupPortraitMinutes += extendedShots * 2;
-    if (groupPortraitMinutes < 30) groupPortraitMinutes = 30;
-    if (groupPortraitMinutes > 90) groupPortraitMinutes = 90;
+
+    let { data: portraitSeq } = await admin
+      .from("portrait_sequences")
+      .select("total_minutes")
+      .eq("client_id", client_id)
+      .maybeSingle();
+
+    if (!portraitSeq?.total_minutes) {
+      console.log("[generate-photography-timeline] portrait_sequences missing — invoking generate-portrait-sequence first");
+      try {
+        const fnUrlEarly = `${supabaseUrl}/functions/v1/generate-portrait-sequence`;
+        const headersEarly = { "Content-Type": "application/json", Authorization: `Bearer ${serviceRole}`, apikey: serviceRole };
+        await fetch(fnUrlEarly, { method: "POST", headers: headersEarly, body: JSON.stringify({ client_id, questionnaire_id }) });
+        const re = await admin
+          .from("portrait_sequences")
+          .select("total_minutes")
+          .eq("client_id", client_id)
+          .maybeSingle();
+        portraitSeq = re.data;
+      } catch (e) {
+        console.error("[generate-photography-timeline] failed to trigger portrait sequence:", e);
+      }
+    }
+
+    let groupPortraitMinutes: number;
+    let groupPortraitSource: "portrait_sequence" | "heuristic" = "heuristic";
+    if (portraitSeq?.total_minutes != null) {
+      groupPortraitMinutes = Math.round(Number(portraitSeq.total_minutes));
+      groupPortraitSource = "portrait_sequence";
+    } else {
+      let heuristic = 0;
+      heuristic += (1 + Math.max(0, sib1)) * 2;
+      heuristic += (1 + Math.max(0, sib2)) * 2;
+      if (typeof r.combined_family_photo === "string" && r.combined_family_photo.startsWith("Yes")) heuristic += 5;
+      if (hasWeddingParty) heuristic += Math.min(20, 8 + Math.ceil(partySize / 2));
+      heuristic += extendedShots * 2;
+      if (heuristic < 30) heuristic = 30;
+      if (heuristic > 90) heuristic = 90;
+      groupPortraitMinutes = heuristic;
+    }
 
     const grAddress = firstAddressLine(r.getting_ready_address as string | undefined);
     const cerAddress = String(r.ceremony_address ?? "").trim() || grAddress;
@@ -243,7 +275,11 @@ Deno.serve(async (req) => {
       pushBlock(blocks, cur, cur + 60, "First Look + Couple Portraits", "shoot");
       cur += 60;
       // 3. Group Portraits
-      pushBlock(blocks, cur, cur + groupPortraitMinutes, "Group Portraits", "shoot", { notes: `${groupPortraitMinutes} min based on shot list` });
+      pushBlock(blocks, cur, cur + groupPortraitMinutes, "Group Portraits", "shoot", {
+        notes: groupPortraitSource === "portrait_sequence"
+          ? `${groupPortraitMinutes} min from portrait sequence`
+          : `${groupPortraitMinutes} min estimate (portrait sequence not yet generated)`,
+      });
       cur += groupPortraitMinutes;
       // 4. Ceremony Details + Couple Prep
       const detailsLen = hasJewishKetubah ? 75 : 60;

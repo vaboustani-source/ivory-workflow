@@ -277,17 +277,18 @@ function QuestionnaireModal({
         .from("questionnaires").select("client_id").eq("id", questionnaire.id).maybeSingle();
       if (cu?.client_id) {
         console.log("[auto-regen] firing for client", cu.client_id, "questionnaire", questionnaire.id);
-        const calls = [
-          supabase.functions.invoke("generate-photography-timeline", {
+        // Sequential: portrait sequence FIRST (source of truth for group portrait time),
+        // THEN photography timeline (which reads from the sequence).
+        (async () => {
+          const seqRes = await supabase.functions.invoke("generate-portrait-sequence", {
             body: { client_id: cu.client_id, questionnaire_id: questionnaire.id },
-          }),
-          supabase.functions.invoke("generate-portrait-sequence", {
+          });
+          console.log("[auto-regen] portrait-sequence", seqRes);
+          const tlRes = await supabase.functions.invoke("generate-photography-timeline", {
             body: { client_id: cu.client_id, questionnaire_id: questionnaire.id },
-          }),
-        ];
-        Promise.allSettled(calls).then((results) => {
-          console.log("[auto-regen] results", results);
-        });
+          });
+          console.log("[auto-regen] photography-timeline", tlRes);
+        })();
       } else {
         console.warn("[auto-regen] no client_id resolved for questionnaire", questionnaire.id);
       }
