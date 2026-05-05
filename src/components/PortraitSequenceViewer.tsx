@@ -117,6 +117,17 @@ export function PortraitSequenceViewer({
     const { error } = await supabase.functions.invoke("generate-portrait-sequence", { body: { client_id: clientId } });
     setRegenerating(false);
     if (error) { alert("Couldn't regenerate: " + error.message); return; }
+    try {
+      const { logActivity } = await import("@/lib/activityLog");
+      await logActivity({
+        client_id: clientId,
+        action_type: "portrait_sequence.regenerated",
+        target_type: "portrait_sequence",
+        description: "Portrait sequence regenerated",
+        client_facing_text: "Your family portraits were updated",
+        is_client_visible: true,
+      });
+    } catch { /* noop */ }
     await load();
   };
 
