@@ -94,33 +94,21 @@ Deno.serve(async (req) => {
     // Consistent subject for the whole conversation
     const consistentSubject = `${BRAND.studioName} — ${coupleFirstNames}`;
 
-    // ─── Email threading: build References chain from prior messages ───────────
-    const { data: priorMsgs } = await supabase
-      .from("messages")
-      .select("email_message_id, created_at")
-      .eq("conversation_id", msg.conversation_id)
-      .not("email_message_id", "is", null)
-      .neq("id", message_id)
-      .order("created_at", { ascending: true });
-
-    const priorIds: string[] = (priorMsgs ?? [])
-      .map((m: any) => m.email_message_id)
-      .filter(Boolean);
-
-    const newMessageIdHeader = `<conv-${msg.conversation_id}-msg-${msg.id}@${EMAIL_DOMAIN}>`;
+    // ─── Email threading ───────────────────────────────────────────────────────
+    // NOTE: Resend sends through Amazon SES, which silently overrides any custom
+    // Message-ID header with its own (e.g. <...@email.amazonses.com>). That made
+    // our In-Reply-To / References point at IDs that never appeared on the wire,
+    // so Gmail couldn't thread. Resend's GET /emails/{id} also doesn't expose
+    // the real SES Message-ID — only their internal UUID. The only way to
+    // capture it is via webhooks, which we're intentionally avoiding here.
+    //
+    // Fallback strategy: rely on a consistent per-conversation subject line
+    // (Gmail groups by normalized subject) plus an X-Entity-Ref-ID hint that
+    // is stable per conversation. This is less precise than RFC threading but
+    // works without webhook plumbing.
     const threadingHeaders: Record<string, string> = {
-      "Message-ID": newMessageIdHeader,
+      "X-Entity-Ref-ID": `conv-${msg.conversation_id}`,
     };
-    if (priorIds.length > 0) {
-      threadingHeaders["In-Reply-To"] = priorIds[priorIds.length - 1];
-      threadingHeaders["References"] = priorIds.join(" ");
-    }
-
-    // Persist the Message-ID on the message row so future emails can chain off it
-    await supabase
-      .from("messages")
-      .update({ email_message_id: newMessageIdHeader })
-      .eq("id", message_id);
 
     const overrides = await loadCopyOverrides(supabase, "message_notification");
 
