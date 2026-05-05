@@ -17,9 +17,12 @@ export type Database = {
       activity_log: {
         Row: {
           action_type: string | null
+          client_facing_text: string | null
+          client_id: string | null
           created_at: string
           description: string | null
           id: string
+          is_client_visible: boolean
           metadata: Json | null
           target_id: string | null
           target_type: string | null
@@ -27,9 +30,12 @@ export type Database = {
         }
         Insert: {
           action_type?: string | null
+          client_facing_text?: string | null
+          client_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          is_client_visible?: boolean
           metadata?: Json | null
           target_id?: string | null
           target_type?: string | null
@@ -37,15 +43,25 @@ export type Database = {
         }
         Update: {
           action_type?: string | null
+          client_facing_text?: string | null
+          client_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          is_client_visible?: boolean
           metadata?: Json | null
           target_id?: string | null
           target_type?: string | null
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "activity_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "activity_log_user_id_fkey"
             columns: ["user_id"]
@@ -2046,6 +2062,9 @@ export type Database = {
       timeline_milestones: {
         Row: {
           action_type: string | null
+          client_action_url: string | null
+          client_facing_description: string | null
+          client_facing_label: string | null
           client_id: string
           completed_at: string | null
           completed_by: string | null
@@ -2065,6 +2084,9 @@ export type Database = {
         }
         Insert: {
           action_type?: string | null
+          client_action_url?: string | null
+          client_facing_description?: string | null
+          client_facing_label?: string | null
           client_id: string
           completed_at?: string | null
           completed_by?: string | null
@@ -2084,6 +2106,9 @@ export type Database = {
         }
         Update: {
           action_type?: string | null
+          client_action_url?: string | null
+          client_facing_description?: string | null
+          client_facing_label?: string | null
           client_id?: string
           completed_at?: string | null
           completed_by?: string | null
@@ -2221,6 +2246,9 @@ export type Database = {
           branch_dependency:
             | Database["public"]["Enums"]["workflow_branch"]
             | null
+          client_action_url: string | null
+          client_facing_description: string | null
+          client_facing_label: string | null
           description: string | null
           email_template_id: string | null
           id: string
@@ -2252,6 +2280,9 @@ export type Database = {
           branch_dependency?:
             | Database["public"]["Enums"]["workflow_branch"]
             | null
+          client_action_url?: string | null
+          client_facing_description?: string | null
+          client_facing_label?: string | null
           description?: string | null
           email_template_id?: string | null
           id?: string
@@ -2283,6 +2314,9 @@ export type Database = {
           branch_dependency?:
             | Database["public"]["Enums"]["workflow_branch"]
             | null
+          client_action_url?: string | null
+          client_facing_description?: string | null
+          client_facing_label?: string | null
           description?: string | null
           email_template_id?: string | null
           id?: string
