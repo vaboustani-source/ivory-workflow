@@ -200,3 +200,15 @@ export function ContractorEditorModal({ existing, onClose, onSaved }: Props) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground block mb-2">{label}</label>
+      {children}
+    </div>
+  );
+}
