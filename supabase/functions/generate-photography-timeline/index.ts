@@ -275,7 +275,11 @@ Deno.serve(async (req) => {
       pushBlock(blocks, cur, cur + 60, "First Look + Couple Portraits", "shoot");
       cur += 60;
       // 3. Group Portraits
-      pushBlock(blocks, cur, cur + groupPortraitMinutes, "Group Portraits", "shoot", { notes: `${groupPortraitMinutes} min based on shot list` });
+      pushBlock(blocks, cur, cur + groupPortraitMinutes, "Group Portraits", "shoot", {
+        notes: groupPortraitSource === "portrait_sequence"
+          ? `${groupPortraitMinutes} min from portrait sequence`
+          : `${groupPortraitMinutes} min estimate (portrait sequence not yet generated)`,
+      });
       cur += groupPortraitMinutes;
       // 4. Ceremony Details + Couple Prep
       const detailsLen = hasJewishKetubah ? 75 : 60;
