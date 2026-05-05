@@ -197,6 +197,7 @@ Deno.serve(async (req) => {
       if (heuristic > 90) heuristic = 90;
       groupPortraitMinutes = heuristic;
     }
+    console.log(`[generate-photography-timeline] using groupPortraitMinutes=${groupPortraitMinutes} from source=${groupPortraitSource}`);
 
     const grAddress = firstAddressLine(r.getting_ready_address as string | undefined);
     const cerAddress = String(r.ceremony_address ?? "").trim() || grAddress;
