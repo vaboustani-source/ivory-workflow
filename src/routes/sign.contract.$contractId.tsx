@@ -28,24 +28,14 @@ function SignContractorContract() {
     if (!token) { setError("Missing access token."); setLoading(false); return; }
     (async () => {
       try {
-        const { data, error: fnErr } = await supabase.functions.invoke("get-contractor-contract", {
-          body: null,
-          method: "GET" as any,
-        });
-        // Edge functions invoke doesn't pass query params; fall back to fetch.
-        if (fnErr || !data) throw fnErr;
-        process(data);
-      } catch {
-        try {
-          const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-contractor-contract?contract_id=${contractId}&token=${encodeURIComponent(token)}`;
-          const res = await fetch(url, { headers: { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` } });
-          const json = await res.json();
-          if (!res.ok) throw new Error(json.error ?? "Failed to load");
-          process(json);
-        } catch (e: any) {
-          setError(e.message ?? "Failed to load contract");
-          setLoading(false);
-        }
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-contractor-contract?contract_id=${contractId}&token=${encodeURIComponent(token)}`;
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` } });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error ?? "Failed to load");
+        process(json);
+      } catch (e: any) {
+        setError(e.message ?? "Failed to load contract");
+        setLoading(false);
       }
     })();
     function process(json: any) {
