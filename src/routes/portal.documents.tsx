@@ -478,7 +478,7 @@ function ContractModal({
       try {
         const { logActivity } = await import("@/lib/activityLog");
         await logActivity({
-          client_id: contract.client_id,
+          client_id: clientId,
           action_type: "contract.signed",
           target_type: "contract",
           target_id: contract.id,
