@@ -156,11 +156,13 @@ Deno.serve(async (req) => {
     const sib2 = Array.isArray(fam2.siblings) ? fam2.siblings.length : 0;
     const extendedShots = Array.isArray(r.extended_portraits) ? r.extended_portraits.length : 0;
 
-    let { data: portraitSeq } = await admin
+    console.log(`[generate-photography-timeline] querying portrait_sequences for client_id=${client_id}`);
+    let { data: portraitSeq, error: portraitSeqErr } = await admin
       .from("portrait_sequences")
       .select("total_minutes")
       .eq("client_id", client_id)
       .maybeSingle();
+    console.log(`[generate-photography-timeline] portrait_sequences result: ${JSON.stringify(portraitSeq)} err=${portraitSeqErr?.message ?? "none"}`);
 
     if (!portraitSeq?.total_minutes) {
       console.log("[generate-photography-timeline] portrait_sequences missing — invoking generate-portrait-sequence first");
@@ -195,6 +197,7 @@ Deno.serve(async (req) => {
       if (heuristic > 90) heuristic = 90;
       groupPortraitMinutes = heuristic;
     }
+    console.log(`[generate-photography-timeline] using groupPortraitMinutes=${groupPortraitMinutes} from source=${groupPortraitSource}`);
 
     const grAddress = firstAddressLine(r.getting_ready_address as string | undefined);
     const cerAddress = String(r.ceremony_address ?? "").trim() || grAddress;
@@ -409,14 +412,17 @@ Deno.serve(async (req) => {
       coverage_status: coverageStatus,
     };
 
+    console.log(`[generate-photography-timeline] persisting group_portrait_minutes=${row.group_portrait_minutes} for client_id=${client_id}`);
     const { data: up, error: upErr } = await admin
       .from("photography_timelines")
       .upsert(row, { onConflict: "client_id" })
       .select("id")
       .single();
     if (upErr) {
+      console.error(`[generate-photography-timeline] upsert error: ${upErr.message}`);
       return new Response(JSON.stringify({ error: upErr.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    console.log(`[generate-photography-timeline] persisted timeline_id=${up.id}`);
 
     // ----- Coverage upsell milestone management ------------------------
     try {
