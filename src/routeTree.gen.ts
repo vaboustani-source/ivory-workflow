@@ -55,12 +55,14 @@ import { Route as StudioPipelineSalesRouteImport } from './routes/studio.pipelin
 import { Route as StudioPipelineProductionRouteImport } from './routes/studio.pipeline.production'
 import { Route as StudioContractsTemplatesRouteImport } from './routes/studio.contracts.templates'
 import { Route as StudioClientsIdRouteImport } from './routes/studio.clients.$id'
+import { Route as SignContractContractIdRouteImport } from './routes/sign.contract.$contractId'
 import { Route as PortalAccountSecurityRouteImport } from './routes/portal.account.security'
 import { Route as PortalAccountPartnerRouteImport } from './routes/portal.account.partner'
 import { Route as PortalAccountNotificationsRouteImport } from './routes/portal.account.notifications'
 import { Route as StudioSettingsEmailsIndexRouteImport } from './routes/studio.settings.emails.index'
 import { Route as StudioSettingsEmailsEmailTypeRouteImport } from './routes/studio.settings.emails.$emailType'
 import { Route as StudioContractsTemplatesIdRouteImport } from './routes/studio.contracts.templates.$id'
+import { Route as StudioClientsIdSourcingRouteImport } from './routes/studio.clients.$id.sourcing'
 
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
@@ -298,6 +300,11 @@ const StudioClientsIdRoute = StudioClientsIdRouteImport.update({
   path: '/clients/$id',
   getParentRoute: () => StudioRoute,
 } as any)
+const SignContractContractIdRoute = SignContractContractIdRouteImport.update({
+  id: '/sign/contract/$contractId',
+  path: '/sign/contract/$contractId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PortalAccountSecurityRoute = PortalAccountSecurityRouteImport.update({
   id: '/security',
   path: '/security',
@@ -332,6 +339,11 @@ const StudioContractsTemplatesIdRoute =
     path: '/$id',
     getParentRoute: () => StudioContractsTemplatesRoute,
   } as any)
+const StudioClientsIdSourcingRoute = StudioClientsIdSourcingRouteImport.update({
+  id: '/sourcing',
+  path: '/sourcing',
+  getParentRoute: () => StudioClientsIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -366,7 +378,8 @@ export interface FileRoutesByFullPath {
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
-  '/studio/clients/$id': typeof StudioClientsIdRoute
+  '/sign/contract/$contractId': typeof SignContractContractIdRoute
+  '/studio/clients/$id': typeof StudioClientsIdRouteWithChildren
   '/studio/contracts/templates': typeof StudioContractsTemplatesRouteWithChildren
   '/studio/pipeline/production': typeof StudioPipelineProductionRoute
   '/studio/pipeline/sales': typeof StudioPipelineSalesRoute
@@ -383,6 +396,7 @@ export interface FileRoutesByFullPath {
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
   '/portal/account/': typeof PortalAccountIndexRoute
   '/studio/clients/': typeof StudioClientsIndexRoute
+  '/studio/clients/$id/sourcing': typeof StudioClientsIdSourcingRoute
   '/studio/contracts/templates/$id': typeof StudioContractsTemplatesIdRoute
   '/studio/settings/emails/$emailType': typeof StudioSettingsEmailsEmailTypeRoute
   '/studio/settings/emails/': typeof StudioSettingsEmailsIndexRoute
@@ -417,7 +431,8 @@ export interface FileRoutesByTo {
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
-  '/studio/clients/$id': typeof StudioClientsIdRoute
+  '/sign/contract/$contractId': typeof SignContractContractIdRoute
+  '/studio/clients/$id': typeof StudioClientsIdRouteWithChildren
   '/studio/contracts/templates': typeof StudioContractsTemplatesRouteWithChildren
   '/studio/pipeline/production': typeof StudioPipelineProductionRoute
   '/studio/pipeline/sales': typeof StudioPipelineSalesRoute
@@ -434,6 +449,7 @@ export interface FileRoutesByTo {
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
   '/portal/account': typeof PortalAccountIndexRoute
   '/studio/clients': typeof StudioClientsIndexRoute
+  '/studio/clients/$id/sourcing': typeof StudioClientsIdSourcingRoute
   '/studio/contracts/templates/$id': typeof StudioContractsTemplatesIdRoute
   '/studio/settings/emails/$emailType': typeof StudioSettingsEmailsEmailTypeRoute
   '/studio/settings/emails': typeof StudioSettingsEmailsIndexRoute
@@ -472,7 +488,8 @@ export interface FileRoutesById {
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
-  '/studio/clients/$id': typeof StudioClientsIdRoute
+  '/sign/contract/$contractId': typeof SignContractContractIdRoute
+  '/studio/clients/$id': typeof StudioClientsIdRouteWithChildren
   '/studio/contracts/templates': typeof StudioContractsTemplatesRouteWithChildren
   '/studio/pipeline/production': typeof StudioPipelineProductionRoute
   '/studio/pipeline/sales': typeof StudioPipelineSalesRoute
@@ -489,6 +506,7 @@ export interface FileRoutesById {
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
   '/portal/account/': typeof PortalAccountIndexRoute
   '/studio/clients/': typeof StudioClientsIndexRoute
+  '/studio/clients/$id/sourcing': typeof StudioClientsIdSourcingRoute
   '/studio/contracts/templates/$id': typeof StudioContractsTemplatesIdRoute
   '/studio/settings/emails/$emailType': typeof StudioSettingsEmailsEmailTypeRoute
   '/studio/settings/emails/': typeof StudioSettingsEmailsIndexRoute
@@ -528,6 +546,7 @@ export interface FileRouteTypes {
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
+    | '/sign/contract/$contractId'
     | '/studio/clients/$id'
     | '/studio/contracts/templates'
     | '/studio/pipeline/production'
@@ -545,6 +564,7 @@ export interface FileRouteTypes {
     | '/studio/settings/workflow'
     | '/portal/account/'
     | '/studio/clients/'
+    | '/studio/clients/$id/sourcing'
     | '/studio/contracts/templates/$id'
     | '/studio/settings/emails/$emailType'
     | '/studio/settings/emails/'
@@ -579,6 +599,7 @@ export interface FileRouteTypes {
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
+    | '/sign/contract/$contractId'
     | '/studio/clients/$id'
     | '/studio/contracts/templates'
     | '/studio/pipeline/production'
@@ -596,6 +617,7 @@ export interface FileRouteTypes {
     | '/studio/settings/workflow'
     | '/portal/account'
     | '/studio/clients'
+    | '/studio/clients/$id/sourcing'
     | '/studio/contracts/templates/$id'
     | '/studio/settings/emails/$emailType'
     | '/studio/settings/emails'
@@ -633,6 +655,7 @@ export interface FileRouteTypes {
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
+    | '/sign/contract/$contractId'
     | '/studio/clients/$id'
     | '/studio/contracts/templates'
     | '/studio/pipeline/production'
@@ -650,6 +673,7 @@ export interface FileRouteTypes {
     | '/studio/settings/workflow'
     | '/portal/account/'
     | '/studio/clients/'
+    | '/studio/clients/$id/sourcing'
     | '/studio/contracts/templates/$id'
     | '/studio/settings/emails/$emailType'
     | '/studio/settings/emails/'
@@ -660,6 +684,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PortalRoute: typeof PortalRouteWithChildren
   StudioRoute: typeof StudioRouteWithChildren
+  SignContractContractIdRoute: typeof SignContractContractIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -986,6 +1011,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioClientsIdRouteImport
       parentRoute: typeof StudioRoute
     }
+    '/sign/contract/$contractId': {
+      id: '/sign/contract/$contractId'
+      path: '/sign/contract/$contractId'
+      fullPath: '/sign/contract/$contractId'
+      preLoaderRoute: typeof SignContractContractIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/portal/account/security': {
       id: '/portal/account/security'
       path: '/security'
@@ -1027,6 +1059,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/studio/contracts/templates/$id'
       preLoaderRoute: typeof StudioContractsTemplatesIdRouteImport
       parentRoute: typeof StudioContractsTemplatesRoute
+    }
+    '/studio/clients/$id/sourcing': {
+      id: '/studio/clients/$id/sourcing'
+      path: '/sourcing'
+      fullPath: '/studio/clients/$id/sourcing'
+      preLoaderRoute: typeof StudioClientsIdSourcingRouteImport
+      parentRoute: typeof StudioClientsIdRoute
     }
   }
 }
@@ -1156,6 +1195,18 @@ const StudioSettingsRouteWithChildren = StudioSettingsRoute._addFileChildren(
   StudioSettingsRouteChildren,
 )
 
+interface StudioClientsIdRouteChildren {
+  StudioClientsIdSourcingRoute: typeof StudioClientsIdSourcingRoute
+}
+
+const StudioClientsIdRouteChildren: StudioClientsIdRouteChildren = {
+  StudioClientsIdSourcingRoute: StudioClientsIdSourcingRoute,
+}
+
+const StudioClientsIdRouteWithChildren = StudioClientsIdRoute._addFileChildren(
+  StudioClientsIdRouteChildren,
+)
+
 interface StudioRouteChildren {
   StudioApprovalQueueRoute: typeof StudioApprovalQueueRoute
   StudioCalendarRoute: typeof StudioCalendarRoute
@@ -1169,7 +1220,7 @@ interface StudioRouteChildren {
   StudioSettingsRoute: typeof StudioSettingsRouteWithChildren
   StudioTasksRoute: typeof StudioTasksRoute
   StudioIndexRoute: typeof StudioIndexRoute
-  StudioClientsIdRoute: typeof StudioClientsIdRoute
+  StudioClientsIdRoute: typeof StudioClientsIdRouteWithChildren
   StudioPipelineProductionRoute: typeof StudioPipelineProductionRoute
   StudioPipelineSalesRoute: typeof StudioPipelineSalesRoute
   StudioClientsIndexRoute: typeof StudioClientsIndexRoute
@@ -1188,7 +1239,7 @@ const StudioRouteChildren: StudioRouteChildren = {
   StudioSettingsRoute: StudioSettingsRouteWithChildren,
   StudioTasksRoute: StudioTasksRoute,
   StudioIndexRoute: StudioIndexRoute,
-  StudioClientsIdRoute: StudioClientsIdRoute,
+  StudioClientsIdRoute: StudioClientsIdRouteWithChildren,
   StudioPipelineProductionRoute: StudioPipelineProductionRoute,
   StudioPipelineSalesRoute: StudioPipelineSalesRoute,
   StudioClientsIndexRoute: StudioClientsIndexRoute,
@@ -1202,6 +1253,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PortalRoute: PortalRouteWithChildren,
   StudioRoute: StudioRouteWithChildren,
+  SignContractContractIdRoute: SignContractContractIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
