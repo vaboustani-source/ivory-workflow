@@ -131,6 +131,18 @@ export function PortraitSequenceViewer({
       .eq("id", seq.id);
     if (error) { toast.error("Couldn't save approval: " + error.message); setApproving(false); return; }
     supabase.functions.invoke("notify-portrait-approval", { body: { client_id: clientId } }).catch(() => {});
+    try {
+      const { logActivity } = await import("@/lib/activityLog");
+      await logActivity({
+        client_id: clientId,
+        action_type: "portrait_sequence.approved",
+        target_type: "portrait_sequence",
+        target_id: seq.id,
+        description: "Portrait sequence approved by couple",
+        client_facing_text: "You approved your family portraits",
+        is_client_visible: true,
+      });
+    } catch { /* noop */ }
     toast.success("Thanks! Victoria has been notified.");
     setApproving(false);
     await load();
@@ -190,6 +202,26 @@ export function PortraitSequenceViewer({
     }
     await supabase.from("portrait_sequences").update(patch).eq("id", seq.id);
     setSeq({ ...seq, [list]: items, total_minutes: total, couple_edits_log: nextLog } as any);
+    if (log) {
+      try {
+        const { logActivity } = await import("@/lib/activityLog");
+        const verbMap: Record<string, { d: string; c: string }> = {
+          edited: { d: `Couple edited Step: ${log.step_label}`, c: "You updated a step in your family portraits" },
+          deleted: { d: `Couple deleted Step: ${log.step_label}`, c: "You removed a step from your family portraits" },
+          added: { d: `Couple added: ${log.step_label}`, c: "You added a new step to your family portraits" },
+        };
+        const v = verbMap[log.action] ?? { d: `Couple updated: ${log.step_label}`, c: "You updated your family portraits" };
+        await logActivity({
+          client_id: clientId,
+          action_type: `portrait_sequence.${log.action}`,
+          target_type: "portrait_sequence",
+          target_id: seq.id,
+          description: v.d,
+          client_facing_text: v.c,
+          is_client_visible: true,
+        });
+      } catch { /* noop */ }
+    }
   };
 
   const visibleTotal = useMemo(() => {
