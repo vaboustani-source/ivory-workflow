@@ -5,6 +5,7 @@ import { PortalGate } from "@/components/PortalLayout";
 import { shortDate, daysBetween, relativeTime } from "@/lib/dates";
 import { toast } from "sonner";
 import { MilestoneCards } from "@/components/MilestoneCards";
+import { YourWeddingTeamCard } from "@/components/YourWeddingTeamCard";
 
 export const Route = createFileRoute("/portal/")({
   component: PortalHomeRoute,
@@ -145,6 +146,8 @@ function PortalHome({ client, clientId }: { client: any; clientId: string }) {
           </p>
         )}
       </Card>
+
+      <YourWeddingTeamCard clientId={clientId} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Photographer */}
