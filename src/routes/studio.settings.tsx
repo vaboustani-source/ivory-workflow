@@ -13,6 +13,7 @@ function SettingsLayout() {
   const items = [
     { label: "Profile", to: "/studio/settings/profile", visible: true },
     { label: "Team", to: "/studio/settings/team", visible: true },
+    { label: "Contractors", to: "/studio/settings/contractors", visible: true },
     { label: "Workflow", to: "/studio/settings/workflow", visible: isOwner },
     { label: "Email Templates", to: "/studio/settings/email-templates", visible: true },
     { label: "Email copy", to: "/studio/settings/emails", visible: isOwner },
