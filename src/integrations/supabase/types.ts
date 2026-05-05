@@ -383,6 +383,7 @@ export type Database = {
           production_stage_override_at: string | null
           production_stage_override_by: string | null
           secondary_email: string | null
+          services_added: Json
           status: Database["public"]["Enums"]["client_status"]
           updated_at: string
           venue_address: string | null
@@ -422,6 +423,7 @@ export type Database = {
           production_stage_override_at?: string | null
           production_stage_override_by?: string | null
           secondary_email?: string | null
+          services_added?: Json
           status?: Database["public"]["Enums"]["client_status"]
           updated_at?: string
           venue_address?: string | null
@@ -461,6 +463,7 @@ export type Database = {
           production_stage_override_at?: string | null
           production_stage_override_by?: string | null
           secondary_email?: string | null
+          services_added?: Json
           status?: Database["public"]["Enums"]["client_status"]
           updated_at?: string
           venue_address?: string | null
@@ -573,6 +576,7 @@ export type Database = {
           is_archived: boolean
           name: string
           signature_required_role: string
+          template_type: string
           updated_at: string
         }
         Insert: {
@@ -584,6 +588,7 @@ export type Database = {
           is_archived?: boolean
           name: string
           signature_required_role?: string
+          template_type?: string
           updated_at?: string
         }
         Update: {
@@ -595,6 +600,7 @@ export type Database = {
           is_archived?: boolean
           name?: string
           signature_required_role?: string
+          template_type?: string
           updated_at?: string
         }
         Relationships: [
@@ -609,63 +615,92 @@ export type Database = {
       }
       contractor_service_requests: {
         Row: {
-          accepted_at: string | null
           agreed_hourly_rate: number | null
           agreed_hours: number | null
           agreed_total: number | null
+          ceremony_address: string | null
           client_id: string
+          contract_id: string | null
           contractor_id: string
-          contractor_response_notes: string | null
           created_at: string
           id: string
-          message_to_contractor: string | null
           notes: string | null
-          requested_at: string
-          requested_by: string | null
-          requested_role: string
           responded_at: string | null
-          status: Database["public"]["Enums"]["contractor_request_status"]
+          response_logged_at: string | null
+          response_logged_by: string | null
+          response_message: string | null
+          role: Database["public"]["Enums"]["contractor_role"]
+          sent_at: string
+          sent_by: string | null
+          status: Database["public"]["Enums"]["service_request_status"]
+          travel_distance_miles: number | null
+          travel_minutes: number | null
           updated_at: string
+          wedding_date: string
         }
         Insert: {
-          accepted_at?: string | null
           agreed_hourly_rate?: number | null
           agreed_hours?: number | null
           agreed_total?: number | null
+          ceremony_address?: string | null
           client_id: string
+          contract_id?: string | null
           contractor_id: string
-          contractor_response_notes?: string | null
           created_at?: string
           id?: string
-          message_to_contractor?: string | null
           notes?: string | null
-          requested_at?: string
-          requested_by?: string | null
-          requested_role: string
           responded_at?: string | null
-          status?: Database["public"]["Enums"]["contractor_request_status"]
+          response_logged_at?: string | null
+          response_logged_by?: string | null
+          response_message?: string | null
+          role: Database["public"]["Enums"]["contractor_role"]
+          sent_at?: string
+          sent_by?: string | null
+          status?: Database["public"]["Enums"]["service_request_status"]
+          travel_distance_miles?: number | null
+          travel_minutes?: number | null
           updated_at?: string
+          wedding_date: string
         }
         Update: {
-          accepted_at?: string | null
           agreed_hourly_rate?: number | null
           agreed_hours?: number | null
           agreed_total?: number | null
+          ceremony_address?: string | null
           client_id?: string
+          contract_id?: string | null
           contractor_id?: string
-          contractor_response_notes?: string | null
           created_at?: string
           id?: string
-          message_to_contractor?: string | null
           notes?: string | null
-          requested_at?: string
-          requested_by?: string | null
-          requested_role?: string
           responded_at?: string | null
-          status?: Database["public"]["Enums"]["contractor_request_status"]
+          response_logged_at?: string | null
+          response_logged_by?: string | null
+          response_message?: string | null
+          role?: Database["public"]["Enums"]["contractor_role"]
+          sent_at?: string
+          sent_by?: string | null
+          status?: Database["public"]["Enums"]["service_request_status"]
+          travel_distance_miles?: number | null
+          travel_minutes?: number | null
           updated_at?: string
+          wedding_date?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "contractor_service_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_service_requests_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "contractor_service_requests_contractor_id_fkey"
             columns: ["contractor_id"]
@@ -673,62 +708,88 @@ export type Database = {
             referencedRelation: "contractors"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "contractor_service_requests_response_logged_by_fkey"
+            columns: ["response_logged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_service_requests_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       contractors: {
         Row: {
+          bio: string | null
           created_at: string
-          created_by: string | null
-          email: string | null
+          email: string
           full_name: string
+          homebase_address: string | null
+          homebase_lat: number | null
+          homebase_lng: number | null
           id: string
           instagram: string | null
           is_active: boolean
+          jobs_count: number
+          last_worked_with_at: string | null
           notes: string | null
           phone: string | null
+          portfolio_url: string | null
           preferred_max_hourly_rate: number | null
           preferred_min_hourly_rate: number | null
-          primary_role: string | null
-          roles: string[]
-          tags: string[]
+          rate_notes: string | null
+          roles: Database["public"]["Enums"]["contractor_role"][]
           updated_at: string
-          website: string | null
         }
         Insert: {
+          bio?: string | null
           created_at?: string
-          created_by?: string | null
-          email?: string | null
+          email: string
           full_name: string
+          homebase_address?: string | null
+          homebase_lat?: number | null
+          homebase_lng?: number | null
           id?: string
           instagram?: string | null
           is_active?: boolean
+          jobs_count?: number
+          last_worked_with_at?: string | null
           notes?: string | null
           phone?: string | null
+          portfolio_url?: string | null
           preferred_max_hourly_rate?: number | null
           preferred_min_hourly_rate?: number | null
-          primary_role?: string | null
-          roles?: string[]
-          tags?: string[]
+          rate_notes?: string | null
+          roles?: Database["public"]["Enums"]["contractor_role"][]
           updated_at?: string
-          website?: string | null
         }
         Update: {
+          bio?: string | null
           created_at?: string
-          created_by?: string | null
-          email?: string | null
+          email?: string
           full_name?: string
+          homebase_address?: string | null
+          homebase_lat?: number | null
+          homebase_lng?: number | null
           id?: string
           instagram?: string | null
           is_active?: boolean
+          jobs_count?: number
+          last_worked_with_at?: string | null
           notes?: string | null
           phone?: string | null
+          portfolio_url?: string | null
           preferred_max_hourly_rate?: number | null
           preferred_min_hourly_rate?: number | null
-          primary_role?: string | null
-          roles?: string[]
-          tags?: string[]
+          rate_notes?: string | null
+          roles?: Database["public"]["Enums"]["contractor_role"][]
           updated_at?: string
-          website?: string | null
         }
         Relationships: []
       }
@@ -736,9 +797,15 @@ export type Database = {
         Row: {
           client_id: string | null
           content: string | null
+          contract_kind: string
+          contractor_id: string | null
+          counter_party_email: string | null
+          counter_party_name: string | null
           created_at: string
           file_url: string | null
           id: string
+          public_token: string | null
+          public_token_expires_at: string | null
           sent_at: string | null
           signature_data: Json | null
           signature_required_role: string
@@ -750,9 +817,15 @@ export type Database = {
         Insert: {
           client_id?: string | null
           content?: string | null
+          contract_kind?: string
+          contractor_id?: string | null
+          counter_party_email?: string | null
+          counter_party_name?: string | null
           created_at?: string
           file_url?: string | null
           id?: string
+          public_token?: string | null
+          public_token_expires_at?: string | null
           sent_at?: string | null
           signature_data?: Json | null
           signature_required_role?: string
@@ -764,9 +837,15 @@ export type Database = {
         Update: {
           client_id?: string | null
           content?: string | null
+          contract_kind?: string
+          contractor_id?: string | null
+          counter_party_email?: string | null
+          counter_party_name?: string | null
           created_at?: string
           file_url?: string | null
           id?: string
+          public_token?: string | null
+          public_token_expires_at?: string | null
           sent_at?: string | null
           signature_data?: Json | null
           signature_required_role?: string
@@ -781,6 +860,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
             referencedColumns: ["id"]
           },
           {
@@ -2145,66 +2231,58 @@ export type Database = {
       }
       wedding_team: {
         Row: {
-          added_by: string | null
-          agreed_hourly_rate: number
-          agreed_hours: number
+          agreed_hourly_rate: number | null
+          agreed_hours: number | null
           agreed_total: number | null
           client_id: string
+          contract_id: string | null
           contractor_id: string
-          coverage_window_end: string | null
-          coverage_window_start: string | null
           created_at: string
           id: string
-          notes: string | null
-          role: string
-          service_request_id: string | null
-          updated_at: string
+          role: Database["public"]["Enums"]["contractor_role"]
         }
         Insert: {
-          added_by?: string | null
-          agreed_hourly_rate: number
-          agreed_hours: number
+          agreed_hourly_rate?: number | null
+          agreed_hours?: number | null
           agreed_total?: number | null
           client_id: string
+          contract_id?: string | null
           contractor_id: string
-          coverage_window_end?: string | null
-          coverage_window_start?: string | null
           created_at?: string
           id?: string
-          notes?: string | null
-          role: string
-          service_request_id?: string | null
-          updated_at?: string
+          role: Database["public"]["Enums"]["contractor_role"]
         }
         Update: {
-          added_by?: string | null
-          agreed_hourly_rate?: number
-          agreed_hours?: number
+          agreed_hourly_rate?: number | null
+          agreed_hours?: number | null
           agreed_total?: number | null
           client_id?: string
+          contract_id?: string | null
           contractor_id?: string
-          coverage_window_end?: string | null
-          coverage_window_start?: string | null
           created_at?: string
           id?: string
-          notes?: string | null
-          role?: string
-          service_request_id?: string | null
-          updated_at?: string
+          role?: Database["public"]["Enums"]["contractor_role"]
         }
         Relationships: [
+          {
+            foreignKeyName: "wedding_team_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wedding_team_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "wedding_team_contractor_id_fkey"
             columns: ["contractor_id"]
             isOneToOne: false
             referencedRelation: "contractors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "wedding_team_service_request_id_fkey"
-            columns: ["service_request_id"]
-            isOneToOne: false
-            referencedRelation: "contractor_service_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -2538,11 +2616,12 @@ export type Database = {
         | "skipped"
         | "edited"
       contract_status: "draft" | "sent" | "signed"
-      contractor_request_status:
-        | "pending"
-        | "accepted"
-        | "declined"
-        | "withdrawn"
+      contractor_role:
+        | "second_shooter"
+        | "associate_photographer"
+        | "videographer"
+        | "second_videographer"
+        | "photo_assistant"
       engagement_status:
         | "pending_scheduling"
         | "scheduled"
@@ -2563,6 +2642,13 @@ export type Database = {
         | "travel_lodging"
         | "general"
       resource_content_type: "article" | "pdf" | "video" | "link"
+      service_request_status:
+        | "sent"
+        | "accepted"
+        | "declined"
+        | "no_response"
+        | "cancelled"
+        | "booked"
       task_priority: "low" | "normal" | "high"
       task_status: "pending" | "complete" | "skipped"
       workflow_action_type:
@@ -2763,11 +2849,12 @@ export const Constants = {
         "edited",
       ],
       contract_status: ["draft", "sent", "signed"],
-      contractor_request_status: [
-        "pending",
-        "accepted",
-        "declined",
-        "withdrawn",
+      contractor_role: [
+        "second_shooter",
+        "associate_photographer",
+        "videographer",
+        "second_videographer",
+        "photo_assistant",
       ],
       engagement_status: [
         "pending_scheduling",
@@ -2791,6 +2878,14 @@ export const Constants = {
         "general",
       ],
       resource_content_type: ["article", "pdf", "video", "link"],
+      service_request_status: [
+        "sent",
+        "accepted",
+        "declined",
+        "no_response",
+        "cancelled",
+        "booked",
+      ],
       task_priority: ["low", "normal", "high"],
       task_status: ["pending", "complete", "skipped"],
       workflow_action_type: [
