@@ -156,11 +156,13 @@ Deno.serve(async (req) => {
     const sib2 = Array.isArray(fam2.siblings) ? fam2.siblings.length : 0;
     const extendedShots = Array.isArray(r.extended_portraits) ? r.extended_portraits.length : 0;
 
-    let { data: portraitSeq } = await admin
+    console.log(`[generate-photography-timeline] querying portrait_sequences for client_id=${client_id}`);
+    let { data: portraitSeq, error: portraitSeqErr } = await admin
       .from("portrait_sequences")
       .select("total_minutes")
       .eq("client_id", client_id)
       .maybeSingle();
+    console.log(`[generate-photography-timeline] portrait_sequences result: ${JSON.stringify(portraitSeq)} err=${portraitSeqErr?.message ?? "none"}`);
 
     if (!portraitSeq?.total_minutes) {
       console.log("[generate-photography-timeline] portrait_sequences missing — invoking generate-portrait-sequence first");
