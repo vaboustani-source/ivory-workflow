@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PortalGate } from "@/components/PortalLayout";
 import { shortDate, daysBetween, relativeTime } from "@/lib/dates";
 import { toast } from "sonner";
+import { MilestoneCards } from "@/components/MilestoneCards";
 
 export const Route = createFileRoute("/portal/")({
   component: PortalHomeRoute,
@@ -103,6 +104,7 @@ function PortalHome({ client, clientId }: { client: any; clientId: string }) {
 
   return (
     <div className="space-y-6">
+      <MilestoneCards clientId={clientId} />
       {/* Hero */}
       <div className="bg-background-alt rounded-lg shadow-soft p-8 md:p-12 text-center">
         <h1 className="font-serif italic text-[28px] md:text-[36px] text-primary leading-tight">

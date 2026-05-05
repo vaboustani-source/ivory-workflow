@@ -11,6 +11,7 @@ import { PortraitSequenceViewer } from "@/components/PortraitSequenceViewer";
 import { ClientMessagesTab } from "@/components/messages/ClientMessagesTab";
 import { StudioDocumentsTab } from "@/components/studio/DocumentsTab";
 import { StudioFormsTab } from "@/components/studio/FormsTab";
+import { ActivityList } from "@/components/ActivityList";
 
 type SearchSchema = { tab?: string; contract_id?: string; questionnaire_id?: string };
 
@@ -23,12 +24,12 @@ export const Route = createFileRoute("/studio/clients/$id")({
   component: ClientDetail,
 });
 
-const TABS = ["Overview", "Timeline", "Photography", "Family Portraits", "Messages", "Documents", "Forms", "Gallery", "Notes"] as const;
+const TABS = ["Overview", "Timeline", "Photography", "Family Portraits", "Messages", "Documents", "Forms", "Activity", "Gallery", "Notes"] as const;
 type Tab = typeof TABS[number];
 
 const TAB_KEY: Record<Tab, string> = {
   Overview: "overview", Timeline: "timeline", Photography: "photography", "Family Portraits": "portrait-sequence", Messages: "messages",
-  Documents: "documents", Forms: "forms", Gallery: "gallery", Notes: "notes",
+  Documents: "documents", Forms: "forms", Activity: "activity", Gallery: "gallery", Notes: "notes",
 };
 const KEY_TO_TAB: Record<string, Tab> = Object.fromEntries(
   Object.entries(TAB_KEY).map(([k, v]) => [v, k as Tab])
