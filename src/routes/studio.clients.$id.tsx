@@ -272,6 +272,13 @@ function ClientDetail() {
           <StudioDocumentsTab clientId={id} openContractId={search.contract_id} />
         ) : tab === "Forms" ? (
           <StudioFormsTab clientId={id} openQuestionnaireId={search.questionnaire_id} />
+        ) : tab === "Activity" ? (
+          <div className="space-y-5">
+            <h2 className="font-serif italic text-[28px] text-primary">Activity</h2>
+            <div className="bg-surface rounded-lg shadow-soft p-6 border-t-2 border-gold">
+              <ActivityList clientId={id} mode="studio" />
+            </div>
+          </div>
         ) : (
           <div className="bg-surface rounded-lg shadow-soft py-20 text-center">
             <p className="font-serif italic text-2xl text-primary">Coming soon. Building this in the next phase.</p>
