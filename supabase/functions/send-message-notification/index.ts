@@ -106,9 +106,7 @@ Deno.serve(async (req) => {
     // (Gmail groups by normalized subject) plus an X-Entity-Ref-ID hint that
     // is stable per conversation. This is less precise than RFC threading but
     // works without webhook plumbing.
-    const threadingHeaders: Record<string, string> = {
-      "X-Entity-Ref-ID": `conv-${msg.conversation_id}`,
-    };
+    const threadingHeaders: Record<string, string> = {};
 
     const overrides = await loadCopyOverrides(supabase, "message_notification");
 
