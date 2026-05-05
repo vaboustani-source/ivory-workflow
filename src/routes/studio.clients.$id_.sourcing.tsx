@@ -8,7 +8,7 @@ import { ChevronRight, MapPin, Send, Check, X, FileText } from "lucide-react";
 
 type Search = { role?: string };
 
-export const Route = createFileRoute("/studio/clients/$id/sourcing")({
+export const Route = createFileRoute("/studio/clients/$id_/sourcing")({
   validateSearch: (s: Record<string, unknown>): Search => ({
     role: typeof s.role === "string" ? s.role : undefined,
   }),
@@ -58,8 +58,8 @@ interface Client {
 }
 
 function SourcingScreen() {
-  const { id } = useParams({ from: "/studio/clients/$id/sourcing" });
-  const { role } = useSearch({ from: "/studio/clients/$id/sourcing" });
+  const { id } = useParams({ from: "/studio/clients/$id_/sourcing" });
+  const { role } = useSearch({ from: "/studio/clients/$id_/sourcing" });
   const navigate = useNavigate();
 
   const [client, setClient] = useState<Client | null>(null);
@@ -144,7 +144,7 @@ function SourcingScreen() {
         </div>
         <select
           value={activeRole}
-          onChange={(e) => { setActiveRole(e.target.value as ContractorRole); navigate({ to: "/studio/clients/$id/sourcing", params: { id }, search: { role: e.target.value }, replace: true }); }}
+          onChange={(e) => { setActiveRole(e.target.value as ContractorRole); navigate({ to: "/studio/clients/$id_/sourcing", params: { id }, search: { role: e.target.value }, replace: true }); }}
           className="px-3 py-2 bg-surface border border-border rounded-md text-sm"
         >
           {CONTRACTOR_ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
