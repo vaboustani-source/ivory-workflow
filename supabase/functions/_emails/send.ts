@@ -8,6 +8,7 @@ interface SendArgs {
   html: string;
   fromOverride?: string;
   replyTo?: string;
+  headers?: Record<string, string>;
 }
 
 export async function sendEmail(args: SendArgs): Promise<{ ok: boolean; emailed: boolean; warn?: string }> {
