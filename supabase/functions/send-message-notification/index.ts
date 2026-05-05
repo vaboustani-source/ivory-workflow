@@ -13,7 +13,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const EMAIL_DOMAIN = "mail.victoriaboustani.com";
 
 function firstNameOf(name: string | null | undefined): string {
   return (name ?? "").split(" ")[0] ?? "";
@@ -94,33 +93,18 @@ Deno.serve(async (req) => {
     // Consistent subject for the whole conversation
     const consistentSubject = `${BRAND.studioName} — ${coupleFirstNames}`;
 
-    // ─── Email threading: build References chain from prior messages ───────────
-    const { data: priorMsgs } = await supabase
-      .from("messages")
-      .select("email_message_id, created_at")
-      .eq("conversation_id", msg.conversation_id)
-      .not("email_message_id", "is", null)
-      .neq("id", message_id)
-      .order("created_at", { ascending: true });
-
-    const priorIds: string[] = (priorMsgs ?? [])
-      .map((m: any) => m.email_message_id)
-      .filter(Boolean);
-
-    const newMessageIdHeader = `<conv-${msg.conversation_id}-msg-${msg.id}@${EMAIL_DOMAIN}>`;
-    const threadingHeaders: Record<string, string> = {
-      "Message-ID": newMessageIdHeader,
-    };
-    if (priorIds.length > 0) {
-      threadingHeaders["In-Reply-To"] = priorIds[priorIds.length - 1];
-      threadingHeaders["References"] = priorIds.join(" ");
-    }
-
-    // Persist the Message-ID on the message row so future emails can chain off it
-    await supabase
-      .from("messages")
-      .update({ email_message_id: newMessageIdHeader })
-      .eq("id", message_id);
+    // ─── Email threading ───────────────────────────────────────────────────────
+    // NOTE: Resend sends through Amazon SES, which silently overrides any custom
+    // Message-ID header with its own (e.g. <...@email.amazonses.com>). That made
+    // our In-Reply-To / References point at IDs that never appeared on the wire,
+    // so Gmail couldn't thread. Resend's GET /emails/{id} also doesn't expose
+    // the real SES Message-ID — only their internal UUID. The only way to
+    // capture it is via webhooks, which we're intentionally avoiding here.
+    //
+    // Fallback strategy: rely on a consistent per-conversation subject line
+    // (Gmail groups by normalized subject) plus an X-Entity-Ref-ID hint that
+    // is stable per conversation. This is less precise than RFC threading but
+    // works without webhook plumbing.
 
     const overrides = await loadCopyOverrides(supabase, "message_notification");
 
@@ -193,7 +177,6 @@ Deno.serve(async (req) => {
         to: rec.email,
         subject,
         html: built.html,
-        headers: threadingHeaders,
       });
       if (r.emailed) sent.push(rec.email);
       else skipped.push(rec.email + ":" + (r.warn ?? "send_failed"));
@@ -204,7 +187,7 @@ Deno.serve(async (req) => {
       target_type: "message",
       target_id: message_id,
       description: `Notifications sent: ${sent.length}, skipped: ${skipped.length}`,
-      metadata: { sent, skipped, threading: { message_id: newMessageIdHeader, references_count: priorIds.length } },
+      metadata: { sent, skipped, threading_strategy: "consistent_subject" },
     });
 
     return new Response(JSON.stringify({ status: "ok", sent: sent.length, skipped: skipped.length }), {
