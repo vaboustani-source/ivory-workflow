@@ -1,6 +1,7 @@
 // Supabase Edge Function: send-message-notification
-// Sends transactional emails to conversation participants when a new message is posted.
-// Falls back gracefully if RESEND_API_KEY is not set.
+// Sends transactional emails to conversation participants (studio + couple) when a new
+// message is posted, with RFC 5322 threading headers (Message-ID/In-Reply-To/References)
+// and a consistent per-conversation subject so replies thread in the recipient's inbox.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { sendEmail } from "../_emails/send.ts";
 import { BRAND } from "../_emails/brand.ts";
@@ -12,19 +13,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const EMAIL_DOMAIN = "mail.victoriaboustani.com";
+
+function firstNameOf(name: string | null | undefined): string {
+  return (name ?? "").split(" ")[0] ?? "";
+}
+
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
     const payload = await req.json().catch(() => ({}));
-    // Support both direct invocation ({message_id}) and Supabase DB webhook ({type, record})
     const message_id =
-      payload?.message_id ??
-      payload?.record?.id ??
-      payload?.new?.id ??
-      null;
+      payload?.message_id ?? payload?.record?.id ?? payload?.new?.id ?? null;
     if (!message_id) {
       return new Response(JSON.stringify({ error: "message_id required" }), {
         status: 400,
@@ -39,7 +40,7 @@ Deno.serve(async (req) => {
 
     const { data: msg, error: msgErr } = await supabase
       .from("messages")
-      .select("id, conversation_id, sender_id, content, is_internal_note, created_at, sender:profiles!messages_sender_id_fkey(full_name, email), conversation:conversations(client_id, client:clients(couple_name_1, couple_name_2))")
+      .select("id, conversation_id, sender_id, content, is_internal_note, created_at, email_message_id, sender:profiles!messages_sender_id_fkey(full_name, email, role), conversation:conversations(client_id, client:clients(couple_name_1, couple_name_2, primary_email, secondary_email))")
       .eq("id", message_id)
       .maybeSingle();
 
@@ -61,66 +62,149 @@ Deno.serve(async (req) => {
       .select("mentioned_user_id")
       .eq("message_id", message_id);
     const mentionedIds = new Set((mentions ?? []).map((m: any) => m.mentioned_user_id));
+    const hasMentions = mentionedIds.size > 0;
+
+    // Skip internal notes that don't @mention anyone
+    if (msg.is_internal_note && !hasMentions) {
+      return new Response(JSON.stringify({ status: "skipped", reason: "internal_no_mentions" }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const resendKey = Deno.env.get("RESEND_API_KEY");
     if (!resendKey) {
-      console.log("RESEND_API_KEY not set — skipping email notifications, message persisted normally.");
       return new Response(JSON.stringify({ status: "skipped", reason: "no_resend_key" }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const tenMinAgo = Date.now() - 10 * 60 * 1000;
     const senderName = (msg as any).sender?.full_name ?? "Stories by Victoria";
+    const senderRole = (msg as any).sender?.role ?? null;
+    const senderIsStudio = senderRole && senderRole !== "client";
     const couple = (msg as any).conversation?.client;
-    const coupleNames = couple
+    const coupleFirstNames = couple
+      ? `${firstNameOf(couple.couple_name_1)}${couple.couple_name_2 ? " & " + firstNameOf(couple.couple_name_2) : ""}`
+      : "your client";
+    const coupleFullNames = couple
       ? `${couple.couple_name_1}${couple.couple_name_2 ? " & " + couple.couple_name_2 : ""}`
       : "your client";
-    const preview = (msg.content ?? "").substring(0, 120);
-    const portalUrl = "https://storiesbyvictoria.lovable.app/studio/messages";
+
+    // Consistent subject for the whole conversation
+    const consistentSubject = `${BRAND.studioName} — ${coupleFirstNames}`;
+
+    // ─── Email threading: build References chain from prior messages ───────────
+    const { data: priorMsgs } = await supabase
+      .from("messages")
+      .select("email_message_id, created_at")
+      .eq("conversation_id", msg.conversation_id)
+      .not("email_message_id", "is", null)
+      .neq("id", message_id)
+      .order("created_at", { ascending: true });
+
+    const priorIds: string[] = (priorMsgs ?? [])
+      .map((m: any) => m.email_message_id)
+      .filter(Boolean);
+
+    const newMessageIdHeader = `<conv-${msg.conversation_id}-msg-${msg.id}@${EMAIL_DOMAIN}>`;
+    const threadingHeaders: Record<string, string> = {
+      "Message-ID": newMessageIdHeader,
+    };
+    if (priorIds.length > 0) {
+      threadingHeaders["In-Reply-To"] = priorIds[priorIds.length - 1];
+      threadingHeaders["References"] = priorIds.join(" ");
+    }
+
+    // Persist the Message-ID on the message row so future emails can chain off it
+    await supabase
+      .from("messages")
+      .update({ email_message_id: newMessageIdHeader })
+      .eq("id", message_id);
 
     const overrides = await loadCopyOverrides(supabase, "message_notification");
+
+    // ─── Determine recipients ─────────────────────────────────────────────────
+    type Recipient = { email: string; isMentioned: boolean; kind: "participant" | "couple"; userId?: string };
+    const recipients: Recipient[] = [];
+    const seenEmails = new Set<string>();
+
+    const tenMinAgo = Date.now() - 10 * 60 * 1000;
+
+    for (const p of (participants ?? []) as any[]) {
+      if (p.user_id === msg.sender_id) continue;
+      if (!p.email_notifications_enabled) continue;
+      if (!p.user?.email) continue;
+      if (p.user?.role !== "client" && msg.is_internal_note && !mentionedIds.has(p.user_id)) {
+        // Internal note: only @mentioned studio users get notified
+        continue;
+      }
+      if (p.user?.role === "client" && msg.is_internal_note) continue;
+      if (p.last_read_at && new Date(p.last_read_at).getTime() > tenMinAgo) continue;
+
+      const email = p.user.email.toLowerCase();
+      if (seenEmails.has(email)) continue;
+      seenEmails.add(email);
+
+      recipients.push({
+        email: p.user.email,
+        isMentioned: mentionedIds.has(p.user_id),
+        kind: "participant",
+        userId: p.user_id,
+      });
+    }
+
+    // Also email the couple's primary/secondary email when studio sends a non-internal message
+    // This is a safety net in case the couple isn't in conversation_participants.
+    if (senderIsStudio && !msg.is_internal_note && couple) {
+      const coupleEmails = [couple.primary_email, couple.secondary_email].filter(Boolean) as string[];
+      for (const e of coupleEmails) {
+        const lower = e.toLowerCase();
+        if (seenEmails.has(lower)) continue;
+        seenEmails.add(lower);
+        recipients.push({ email: e, isMentioned: false, kind: "couple" });
+      }
+    }
+
+    const portalUrlStudio = "https://storiesbyvictoria.lovable.app/studio/messages";
+    const portalUrlCouple = "https://storiesbyvictoria.lovable.app/portal/messages";
 
     const sent: string[] = [];
     const skipped: string[] = [];
 
-    for (const p of (participants ?? []) as any[]) {
-      if (p.user_id === msg.sender_id) { skipped.push(p.user_id + ":self"); continue; }
-      if (!p.email_notifications_enabled) { skipped.push(p.user_id + ":disabled"); continue; }
-      if (p.user?.role === "client" && msg.is_internal_note) { skipped.push(p.user_id + ":internal_to_client"); continue; }
-      if (p.last_read_at && new Date(p.last_read_at).getTime() > tenMinAgo) { skipped.push(p.user_id + ":recently_read"); continue; }
-      if (!p.user?.email) { skipped.push(p.user_id + ":no_email"); continue; }
-
-      const isMentioned = mentionedIds.has(p.user_id);
+    for (const rec of recipients) {
       const ctx: Record<string, string> = {
-        couple_first_names: couple?.couple_name_1 ?? "",
+        couple_first_names: coupleFirstNames,
         sender_name: senderName,
         studio_name: BRAND.studioName,
       };
 
-      const { subject, html } = buildMessageNotification(overrides, ctx, {
-        link: portalUrl,
-        isMentioned,
-        reLabel: `Re: ${coupleNames}`,
+      const built = buildMessageNotification(overrides, ctx, {
+        link: rec.kind === "couple" ? portalUrlCouple : portalUrlStudio,
+        isMentioned: rec.isMentioned,
+        reLabel: `Re: ${coupleFullNames}`,
         messagePreview: msg.content ?? "",
       });
 
-      const r = await sendEmail({ to: p.user.email, subject, html });
-      if (r.emailed) {
-        sent.push(p.user.email);
-      } else {
-        skipped.push(p.user_id + ":" + (r.warn ?? "send_failed"));
-      }
+      // Force the consistent per-conversation subject (overrides per-email subject from copy)
+      const subject = consistentSubject;
+
+      const r = await sendEmail({
+        to: rec.email,
+        subject,
+        html: built.html,
+        headers: threadingHeaders,
+      });
+      if (r.emailed) sent.push(rec.email);
+      else skipped.push(rec.email + ":" + (r.warn ?? "send_failed"));
     }
 
-    // Best-effort activity log
     await supabase.from("activity_log").insert({
       action_type: "message_notifications_sent",
       target_type: "message",
       target_id: message_id,
       description: `Notifications sent: ${sent.length}, skipped: ${skipped.length}`,
-      metadata: { sent, skipped },
+      metadata: { sent, skipped, threading: { message_id: newMessageIdHeader, references_count: priorIds.length } },
     });
 
     return new Response(JSON.stringify({ status: "ok", sent: sent.length, skipped: skipped.length }), {

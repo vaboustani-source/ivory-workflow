@@ -1212,6 +1212,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           edited_at: string | null
+          email_message_id: string | null
           id: string
           is_internal_note: boolean
           read_by: Json
@@ -1226,6 +1227,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           edited_at?: string | null
+          email_message_id?: string | null
           id?: string
           is_internal_note?: boolean
           read_by?: Json
@@ -1240,6 +1242,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           edited_at?: string | null
+          email_message_id?: string | null
           id?: string
           is_internal_note?: boolean
           read_by?: Json
