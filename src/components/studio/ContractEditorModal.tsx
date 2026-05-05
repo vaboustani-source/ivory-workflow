@@ -159,6 +159,20 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
 
     setSaving(false);
     const coupleName = client.couple_name_1 + (client.couple_name_2 ? ` & ${client.couple_name_2}` : "");
+
+    try {
+      const { logActivity } = await import("@/lib/activityLog");
+      await logActivity({
+        client_id: client.id,
+        action_type: "contract.sent",
+        target_type: "contract",
+        target_id: contractId ?? undefined,
+        description: `Contract sent to ${coupleName}`,
+        client_facing_text: "Your contract is ready to review",
+        is_client_visible: true,
+      });
+    } catch { /* noop */ }
+
     toast.success(`Contract sent to ${coupleName}`);
     onSaved(); onClose();
   };

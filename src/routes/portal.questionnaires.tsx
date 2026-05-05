@@ -264,13 +264,24 @@ function QuestionnaireModal({
       setSubmitting(false);
       return;
     }
-    // Activity log (best-effort; client RLS will block, so soft-fail)
-    supabase.from("activity_log").insert({
-      action_type: "questionnaire.completed",
-      target_type: "questionnaire",
-      target_id: questionnaire.id,
-      description: `Questionnaire submitted: ${questionnaire.template?.name ?? ""}`,
-    }).then(() => {});
+    // Activity log
+    {
+      const { data: qRow } = await supabase
+        .from("questionnaires").select("client_id").eq("id", questionnaire.id).maybeSingle();
+      if (qRow?.client_id) {
+        const { logActivity } = await import("@/lib/activityLog");
+        const tplName = questionnaire.template?.name ?? "form";
+        await logActivity({
+          client_id: qRow.client_id,
+          action_type: "questionnaire.submitted",
+          target_type: "questionnaire",
+          target_id: questionnaire.id,
+          description: `Questionnaire submitted: ${tplName}`,
+          client_facing_text: `You submitted ${tplName}`,
+          is_client_visible: true,
+        });
+      }
+    }
     // Auto-regenerate photography timeline + portrait sequence on logistics submit
     if (questionnaire.template?.name === "Wedding Details & Logistics") {
       const { data: cu } = await supabase
