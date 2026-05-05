@@ -29,6 +29,7 @@ export async function sendEmail(args: SendArgs): Promise<{ ok: boolean; emailed:
     html: args.html,
   };
   if (args.replyTo) body.reply_to = args.replyTo;
+  if (args.headers && Object.keys(args.headers).length > 0) body.headers = args.headers;
 
   try {
     const r = await fetch("https://api.resend.com/emails", {
