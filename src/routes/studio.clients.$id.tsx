@@ -12,6 +12,7 @@ import { ClientMessagesTab } from "@/components/messages/ClientMessagesTab";
 import { StudioDocumentsTab } from "@/components/studio/DocumentsTab";
 import { StudioFormsTab } from "@/components/studio/FormsTab";
 import { ActivityList } from "@/components/ActivityList";
+import { ServicesAndTeamCard } from "@/components/studio/ServicesAndTeamCard";
 
 type SearchSchema = { tab?: string; contract_id?: string; questionnaire_id?: string };
 
@@ -254,6 +255,9 @@ function ClientDetail() {
                 </div>
                 <Row label="Tasks open / completed" value={`${taskCounts.open} / ${taskCounts.complete}`} />
                 <Row label="Messages exchanged" value="0" />
+              </Card>
+              <Card title="Services & team">
+                <ServicesAndTeamCard clientId={client.id} />
               </Card>
             </div>
           </div>
