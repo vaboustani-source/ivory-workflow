@@ -131,13 +131,13 @@ export function ContractorEditorModal({ existing, onClose, onSaved }: Props) {
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="Full name *">
-              <input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="input" />
+              <input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
             </Field>
             <Field label="Email *">
-              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="input" />
+              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
             </Field>
             <Field label="Phone">
-              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="input" />
+              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
             </Field>
             <Field label="Active">
               <label className="inline-flex items-center gap-2 mt-2">
@@ -159,37 +159,37 @@ export function ContractorEditorModal({ existing, onClose, onSaved }: Props) {
           </Field>
 
           <Field label="Homebase address (auto-geocoded on save)">
-            <input value={form.homebase_address} onChange={(e) => setForm({ ...form, homebase_address: e.target.value })} placeholder="123 Main St, Brooklyn, NY 11201" className="input" />
+            <input value={form.homebase_address} onChange={(e) => setForm({ ...form, homebase_address: e.target.value })} placeholder="123 Main St, Brooklyn, NY 11201" className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </Field>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="Min hourly rate ($)">
-              <input type="number" min="0" value={form.preferred_min_hourly_rate} onChange={(e) => setForm({ ...form, preferred_min_hourly_rate: e.target.value })} className="input" />
+              <input type="number" min="0" value={form.preferred_min_hourly_rate} onChange={(e) => setForm({ ...form, preferred_min_hourly_rate: e.target.value })} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
             </Field>
             <Field label="Max hourly rate ($)">
-              <input type="number" min="0" value={form.preferred_max_hourly_rate} onChange={(e) => setForm({ ...form, preferred_max_hourly_rate: e.target.value })} className="input" />
+              <input type="number" min="0" value={form.preferred_max_hourly_rate} onChange={(e) => setForm({ ...form, preferred_max_hourly_rate: e.target.value })} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
             </Field>
           </div>
 
           <Field label="Rate notes">
-            <input value={form.rate_notes} onChange={(e) => setForm({ ...form, rate_notes: e.target.value })} placeholder="$75 6+hr; $90 4-6hr" className="input" />
+            <input value={form.rate_notes} onChange={(e) => setForm({ ...form, rate_notes: e.target.value })} placeholder="$75 6+hr; $90 4-6hr" className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </Field>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="Instagram">
-              <input value={form.instagram} onChange={(e) => setForm({ ...form, instagram: e.target.value })} placeholder="@handle" className="input" />
+              <input value={form.instagram} onChange={(e) => setForm({ ...form, instagram: e.target.value })} placeholder="@handle" className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
             </Field>
             <Field label="Portfolio URL">
-              <input value={form.portfolio_url} onChange={(e) => setForm({ ...form, portfolio_url: e.target.value })} placeholder="https://…" className="input" />
+              <input value={form.portfolio_url} onChange={(e) => setForm({ ...form, portfolio_url: e.target.value })} placeholder="https://…" className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
             </Field>
           </div>
 
           <Field label="Bio">
-            <textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} rows={3} className="input" />
+            <textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} rows={3} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </Field>
 
           <Field label="Internal notes (studio-only)">
-            <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} className="input" />
+            <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </Field>
         </div>
 
@@ -200,16 +200,3 @@ export function ContractorEditorModal({ existing, onClose, onSaved }: Props) {
           </button>
         </div>
       </div>
-      <style>{`.input{width:100%;padding:.5rem .75rem;background:hsl(var(--surface));border:1px solid hsl(var(--border));border-radius:.375rem;font-size:.875rem;color:hsl(var(--foreground));}.input:focus{outline:none;box-shadow:0 0 0 2px hsl(var(--primary)/0.2);}`}</style>
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground block mb-2">{label}</label>
-      {children}
-    </div>
-  );
-}
