@@ -412,14 +412,17 @@ Deno.serve(async (req) => {
       coverage_status: coverageStatus,
     };
 
+    console.log(`[generate-photography-timeline] persisting group_portrait_minutes=${row.group_portrait_minutes} for client_id=${client_id}`);
     const { data: up, error: upErr } = await admin
       .from("photography_timelines")
       .upsert(row, { onConflict: "client_id" })
       .select("id")
       .single();
     if (upErr) {
+      console.error(`[generate-photography-timeline] upsert error: ${upErr.message}`);
       return new Response(JSON.stringify({ error: upErr.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    console.log(`[generate-photography-timeline] persisted timeline_id=${up.id}`);
 
     // ----- Coverage upsell milestone management ------------------------
     try {
