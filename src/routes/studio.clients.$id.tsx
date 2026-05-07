@@ -226,7 +226,29 @@ function ClientDetail() {
                 <Row label="Investment" value={client.package_price ? `$${Number(client.package_price).toLocaleString()}` : "—"} />
                 <CoverageHoursRow clientId={client.id} initial={client.coverage_hours} onSaved={(v: number | null) => setClient((c) => c ? { ...c, coverage_hours: v } : c)} />
               </Card>
-            </div>
+              <Card title="Client contact info">
+                <SectionHeader>Primary client</SectionHeader>
+                <TextFieldRow label="Last name" value={client.primary_client_last_name} field="primary_client_last_name" clientId={client.id}
+                  onSaved={(v) => setClient((c) => c ? { ...c, primary_client_last_name: v } : c)} />
+                <TextFieldRow label="Phone" value={client.primary_client_phone} field="primary_client_phone" clientId={client.id}
+                  onSaved={(v) => setClient((c) => c ? { ...c, primary_client_phone: v } : c)} />
+                <SectionHeader>Alternate client</SectionHeader>
+                <TextFieldRow label="Last name" value={client.alternate_client_last_name} field="alternate_client_last_name" clientId={client.id}
+                  onSaved={(v) => setClient((c) => c ? { ...c, alternate_client_last_name: v } : c)} />
+                <TextFieldRow label="Phone" value={client.alternate_client_phone} field="alternate_client_phone" clientId={client.id}
+                  onSaved={(v) => setClient((c) => c ? { ...c, alternate_client_phone: v } : c)} />
+                <SectionHeader>Shared home address</SectionHeader>
+                <TextFieldRow label="Street address" value={client.shared_street_address} field="shared_street_address" clientId={client.id}
+                  onSaved={(v) => setClient((c) => c ? { ...c, shared_street_address: v } : c)} />
+                <TextFieldRow label="City" value={client.shared_city} field="shared_city" clientId={client.id}
+                  onSaved={(v) => setClient((c) => c ? { ...c, shared_city: v } : c)} />
+                <div className="grid grid-cols-2 gap-3">
+                  <TextFieldRow label="State" value={client.shared_state} field="shared_state" clientId={client.id} maxLength={2}
+                    onSaved={(v) => setClient((c) => c ? { ...c, shared_state: v } : c)} />
+                  <TextFieldRow label="ZIP" value={client.shared_zipcode} field="shared_zipcode" clientId={client.id}
+                    onSaved={(v) => setClient((c) => c ? { ...c, shared_zipcode: v } : c)} />
+                </div>
+              </Card>
 
             {/* Right column */}
             <div className="space-y-6">
