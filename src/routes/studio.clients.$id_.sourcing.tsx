@@ -144,7 +144,7 @@ function SourcingScreen() {
         </div>
         <select
           value={activeRole}
-          onChange={(e) => { setActiveRole(e.target.value as ContractorRole); navigate({ to: "/studio/clients/$id_/sourcing", params: { id }, search: { role: e.target.value }, replace: true }); }}
+          onChange={(e) => { setActiveRole(e.target.value as ContractorRole); navigate({ to: "/studio/clients/$id/sourcing", params: { id }, search: { role: e.target.value }, replace: true }); }}
           className="px-3 py-2 bg-surface border border-border rounded-md text-sm"
         >
           {CONTRACTOR_ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
