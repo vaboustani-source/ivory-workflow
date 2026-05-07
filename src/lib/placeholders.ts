@@ -8,7 +8,9 @@ export interface PlaceholderContext {
   wedding_date_short?: string;     // "06/14/2026"
   venue_name?: string;
   photographer_name?: string;
+  photographer_company?: string;
   studio_email?: string;
+  studio_phone?: string;
   studio_signature?: string;
 }
 
@@ -19,7 +21,9 @@ export const SAMPLE_CONTEXT: PlaceholderContext = {
   wedding_date_short: "06/14/2026",
   venue_name: "The Boathouse at Oakmoor",
   photographer_name: "Victoria Boustani",
+  photographer_company: "Stories by Victoria",
   studio_email: "hello@victoriaboustani.com",
+  studio_phone: "(555) 999-1234",
   studio_signature: "with care,\nStories by Victoria",
 };
 
@@ -30,7 +34,9 @@ export const PLACEHOLDER_LIST = [
   "wedding_date_short",
   "venue_name",
   "photographer_name",
+  "photographer_company",
   "studio_email",
+  "studio_phone",
   "studio_signature",
 ] as const;
 
@@ -64,7 +70,7 @@ export function buildClientPlaceholderContext(client: {
   wedding_date: string | null;
   venue_name: string | null;
   primary_email: string | null;
-}, photographerName?: string | null, studioEmail?: string): PlaceholderContext {
+}, opts?: { photographerName?: string | null; photographerCompany?: string | null; studioEmail?: string | null; studioPhone?: string | null }): PlaceholderContext {
   const first = client.couple_name_1 + (client.couple_name_2 ? ` & ${client.couple_name_2}` : "");
   return {
     couple_first_names: first,
@@ -72,8 +78,10 @@ export function buildClientPlaceholderContext(client: {
     wedding_date_long: formatDateLong(client.wedding_date),
     wedding_date_short: formatDateShort(client.wedding_date),
     venue_name: client.venue_name ?? "",
-    photographer_name: photographerName ?? "Victoria Boustani",
-    studio_email: studioEmail ?? "hello@victoriaboustani.com",
+    photographer_name: opts?.photographerName ?? "Victoria Boustani",
+    photographer_company: opts?.photographerCompany ?? "Stories by Victoria",
+    studio_email: opts?.studioEmail ?? "hello@victoriaboustani.com",
+    studio_phone: opts?.studioPhone ?? "",
     studio_signature: "with care,\nStories by Victoria",
   };
 }

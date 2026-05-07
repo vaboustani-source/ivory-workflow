@@ -41,6 +41,10 @@ export const PLACEHOLDERS: PlaceholderDef[] = [
 
   // Studio
   { key: "studio_name", token: "{studio_name}", label: "Studio name", description: '"Stories by Victoria"', category: "studio" },
+  { key: "photographer_name", token: "{photographer_name}", label: "Photographer name", description: "Lead photographer name from studio settings", category: "studio" },
+  { key: "photographer_company", token: "{photographer_company}", label: "Photographer company", description: "Studio company name", category: "studio" },
+  { key: "studio_email", token: "{studio_email}", label: "Studio email", description: "Studio primary email", category: "studio" },
+  { key: "studio_phone", token: "{studio_phone}", label: "Studio phone", description: "Studio phone number", category: "studio" },
   { key: "sbv_signer_name", token: "{sbv_signer_name}", label: "Signer name", description: "Whoever's sending", category: "studio" },
   { key: "today_date", token: "{today_date}", label: "Today's date", description: "Today's date (long)", category: "studio" },
   { key: "today_year", token: "{today_year}", label: "Current year", description: "e.g., 2026", category: "studio" },
@@ -78,6 +82,10 @@ export interface TemplatingContext {
   };
   studio?: {
     name?: string;
+    photographer_name?: string;
+    photographer_company?: string;
+    studio_email?: string;
+    studio_phone?: string;
     signer_name?: string | null;
   };
 }
@@ -140,6 +148,10 @@ export function buildContextValues(ctx: TemplatingContext): Record<string, strin
     total_compensation: sr.agreed_total != null ? `$${sr.agreed_total}` : "",
 
     studio_name: studio.name ?? "Stories by Victoria",
+    photographer_name: studio.photographer_name ?? "",
+    photographer_company: studio.photographer_company ?? "Stories by Victoria",
+    studio_email: studio.studio_email ?? "",
+    studio_phone: studio.studio_phone ?? "",
     sbv_signer_name: studio.signer_name ?? "",
     today_date: today.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
     today_year: String(today.getFullYear()),
@@ -190,5 +202,12 @@ export const SAMPLE_CONTEXT: TemplatingContext = {
   contractor: { full_name: "Sample Contractor", email: "sample@example.com" },
   serviceRequest: { role: "second_shooter", agreed_hourly_rate: 75, agreed_hours: 8, agreed_total: 600 },
   timeline: { ceremony_start_time: "17:00:00", coverage_end_time: "23:00:00" },
-  studio: { name: "Stories by Victoria", signer_name: "Victoria" },
+  studio: {
+    name: "Stories by Victoria",
+    photographer_name: "Victoria Boustani",
+    photographer_company: "Stories by Victoria",
+    studio_email: "hello@mail.victoriaboustani.com",
+    studio_phone: "(555) 999-1234",
+    signer_name: "Victoria",
+  },
 };

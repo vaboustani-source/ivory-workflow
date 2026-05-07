@@ -2068,6 +2068,51 @@ export type Database = {
         }
         Relationships: []
       }
+      studio_settings: {
+        Row: {
+          album_credit_expiry_months: number | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          overage_hourly_rate: number | null
+          photographer_company: string | null
+          photographer_name: string | null
+          rescheduling_fee_pct: number | null
+          studio_email: string | null
+          studio_phone: string | null
+          updated_at: string | null
+          video_cancellation_fee: number | null
+        }
+        Insert: {
+          album_credit_expiry_months?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          overage_hourly_rate?: number | null
+          photographer_company?: string | null
+          photographer_name?: string | null
+          rescheduling_fee_pct?: number | null
+          studio_email?: string | null
+          studio_phone?: string | null
+          updated_at?: string | null
+          video_cancellation_fee?: number | null
+        }
+        Update: {
+          album_credit_expiry_months?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          overage_hourly_rate?: number | null
+          photographer_company?: string | null
+          photographer_name?: string | null
+          rescheduling_fee_pct?: number | null
+          studio_email?: string | null
+          studio_phone?: string | null
+          updated_at?: string | null
+          video_cancellation_fee?: number | null
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assignee_id: string | null

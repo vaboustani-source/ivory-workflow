@@ -43,6 +43,7 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
   const [signatureRole, setSignatureRole] = useState<"partner_1" | "both_partners">("partner_1");
   const [contractStatus, setContractStatus] = useState<string>("draft");
   const [showSentWarning, setShowSentWarning] = useState(false);
+  const [studioRow, setStudioRow] = useState<{ photographer_name: string | null; photographer_company: string | null; studio_email: string | null; studio_phone: string | null } | null>(null);
   const isEdit = !!existingContractId;
 
   useEffect(() => {
@@ -56,10 +57,12 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
       const contractPromise = existingContractId
         ? supabase.from("contracts").select("*").eq("id", existingContractId).maybeSingle()
         : Promise.resolve({ data: null });
-      const [{ data: tpls }, { data: contract }] = await Promise.all([tplPromise, contractPromise as any]);
+      const studioPromise = supabase.from("studio_settings").select("photographer_name, photographer_company, studio_email, studio_phone").eq("is_active", true).maybeSingle();
+      const [{ data: tpls }, { data: contract }, { data: studio }] = await Promise.all([tplPromise, contractPromise as any, studioPromise]);
       if (cancelled) return;
       const filtered = ((tpls ?? []) as any[]).filter((t) => !t.template_type || t.template_type === "couple_booking" || t.template_type === "couple_retainer" || t.template_type === "couple" || t.template_type === "addendum");
       setTemplates(filtered as any);
+      setStudioRow(studio as any);
       if (contract) {
         setTitle(contract.title ?? "");
         setContent(contract.content ?? "");
@@ -80,7 +83,12 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
     return () => { window.removeEventListener("keydown", onEsc); document.body.style.overflow = ""; };
   }, [onClose]);
 
-  const ctx = useMemo(() => buildClientPlaceholderContext(client), [client]);
+  const ctx = useMemo(() => buildClientPlaceholderContext(client, {
+    photographerName: studioRow?.photographer_name,
+    photographerCompany: studioRow?.photographer_company,
+    studioEmail: studioRow?.studio_email,
+    studioPhone: studioRow?.studio_phone,
+  }), [client, studioRow]);
 
   const applyTemplate = (tplId: string) => {
     setSelectedTemplateId(tplId);
