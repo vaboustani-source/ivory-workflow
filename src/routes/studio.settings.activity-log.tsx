@@ -142,9 +142,10 @@ function ActivityLogPage() {
     setPage(targetPage + 1);
     setLoading(false);
 
-    // Resolve client targets (and metadata.client_id)
+    // Resolve client targets (and metadata.client_id, and row client_id)
     const ids = new Set<string>();
     for (const r of incoming) {
+      if (r.client_id) ids.add(r.client_id);
       if (r.target_type === "client" && r.target_id) ids.add(r.target_id);
       const meta = r.metadata as Record<string, unknown> | null;
       const cid = meta?.client_id;
