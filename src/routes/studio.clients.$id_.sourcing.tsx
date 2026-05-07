@@ -393,11 +393,12 @@ function SendContractModal({ request, client, onClose, onSent }: { request: Serv
   const [content, setContent] = useState("");
   const [contractor, setContractor] = useState<{ full_name: string; email: string } | null>(null);
   const [timeline, setTimeline] = useState<{ ceremony_start_time: string | null; coverage_end_time: string | null } | null>(null);
+  const [studioRow, setStudioRow] = useState<{ photographer_name: string | null; photographer_company: string | null; studio_email: string | null; studio_phone: string | null } | null>(null);
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const [{ data: tpls }, { data: c }, { data: tl }] = await Promise.all([
+      const [{ data: tpls }, { data: c }, { data: tl }, { data: studio }] = await Promise.all([
         supabase
           .from("contract_templates")
           .select("id, name, content, template_type")
@@ -405,11 +406,13 @@ function SendContractModal({ request, client, onClose, onSent }: { request: Serv
           .order("name"),
         supabase.from("contractors").select("full_name, email").eq("id", request.contractor_id).maybeSingle(),
         supabase.from("photography_timelines").select("ceremony_start_time, coverage_end_time").eq("client_id", client.id).maybeSingle(),
+        supabase.from("studio_settings").select("photographer_name, photographer_company, studio_email, studio_phone").eq("is_active", true).maybeSingle(),
       ]);
       const filtered = ((tpls ?? []) as any[]).filter((t) => !t.template_type || t.template_type === "contractor");
       setTemplates(filtered);
       setContractor(c as any);
       setTimeline(tl as any);
+      setStudioRow(studio as any);
     })();
   }, [request.contractor_id, client.id]);
 
