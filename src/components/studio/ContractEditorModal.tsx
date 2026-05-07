@@ -50,7 +50,7 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
     (async () => {
       const tplPromise = supabase
         .from("contract_templates")
-        .select("id, name, content, signature_required_role")
+        .select("id, name, content, signature_required_role, template_type")
         .eq("is_archived", false)
         .order("name");
       const contractPromise = existingContractId
@@ -58,7 +58,8 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
         : Promise.resolve({ data: null });
       const [{ data: tpls }, { data: contract }] = await Promise.all([tplPromise, contractPromise as any]);
       if (cancelled) return;
-      setTemplates((tpls ?? []) as any);
+      const filtered = ((tpls ?? []) as any[]).filter((t) => !t.template_type || t.template_type === "couple_booking" || t.template_type === "couple_retainer" || t.template_type === "couple" || t.template_type === "addendum");
+      setTemplates(filtered as any);
       if (contract) {
         setTitle(contract.title ?? "");
         setContent(contract.content ?? "");

@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_contract_templates_type_active ON public.contract_templates(template_type, is_archived);

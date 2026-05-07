@@ -92,9 +92,11 @@ function SignContractorContract() {
           <h1 className="font-serif italic text-2xl text-primary">{contract.title}</h1>
           <p className="text-xs text-muted-foreground mt-1">For: {contract.counter_party_name}</p>
         </header>
-        <div className="px-8 py-6 max-h-[60vh] overflow-y-auto whitespace-pre-wrap text-sm text-foreground leading-relaxed">
-          {contract.content}
-        </div>
+        <div
+          className="px-8 py-6 max-h-[60vh] overflow-y-auto prose prose-sm max-w-none text-sm text-foreground leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: contract.content }}
+        />
+
         <div className="px-8 py-6 border-t border-border bg-background-alt space-y-4">
           <div>
             <label className="text-[11px] uppercase tracking-wider text-muted-foreground block mb-1.5">Type your full legal name to sign</label>
