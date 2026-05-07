@@ -55,6 +55,16 @@ interface Client {
   venue_city: string | null;
   venue_state: string | null;
   venue_postal_code: string | null;
+  primary_email: string | null;
+  secondary_email: string | null;
+  primary_client_last_name: string | null;
+  alternate_client_last_name: string | null;
+  primary_client_phone: string | null;
+  alternate_client_phone: string | null;
+  shared_street_address: string | null;
+  shared_city: string | null;
+  shared_state: string | null;
+  shared_zipcode: string | null;
 }
 
 function SourcingScreen() {
