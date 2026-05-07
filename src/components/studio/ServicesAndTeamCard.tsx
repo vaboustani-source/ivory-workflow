@@ -126,7 +126,7 @@ export function ServicesAndTeamCard({ clientId }: { clientId: string }) {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <Link
-                      to="/studio/clients/$id_/sourcing"
+                      to="/studio/clients/$id/sourcing"
                       params={{ id: clientId }}
                       search={{ role }}
                       className="text-xs border border-gold text-gold px-2.5 py-1 rounded-md hover:bg-gold/10 inline-flex items-center gap-1"
