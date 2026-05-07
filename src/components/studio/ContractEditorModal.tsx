@@ -57,10 +57,12 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
       const contractPromise = existingContractId
         ? supabase.from("contracts").select("*").eq("id", existingContractId).maybeSingle()
         : Promise.resolve({ data: null });
-      const [{ data: tpls }, { data: contract }] = await Promise.all([tplPromise, contractPromise as any]);
+      const studioPromise = supabase.from("studio_settings").select("photographer_name, photographer_company, studio_email, studio_phone").eq("is_active", true).maybeSingle();
+      const [{ data: tpls }, { data: contract }, { data: studio }] = await Promise.all([tplPromise, contractPromise as any, studioPromise]);
       if (cancelled) return;
       const filtered = ((tpls ?? []) as any[]).filter((t) => !t.template_type || t.template_type === "couple_booking" || t.template_type === "couple_retainer" || t.template_type === "couple" || t.template_type === "addendum");
       setTemplates(filtered as any);
+      setStudioRow(studio as any);
       if (contract) {
         setTitle(contract.title ?? "");
         setContent(contract.content ?? "");
