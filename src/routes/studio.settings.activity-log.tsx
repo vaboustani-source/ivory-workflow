@@ -16,6 +16,7 @@ interface LogRow {
   action_type: string | null;
   target_type: string | null;
   target_id: string | null;
+  client_id: string | null;
   description: string | null;
   metadata: Record<string, unknown> | null;
 }
@@ -63,6 +64,7 @@ function ActivityLogPage() {
   const [rows, setRows] = useState<LogRow[]>([]);
   const [users, setUsers] = useState<UserLite[]>([]);
   const [clientMap, setClientMap] = useState<Record<string, ClientLite>>({});
+  const [allClients, setAllClients] = useState<ClientLite[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
@@ -76,6 +78,7 @@ function ActivityLogPage() {
   const [actionGroup, setActionGroup] = useState<string>("All");
   const [targetType, setTargetType] = useState<string>("all");
   const [userFilter, setUserFilter] = useState<string>("all");
+  const [clientFilter, setClientFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
 
   // Owner gate
@@ -94,6 +97,19 @@ function ActivityLogPage() {
       .select("id, full_name, avatar_url")
       .order("full_name")
       .then(({ data }) => setUsers(data ?? []));
+    supabase
+      .from("clients")
+      .select("id, couple_name_1, couple_name_2")
+      .order("couple_name_1")
+      .then(({ data }) => {
+        const list = (data ?? []) as ClientLite[];
+        setAllClients(list);
+        setClientMap((m) => {
+          const next = { ...m };
+          for (const c of list) next[c.id] = c;
+          return next;
+        });
+      });
   }, []);
 
   const loadPage = async (resetPage: boolean) => {
@@ -115,6 +131,8 @@ function ActivityLogPage() {
     if (userFilter === "system") q = q.is("user_id", null);
     else if (userFilter !== "all") q = q.eq("user_id", userFilter);
     if (search.trim()) q = q.ilike("description", `%${search.trim()}%`);
+    if (clientFilter === "system") q = q.is("client_id", null);
+    else if (clientFilter !== "all") q = q.eq("client_id", clientFilter);
 
     const { data } = await q;
     const incoming = (data ?? []) as LogRow[];
@@ -124,9 +142,10 @@ function ActivityLogPage() {
     setPage(targetPage + 1);
     setLoading(false);
 
-    // Resolve client targets (and metadata.client_id)
+    // Resolve client targets (and metadata.client_id, and row client_id)
     const ids = new Set<string>();
     for (const r of incoming) {
+      if (r.client_id) ids.add(r.client_id);
       if (r.target_type === "client" && r.target_id) ids.add(r.target_id);
       const meta = r.metadata as Record<string, unknown> | null;
       const cid = meta?.client_id;
@@ -152,7 +171,7 @@ function ActivityLogPage() {
     setPage(0);
     loadPage(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [from, to, actionGroup, targetType, userFilter, search]);
+  }, [from, to, actionGroup, targetType, userFilter, clientFilter, search]);
 
   const userMap = useMemo(() => {
     const m: Record<string, UserLite> = {};
@@ -161,11 +180,15 @@ function ActivityLogPage() {
   }, [users]);
 
   const resolveCoupleId = (r: LogRow): string | null => {
+    if (r.client_id) return r.client_id;
     if (r.target_type === "client" && r.target_id) return r.target_id;
     const meta = r.metadata as Record<string, unknown> | null;
     const cid = meta?.client_id;
     return typeof cid === "string" ? cid : null;
   };
+
+  const clientLabel = (c: ClientLite) =>
+    c.couple_name_2 ? `${c.couple_name_1} & ${c.couple_name_2}` : c.couple_name_1;
 
   if (authLoading || (profile && profile.role !== "owner")) {
     return null;
@@ -209,6 +232,22 @@ function ActivityLogPage() {
               {["all", "client", "milestone", "message", "contract", "proposal", "invoice"].map((o) => (
                 <option key={o} value={o}>
                   {o}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2 bg-surface border border-border rounded-sm px-3 py-2 text-xs">
+            <span className="uppercase tracking-wider text-muted-foreground">Client</span>
+            <select
+              value={clientFilter}
+              onChange={(e) => setClientFilter(e.target.value)}
+              className="bg-transparent text-foreground focus:outline-none"
+            >
+              <option value="all">All</option>
+              <option value="system">System (no client)</option>
+              {allClients.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {clientLabel(c)}
                 </option>
               ))}
             </select>
@@ -270,6 +309,7 @@ function ActivityLogPage() {
             <thead>
               <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
                 <th className="px-6 py-3 font-medium w-[140px]">Time</th>
+                <th className="px-6 py-3 font-medium w-[200px]">Client</th>
                 <th className="px-6 py-3 font-medium w-[180px]">User</th>
                 <th className="px-6 py-3 font-medium w-[200px]">Action</th>
                 <th className="px-6 py-3 font-medium">Description</th>
@@ -290,6 +330,19 @@ function ActivityLogPage() {
                   >
                     <td className="px-6 py-4 text-xs text-muted-foreground" title={new Date(r.created_at).toLocaleString()}>
                       {relativeTime(r.created_at)}
+                    </td>
+                    <td className="px-6 py-4">
+                      {r.client_id && clientMap[r.client_id] ? (
+                        <Link
+                          to="/studio/clients/$id"
+                          params={{ id: r.client_id }}
+                          className="text-[13px] text-magenta hover:underline"
+                        >
+                          {clientLabel(clientMap[r.client_id])}
+                        </Link>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
