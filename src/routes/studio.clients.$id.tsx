@@ -249,6 +249,7 @@ function ClientDetail() {
                     onSaved={(v) => setClient((c) => c ? { ...c, shared_zipcode: v } : c)} />
                 </div>
               </Card>
+            </div>
 
             {/* Right column */}
             <div className="space-y-6">
