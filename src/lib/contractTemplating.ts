@@ -41,6 +41,10 @@ export const PLACEHOLDERS: PlaceholderDef[] = [
 
   // Studio
   { key: "studio_name", token: "{studio_name}", label: "Studio name", description: '"Stories by Victoria"', category: "studio" },
+  { key: "photographer_name", token: "{photographer_name}", label: "Photographer name", description: "Lead photographer name from studio settings", category: "studio" },
+  { key: "photographer_company", token: "{photographer_company}", label: "Photographer company", description: "Studio company name", category: "studio" },
+  { key: "studio_email", token: "{studio_email}", label: "Studio email", description: "Studio primary email", category: "studio" },
+  { key: "studio_phone", token: "{studio_phone}", label: "Studio phone", description: "Studio phone number", category: "studio" },
   { key: "sbv_signer_name", token: "{sbv_signer_name}", label: "Signer name", description: "Whoever's sending", category: "studio" },
   { key: "today_date", token: "{today_date}", label: "Today's date", description: "Today's date (long)", category: "studio" },
   { key: "today_year", token: "{today_year}", label: "Current year", description: "e.g., 2026", category: "studio" },
