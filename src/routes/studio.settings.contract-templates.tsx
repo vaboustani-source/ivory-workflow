@@ -9,6 +9,9 @@ import { BlockBuilder } from "@/components/studio/BlockBuilder";
 import { Plus, Search, ArrowLeft, Copy, Archive, ArchiveRestore, Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/studio/settings/contract-templates")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    duplicate: typeof search.duplicate === "string" ? search.duplicate : undefined,
+  }),
   component: ContractTemplatesSettings,
 });
 
