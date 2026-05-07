@@ -47,7 +47,7 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [signatures, setSignatures] = useState<Signature[]>([]);
-  const [clientLite, setClientLite] = useState<{ id: string; couple_name_1: string; couple_name_2: string | null; wedding_date: string | null; venue_name: string | null; primary_email: string | null } | null>(null);
+  const [clientLite, setClientLite] = useState<{ id: string; couple_name_1: string; couple_name_2: string | null; wedding_date: string | null; venue_name: string | null; primary_email: string | null; primary_client_last_name: string | null; alternate_client_last_name: string | null; primary_client_phone: string | null; alternate_client_phone: string | null; shared_street_address: string | null; shared_city: string | null; shared_state: string | null; shared_zipcode: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [openContract, setOpenContract] = useState<Contract | null>(null);
