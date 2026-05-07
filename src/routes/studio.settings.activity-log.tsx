@@ -64,6 +64,7 @@ function ActivityLogPage() {
   const [rows, setRows] = useState<LogRow[]>([]);
   const [users, setUsers] = useState<UserLite[]>([]);
   const [clientMap, setClientMap] = useState<Record<string, ClientLite>>({});
+  const [allClients, setAllClients] = useState<ClientLite[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
@@ -77,6 +78,7 @@ function ActivityLogPage() {
   const [actionGroup, setActionGroup] = useState<string>("All");
   const [targetType, setTargetType] = useState<string>("all");
   const [userFilter, setUserFilter] = useState<string>("all");
+  const [clientFilter, setClientFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
 
   // Owner gate
