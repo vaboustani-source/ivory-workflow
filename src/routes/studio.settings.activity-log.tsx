@@ -180,11 +180,15 @@ function ActivityLogPage() {
   }, [users]);
 
   const resolveCoupleId = (r: LogRow): string | null => {
+    if (r.client_id) return r.client_id;
     if (r.target_type === "client" && r.target_id) return r.target_id;
     const meta = r.metadata as Record<string, unknown> | null;
     const cid = meta?.client_id;
     return typeof cid === "string" ? cid : null;
   };
+
+  const clientLabel = (c: ClientLite) =>
+    c.couple_name_2 ? `${c.couple_name_1} & ${c.couple_name_2}` : c.couple_name_1;
 
   if (authLoading || (profile && profile.role !== "owner")) {
     return null;
