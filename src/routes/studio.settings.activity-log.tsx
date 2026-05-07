@@ -237,6 +237,22 @@ function ActivityLogPage() {
             </select>
           </div>
           <div className="flex items-center gap-2 bg-surface border border-border rounded-sm px-3 py-2 text-xs">
+            <span className="uppercase tracking-wider text-muted-foreground">Client</span>
+            <select
+              value={clientFilter}
+              onChange={(e) => setClientFilter(e.target.value)}
+              className="bg-transparent text-foreground focus:outline-none"
+            >
+              <option value="all">All</option>
+              <option value="system">System (no client)</option>
+              {allClients.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {clientLabel(c)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2 bg-surface border border-border rounded-sm px-3 py-2 text-xs">
             <span className="uppercase tracking-wider text-muted-foreground">User</span>
             <select
               value={userFilter}
