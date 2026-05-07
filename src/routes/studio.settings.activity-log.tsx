@@ -16,6 +16,7 @@ interface LogRow {
   action_type: string | null;
   target_type: string | null;
   target_id: string | null;
+  client_id: string | null;
   description: string | null;
   metadata: Record<string, unknown> | null;
 }
