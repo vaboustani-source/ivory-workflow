@@ -82,6 +82,10 @@ export interface TemplatingContext {
   };
   studio?: {
     name?: string;
+    photographer_name?: string;
+    photographer_company?: string;
+    studio_email?: string;
+    studio_phone?: string;
     signer_name?: string | null;
   };
 }
