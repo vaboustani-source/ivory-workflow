@@ -49,7 +49,7 @@ function ContractTemplatesSettings() {
     setLoading(true);
     const { data } = await supabase
       .from("contract_templates")
-      .select("id, name, content, template_type, is_archived, updated_at, created_by, signature_required_role")
+      .select("id, name, content, template_type, is_archived, updated_at, created_by, signature_required_role, is_block_based")
       .order("updated_at", { ascending: false });
     setRows((data ?? []) as any);
     setLoading(false);
