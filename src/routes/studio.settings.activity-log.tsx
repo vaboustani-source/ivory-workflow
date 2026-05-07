@@ -97,6 +97,19 @@ function ActivityLogPage() {
       .select("id, full_name, avatar_url")
       .order("full_name")
       .then(({ data }) => setUsers(data ?? []));
+    supabase
+      .from("clients")
+      .select("id, couple_name_1, couple_name_2")
+      .order("couple_name_1")
+      .then(({ data }) => {
+        const list = (data ?? []) as ClientLite[];
+        setAllClients(list);
+        setClientMap((m) => {
+          const next = { ...m };
+          for (const c of list) next[c.id] = c;
+          return next;
+        });
+      });
   }, []);
 
   const loadPage = async (resetPage: boolean) => {
