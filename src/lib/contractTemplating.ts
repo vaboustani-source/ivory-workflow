@@ -185,6 +185,23 @@ export function buildContextValues(ctx: TemplatingContext): Record<string, strin
     primary_email: c.primary_email ?? "",
     secondary_email: c.secondary_email ?? "",
 
+    primary_client_first_name: c.couple_name_1 ?? "",
+    primary_client_last_name: c.primary_client_last_name ?? "",
+    primary_client_full_name: [c.couple_name_1, c.primary_client_last_name].filter(Boolean).join(" "),
+    primary_client_phone: c.primary_client_phone ?? "",
+    alternate_client_first_name: c.couple_name_2 ?? "",
+    alternate_client_last_name: c.alternate_client_last_name ?? "",
+    alternate_client_full_name: [c.couple_name_2, c.alternate_client_last_name].filter(Boolean).join(" "),
+    alternate_client_phone: c.alternate_client_phone ?? "",
+    shared_street_address: c.shared_street_address ?? "",
+    shared_city: c.shared_city ?? "",
+    shared_state: c.shared_state ?? "",
+    shared_zipcode: c.shared_zipcode ?? "",
+    shared_full_address: [
+      c.shared_street_address,
+      [c.shared_city, c.shared_state, c.shared_zipcode].filter(Boolean).join(", "),
+    ].filter(Boolean).join("\n"),
+
     contractor_name: co.full_name ?? "",
     contractor_first_name: (co.full_name ?? "").split(" ")[0] ?? "",
     contractor_role: roleLabel(sr.role ?? null),
