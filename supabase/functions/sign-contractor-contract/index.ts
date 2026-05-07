@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
           role: sr.role,
           agreed_hourly_rate: sr.agreed_hourly_rate,
           agreed_hours: sr.agreed_hours,
-          agreed_total: sr.agreed_total,
+          // agreed_total is a generated column — Postgres calculates it
           contract_id: contract_id,
         });
       }
