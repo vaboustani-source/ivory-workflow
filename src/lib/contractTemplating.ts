@@ -202,5 +202,12 @@ export const SAMPLE_CONTEXT: TemplatingContext = {
   contractor: { full_name: "Sample Contractor", email: "sample@example.com" },
   serviceRequest: { role: "second_shooter", agreed_hourly_rate: 75, agreed_hours: 8, agreed_total: 600 },
   timeline: { ceremony_start_time: "17:00:00", coverage_end_time: "23:00:00" },
-  studio: { name: "Stories by Victoria", signer_name: "Victoria" },
+  studio: {
+    name: "Stories by Victoria",
+    photographer_name: "Victoria Boustani",
+    photographer_company: "Stories by Victoria",
+    studio_email: "hello@mail.victoriaboustani.com",
+    studio_phone: "(555) 999-1234",
+    signer_name: "Victoria",
+  },
 };
