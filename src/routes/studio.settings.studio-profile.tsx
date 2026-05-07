@@ -44,7 +44,7 @@ function StudioProfilePage() {
     if ((row[key] ?? null) === (trimmed ?? null)) return;
     const prev = row[key];
     setRow({ ...row, [key]: trimmed } as Settings);
-    const { error } = await supabase.from("studio_settings").update({ [key]: trimmed }).eq("id", row.id);
+    const { error } = await supabase.from("studio_settings").update({ [key]: trimmed } as any).eq("id", row.id);
     if (error) {
       setRow({ ...row, [key]: prev } as Settings);
       toast.error(error.message);

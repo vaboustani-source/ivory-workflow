@@ -42,6 +42,7 @@ import { Route as StudioClientsIndexRouteImport } from './routes/studio.clients.
 import { Route as PortalAccountIndexRouteImport } from './routes/portal.account.index'
 import { Route as StudioSettingsWorkflowRouteImport } from './routes/studio.settings.workflow'
 import { Route as StudioSettingsTeamRouteImport } from './routes/studio.settings.team'
+import { Route as StudioSettingsStudioProfileRouteImport } from './routes/studio.settings.studio-profile'
 import { Route as StudioSettingsStorageRouteImport } from './routes/studio.settings.storage'
 import { Route as StudioSettingsResourcesRouteImport } from './routes/studio.settings.resources'
 import { Route as StudioSettingsProfileRouteImport } from './routes/studio.settings.profile'
@@ -230,6 +231,12 @@ const StudioSettingsTeamRoute = StudioSettingsTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => StudioSettingsRoute,
 } as any)
+const StudioSettingsStudioProfileRoute =
+  StudioSettingsStudioProfileRouteImport.update({
+    id: '/studio-profile',
+    path: '/studio-profile',
+    getParentRoute: () => StudioSettingsRoute,
+  } as any)
 const StudioSettingsStorageRoute = StudioSettingsStorageRouteImport.update({
   id: '/storage',
   path: '/storage',
@@ -400,6 +407,7 @@ export interface FileRoutesByFullPath {
   '/studio/settings/profile': typeof StudioSettingsProfileRoute
   '/studio/settings/resources': typeof StudioSettingsResourcesRoute
   '/studio/settings/storage': typeof StudioSettingsStorageRoute
+  '/studio/settings/studio-profile': typeof StudioSettingsStudioProfileRoute
   '/studio/settings/team': typeof StudioSettingsTeamRoute
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
   '/portal/account/': typeof PortalAccountIndexRoute
@@ -454,6 +462,7 @@ export interface FileRoutesByTo {
   '/studio/settings/profile': typeof StudioSettingsProfileRoute
   '/studio/settings/resources': typeof StudioSettingsResourcesRoute
   '/studio/settings/storage': typeof StudioSettingsStorageRoute
+  '/studio/settings/studio-profile': typeof StudioSettingsStudioProfileRoute
   '/studio/settings/team': typeof StudioSettingsTeamRoute
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
   '/portal/account': typeof PortalAccountIndexRoute
@@ -512,6 +521,7 @@ export interface FileRoutesById {
   '/studio/settings/profile': typeof StudioSettingsProfileRoute
   '/studio/settings/resources': typeof StudioSettingsResourcesRoute
   '/studio/settings/storage': typeof StudioSettingsStorageRoute
+  '/studio/settings/studio-profile': typeof StudioSettingsStudioProfileRoute
   '/studio/settings/team': typeof StudioSettingsTeamRoute
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
   '/portal/account/': typeof PortalAccountIndexRoute
@@ -571,6 +581,7 @@ export interface FileRouteTypes {
     | '/studio/settings/profile'
     | '/studio/settings/resources'
     | '/studio/settings/storage'
+    | '/studio/settings/studio-profile'
     | '/studio/settings/team'
     | '/studio/settings/workflow'
     | '/portal/account/'
@@ -625,6 +636,7 @@ export interface FileRouteTypes {
     | '/studio/settings/profile'
     | '/studio/settings/resources'
     | '/studio/settings/storage'
+    | '/studio/settings/studio-profile'
     | '/studio/settings/team'
     | '/studio/settings/workflow'
     | '/portal/account'
@@ -682,6 +694,7 @@ export interface FileRouteTypes {
     | '/studio/settings/profile'
     | '/studio/settings/resources'
     | '/studio/settings/storage'
+    | '/studio/settings/studio-profile'
     | '/studio/settings/team'
     | '/studio/settings/workflow'
     | '/portal/account/'
@@ -931,6 +944,13 @@ declare module '@tanstack/react-router' {
       path: '/team'
       fullPath: '/studio/settings/team'
       preLoaderRoute: typeof StudioSettingsTeamRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
+    '/studio/settings/studio-profile': {
+      id: '/studio/settings/studio-profile'
+      path: '/studio-profile'
+      fullPath: '/studio/settings/studio-profile'
+      preLoaderRoute: typeof StudioSettingsStudioProfileRouteImport
       parentRoute: typeof StudioSettingsRoute
     }
     '/studio/settings/storage': {
@@ -1191,6 +1211,7 @@ interface StudioSettingsRouteChildren {
   StudioSettingsProfileRoute: typeof StudioSettingsProfileRoute
   StudioSettingsResourcesRoute: typeof StudioSettingsResourcesRoute
   StudioSettingsStorageRoute: typeof StudioSettingsStorageRoute
+  StudioSettingsStudioProfileRoute: typeof StudioSettingsStudioProfileRoute
   StudioSettingsTeamRoute: typeof StudioSettingsTeamRoute
   StudioSettingsWorkflowRoute: typeof StudioSettingsWorkflowRoute
   StudioSettingsEmailsEmailTypeRoute: typeof StudioSettingsEmailsEmailTypeRoute
@@ -1207,6 +1228,7 @@ const StudioSettingsRouteChildren: StudioSettingsRouteChildren = {
   StudioSettingsProfileRoute: StudioSettingsProfileRoute,
   StudioSettingsResourcesRoute: StudioSettingsResourcesRoute,
   StudioSettingsStorageRoute: StudioSettingsStorageRoute,
+  StudioSettingsStudioProfileRoute: StudioSettingsStudioProfileRoute,
   StudioSettingsTeamRoute: StudioSettingsTeamRoute,
   StudioSettingsWorkflowRoute: StudioSettingsWorkflowRoute,
   StudioSettingsEmailsEmailTypeRoute: StudioSettingsEmailsEmailTypeRoute,
