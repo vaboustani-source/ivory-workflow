@@ -95,6 +95,15 @@ export interface TemplatingContext {
     photographer_company?: string;
     studio_email?: string;
     studio_phone?: string;
+    studio_address?: string;
+    studio_mailing_address?: string;
+    ein?: string;
+    instagram?: string;
+    website?: string;
+    overage_hourly_rate?: number;
+    video_cancellation_fee?: number;
+    album_credit_expiry_months?: number;
+    rescheduling_fee_pct?: number;
     signer_name?: string | null;
   };
 }
