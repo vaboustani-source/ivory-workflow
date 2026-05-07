@@ -256,7 +256,8 @@ function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replace(/>/g, "&gt;")
+    .replace(/\n/g, "<br />");
 }
 
 export const SAMPLE_CONTEXT: TemplatingContext = {
