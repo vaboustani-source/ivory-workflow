@@ -170,6 +170,17 @@ export function buildContextValues(ctx: TemplatingContext): Record<string, strin
     photographer_company: studio.photographer_company ?? "Stories by Victoria",
     studio_email: studio.studio_email ?? "",
     studio_phone: studio.studio_phone ?? "",
+    studio_address: studio.studio_address ?? "",
+    studio_mailing_address: studio.studio_mailing_address ?? "",
+    ein: studio.ein ?? "",
+    instagram: studio.instagram
+      ? (studio.instagram.startsWith("@") ? studio.instagram : "@" + studio.instagram)
+      : "",
+    website: studio.website ?? "",
+    overage_hourly_rate: studio.overage_hourly_rate != null ? `$${studio.overage_hourly_rate}/hr` : "",
+    video_cancellation_fee: studio.video_cancellation_fee != null ? `$${studio.video_cancellation_fee.toLocaleString()}` : "",
+    album_credit_expiry_months: studio.album_credit_expiry_months != null ? `${studio.album_credit_expiry_months} months` : "",
+    rescheduling_fee_pct: studio.rescheduling_fee_pct != null ? `${studio.rescheduling_fee_pct}%` : "",
     sbv_signer_name: studio.signer_name ?? "",
     today_date: today.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
     today_year: String(today.getFullYear()),
