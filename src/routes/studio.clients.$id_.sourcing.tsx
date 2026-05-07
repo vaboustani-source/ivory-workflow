@@ -391,19 +391,27 @@ function SendContractModal({ request, client, onClose, onSent }: { request: Serv
   const [templateId, setTemplateId] = useState<string>("blank");
   const [title, setTitle] = useState(`Contractor agreement — ${client.couple_name_1}`);
   const [content, setContent] = useState("");
+  const [contractor, setContractor] = useState<{ full_name: string; email: string } | null>(null);
+  const [timeline, setTimeline] = useState<{ ceremony_start_time: string | null; coverage_end_time: string | null } | null>(null);
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("contract_templates")
-        .select("id, name, content, template_type")
-        .eq("is_archived", false)
-        .order("name");
-      const filtered = ((data ?? []) as any[]).filter((t) => !t.template_type || t.template_type === "contractor");
+      const [{ data: tpls }, { data: c }, { data: tl }] = await Promise.all([
+        supabase
+          .from("contract_templates")
+          .select("id, name, content, template_type")
+          .eq("is_archived", false)
+          .order("name"),
+        supabase.from("contractors").select("full_name, email").eq("id", request.contractor_id).maybeSingle(),
+        supabase.from("photography_timelines").select("ceremony_start_time, coverage_end_time").eq("client_id", client.id).maybeSingle(),
+      ]);
+      const filtered = ((tpls ?? []) as any[]).filter((t) => !t.template_type || t.template_type === "contractor");
       setTemplates(filtered);
+      setContractor(c as any);
+      setTimeline(tl as any);
     })();
-  }, []);
+  }, [request.contractor_id, client.id]);
 
   const applyTpl = (id: string) => {
     setTemplateId(id);
@@ -416,8 +424,15 @@ function SendContractModal({ request, client, onClose, onSent }: { request: Serv
   const send = async () => {
     if (!title.trim() || !content.trim()) return toast.error("Title and content required");
     setSending(true);
+    const { resolvePlaceholdersWithMarkers } = await import("@/lib/contractTemplating");
+    const resolved = resolvePlaceholdersWithMarkers(content, {
+      client,
+      contractor: contractor ?? undefined,
+      serviceRequest: request,
+      timeline: timeline ?? undefined,
+    });
     const { data, error } = await supabase.functions.invoke("send-contractor-contract", {
-      body: { service_request_id: request.id, template_id: templateId === "blank" ? null : templateId, title: title.trim(), content },
+      body: { service_request_id: request.id, template_id: templateId === "blank" ? null : templateId, title: title.trim(), content: resolved },
     });
     setSending(false);
     if (error || data?.error) return toast.error(error?.message ?? data?.error ?? "Failed");
@@ -437,10 +452,10 @@ function SendContractModal({ request, client, onClose, onSent }: { request: Serv
         <Field label="Title">
           <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-2 bg-surface border border-border rounded-md text-sm" />
         </Field>
-        <Field label="Contract body (markdown)">
-          <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={14} className="w-full px-3 py-2 bg-surface border border-border rounded-md text-sm font-mono" />
+        <Field label="Contract body (HTML)">
+          <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={14} className="w-full px-3 py-2 bg-surface border border-border rounded-md text-xs font-mono" />
         </Field>
-        <p className="text-xs text-muted-foreground">A single-use signing link will be emailed to the contractor.</p>
+        <p className="text-xs text-muted-foreground">Placeholders like <code className="text-gold">{"{contractor_first_name}"}</code> are resolved automatically before sending. A single-use signing link will be emailed to the contractor.</p>
         <div className="flex justify-end gap-2 pt-2">
           <button onClick={onClose} className="text-sm text-muted-foreground px-4 py-2">Cancel</button>
           <button onClick={send} disabled={sending} className="text-sm bg-primary text-primary-foreground px-5 py-2 rounded-md hover:bg-primary/90 disabled:opacity-60">
