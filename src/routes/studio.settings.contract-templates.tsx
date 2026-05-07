@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/dates";
 import { ContractTemplateEditor } from "@/components/studio/ContractTemplateEditor";
+import { BlockBuilder } from "@/components/studio/BlockBuilder";
 import { Plus, Search, ArrowLeft, Copy, Archive, ArchiveRestore, Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/studio/settings/contract-templates")({
@@ -20,6 +21,7 @@ interface TplRow {
   updated_at: string;
   created_by: string | null;
   signature_required_role: string;
+  is_block_based: boolean;
 }
 
 const TYPE_OPTIONS = [
@@ -48,7 +50,7 @@ function ContractTemplatesSettings() {
     setLoading(true);
     const { data } = await supabase
       .from("contract_templates")
-      .select("id, name, content, template_type, is_archived, updated_at, created_by, signature_required_role")
+      .select("id, name, content, template_type, is_archived, updated_at, created_by, signature_required_role, is_block_based")
       .order("updated_at", { ascending: false });
     setRows((data ?? []) as any);
     setLoading(false);
@@ -181,26 +183,33 @@ function EditorView({ row, onClose, onSaved }: { row: TplRow | null; onClose: ()
   const [name, setName] = useState(row?.name ?? "");
   const [type, setType] = useState(row?.template_type ?? "contractor");
   const [content, setContent] = useState(row?.content ?? "");
+  const [isBlockBased, setIsBlockBased] = useState(row?.is_block_based ?? false);
   const [saving, setSaving] = useState(false);
+  const [createdId, setCreatedId] = useState<string | null>(row?.id ?? null);
+
+  const isCoupleTemplate = type.startsWith("couple");
 
   const save = async () => {
     if (!name.trim()) return toast.error("Name is required");
     setSaving(true);
-    if (isNew) {
-      const { error } = await supabase.from("contract_templates").insert({
-        name: name.trim(), content, template_type: type, created_by: user?.id ?? null,
-      });
+    if (!createdId) {
+      const { data, error } = await supabase.from("contract_templates").insert({
+        name: name.trim(), content, template_type: type, is_block_based: isBlockBased && isCoupleTemplate, created_by: user?.id ?? null,
+      }).select("id").single();
       setSaving(false);
-      if (error) return toast.error(error.message);
+      if (error || !data) return toast.error(error?.message ?? "Save failed");
+      setCreatedId(data.id);
+      toast.success("Saved");
+      if (!isBlockBased) onSaved();
     } else {
       const { error } = await supabase.from("contract_templates").update({
-        name: name.trim(), content, template_type: type,
-      }).eq("id", row!.id);
+        name: name.trim(), content, template_type: type, is_block_based: isBlockBased && isCoupleTemplate,
+      }).eq("id", createdId);
       setSaving(false);
       if (error) return toast.error(error.message);
+      toast.success("Saved");
+      onSaved();
     }
-    toast.success("Saved");
-    onSaved();
   };
 
   return (
@@ -211,7 +220,7 @@ function EditorView({ row, onClose, onSaved }: { row: TplRow | null; onClose: ()
       <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
         <div>
           <h1 className="font-serif italic text-[28px] text-primary leading-tight">
-            {isNew ? "New contract template" : "Edit template"}
+            {isNew && !createdId ? "New contract template" : "Edit template"}
           </h1>
         </div>
         <div className="flex gap-2">
@@ -225,7 +234,7 @@ function EditorView({ row, onClose, onSaved }: { row: TplRow | null; onClose: ()
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground block mb-2">Template name <span className="text-magenta">*</span></label>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Second Shooter Standard Agreement" className="w-full px-3 py-2 bg-surface border border-border rounded-md text-sm" />
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Wedding photography agreement" className="w-full px-3 py-2 bg-surface border border-border rounded-md text-sm" />
         </div>
         <div>
           <label className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground block mb-2">Template type</label>
@@ -235,7 +244,24 @@ function EditorView({ row, onClose, onSaved }: { row: TplRow | null; onClose: ()
         </div>
       </div>
 
-      <ContractTemplateEditor initialContent={content} templateType={type} onChange={setContent} />
+      {isCoupleTemplate && (
+        <label className="flex items-center gap-2 text-sm text-foreground bg-background-alt border border-border rounded-md px-3 py-2">
+          <input type="checkbox" checked={isBlockBased} onChange={(e) => setIsBlockBased(e.target.checked)} />
+          <span>Use block builder (interactive blocks, multi-signer)</span>
+        </label>
+      )}
+
+      {isBlockBased && isCoupleTemplate ? (
+        createdId ? (
+          <BlockBuilder templateId={createdId} />
+        ) : (
+          <div className="bg-gold/10 border border-gold/40 rounded-md p-4 text-sm text-foreground">
+            Save the template once to start adding blocks.
+          </div>
+        )
+      ) : (
+        <ContractTemplateEditor initialContent={content} templateType={type} onChange={setContent} />
+      )}
     </div>
   );
 }

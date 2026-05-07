@@ -27,6 +27,7 @@ interface Template {
   name: string;
   content: string;
   signature_required_role: string;
+  is_block_based?: boolean;
 }
 
 interface Props {
@@ -59,7 +60,7 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
     (async () => {
       const tplPromise = supabase
         .from("contract_templates")
-        .select("id, name, content, signature_required_role, template_type")
+        .select("id, name, content, signature_required_role, template_type, is_block_based")
         .eq("is_archived", false)
         .order("name");
       const contractPromise = existingContractId
@@ -110,7 +111,8 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
 
   const validate = (): string | null => {
     if (!title.trim()) return "Title is required";
-    if (!content.trim()) return "Contract body is required";
+    const tpl = templates.find((t) => t.id === selectedTemplateId);
+    if (!tpl?.is_block_based && !content.trim()) return "Contract body is required";
     return null;
   };
 
@@ -144,13 +146,16 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
     const err = validate();
     if (err) { toast.error(err); return; }
     setSaving(true);
+    const tpl = templates.find((t) => t.id === selectedTemplateId);
+    const isBlockBased = !!tpl?.is_block_based;
     const resolvedContent = resolvePlaceholders(content, ctx);
     const payload = {
       client_id: client.id,
       title: title.trim(),
-      content: resolvedContent,
+      content: isBlockBased ? "" : resolvedContent,
       signature_required_role: signatureRole,
       template_id: selectedTemplateId === "blank" ? null : selectedTemplateId,
+      is_block_based: isBlockBased,
       status: "sent" as const,
       sent_at: new Date().toISOString(),
     };
@@ -162,6 +167,50 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
       const { data, error } = await supabase.from("contracts").insert(payload).select("id").single();
       if (error || !data) { setSaving(false); toast.error(error?.message ?? "Failed to create"); return; }
       contractId = data.id;
+    }
+
+    // Block-based: clone template blocks → contract blocks (with placeholder resolution on text_box) and create signer rows.
+    if (isBlockBased && contractId && tpl) {
+      try {
+        const { data: tplBlocks } = await supabase
+          .from("contract_template_blocks")
+          .select("*")
+          .eq("template_id", tpl.id)
+          .order("position");
+        // Clear existing first if re-sending
+        await supabase.from("contract_blocks").delete().eq("contract_id", contractId);
+        const cloned = (tplBlocks ?? []).map((b: any) => {
+          const isText = b.block_type === "text_box";
+          const resolvedText = isText ? resolvePlaceholders(b.content || b.config?.content || "", ctx) : null;
+          const config = isText ? { ...(b.config ?? {}), content: resolvedText } : b.config;
+          return {
+            contract_id: contractId,
+            position: b.position,
+            block_type: b.block_type,
+            config,
+            content: isText ? resolvedText : b.content,
+            signer_role: (b.config?.signer_role as string | undefined) ?? null,
+          };
+        });
+        if (cloned.length) await supabase.from("contract_blocks").insert(cloned);
+
+        // Create signer rows
+        const tokenFor = () => crypto.randomUUID().replace(/-/g, "");
+        const expires = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
+        const signers = [
+          { role: "partner_1", name: [client.couple_name_1, client.primary_client_last_name].filter(Boolean).join(" "), email: client.primary_email },
+          { role: "partner_2", name: [client.couple_name_2, client.alternate_client_last_name].filter(Boolean).join(" "), email: (client as any).secondary_email ?? null },
+        ];
+        // Photographer signer if any signature/initials block requires them
+        const hasPhotographerSign = (tplBlocks ?? []).some((b: any) => b.config?.signer_role === "photographer");
+        if (hasPhotographerSign) signers.push({ role: "photographer", name: studioRow?.photographer_name ?? "Photographer", email: studioRow?.studio_email ?? null });
+        await supabase.from("contract_signers").delete().eq("contract_id", contractId);
+        await supabase.from("contract_signers").insert(
+          signers.map((s) => ({ contract_id: contractId, signer_role: s.role, name: s.name || null, email: s.email, public_token: tokenFor(), public_token_expires_at: expires }))
+        );
+      } catch (e) {
+        console.error("Block clone failed:", e);
+      }
     }
 
     // Fire email — failures don't roll back the contract.

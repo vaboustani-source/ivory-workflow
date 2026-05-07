@@ -529,6 +529,88 @@ export type Database = {
           },
         ]
       }
+      contract_block_responses: {
+        Row: {
+          contract_block_id: string
+          id: string
+          ip_address: string | null
+          responded_at: string
+          response_data: Json
+          response_text: string | null
+          signer_role: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          contract_block_id: string
+          id?: string
+          ip_address?: string | null
+          responded_at?: string
+          response_data?: Json
+          response_text?: string | null
+          signer_role?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          contract_block_id?: string
+          id?: string
+          ip_address?: string | null
+          responded_at?: string
+          response_data?: Json
+          response_text?: string | null
+          signer_role?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_block_responses_contract_block_id_fkey"
+            columns: ["contract_block_id"]
+            isOneToOne: false
+            referencedRelation: "contract_blocks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_blocks: {
+        Row: {
+          block_type: Database["public"]["Enums"]["contract_block_type"]
+          config: Json
+          content: string | null
+          contract_id: string
+          created_at: string
+          id: string
+          position: number
+          signer_role: string | null
+        }
+        Insert: {
+          block_type: Database["public"]["Enums"]["contract_block_type"]
+          config?: Json
+          content?: string | null
+          contract_id: string
+          created_at?: string
+          id?: string
+          position: number
+          signer_role?: string | null
+        }
+        Update: {
+          block_type?: Database["public"]["Enums"]["contract_block_type"]
+          config?: Json
+          content?: string | null
+          contract_id?: string
+          created_at?: string
+          id?: string
+          position?: number
+          signer_role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_blocks_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_signatures: {
         Row: {
           agreed_to_terms: boolean
@@ -590,6 +672,97 @@ export type Database = {
           },
         ]
       }
+      contract_signers: {
+        Row: {
+          contract_id: string
+          created_at: string
+          email: string | null
+          id: string
+          ip_address: string | null
+          name: string | null
+          public_token: string | null
+          public_token_expires_at: string | null
+          signed_at: string | null
+          signer_role: string
+          user_agent: string | null
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          ip_address?: string | null
+          name?: string | null
+          public_token?: string | null
+          public_token_expires_at?: string | null
+          signed_at?: string | null
+          signer_role: string
+          user_agent?: string | null
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          ip_address?: string | null
+          name?: string | null
+          public_token?: string | null
+          public_token_expires_at?: string | null
+          signed_at?: string | null
+          signer_role?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_signers_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_template_blocks: {
+        Row: {
+          block_type: Database["public"]["Enums"]["contract_block_type"]
+          config: Json
+          content: string | null
+          created_at: string
+          id: string
+          position: number
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          block_type: Database["public"]["Enums"]["contract_block_type"]
+          config?: Json
+          content?: string | null
+          created_at?: string
+          id?: string
+          position: number
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          block_type?: Database["public"]["Enums"]["contract_block_type"]
+          config?: Json
+          content?: string | null
+          created_at?: string
+          id?: string
+          position?: number
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_template_blocks_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_templates: {
         Row: {
           content: string
@@ -598,6 +771,7 @@ export type Database = {
           description: string | null
           id: string
           is_archived: boolean
+          is_block_based: boolean
           name: string
           signature_required_role: string
           template_type: string
@@ -610,6 +784,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_archived?: boolean
+          is_block_based?: boolean
           name: string
           signature_required_role?: string
           template_type?: string
@@ -622,6 +797,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_archived?: boolean
+          is_block_based?: boolean
           name?: string
           signature_required_role?: string
           template_type?: string
@@ -828,6 +1004,7 @@ export type Database = {
           created_at: string
           file_url: string | null
           id: string
+          is_block_based: boolean
           public_token: string | null
           public_token_expires_at: string | null
           sent_at: string | null
@@ -848,6 +1025,7 @@ export type Database = {
           created_at?: string
           file_url?: string | null
           id?: string
+          is_block_based?: boolean
           public_token?: string | null
           public_token_expires_at?: string | null
           sent_at?: string | null
@@ -868,6 +1046,7 @@ export type Database = {
           created_at?: string
           file_url?: string | null
           id?: string
+          is_block_based?: boolean
           public_token?: string | null
           public_token_expires_at?: string | null
           sent_at?: string | null
@@ -2699,6 +2878,19 @@ export type Database = {
         | "sent"
         | "skipped"
         | "edited"
+      contract_block_type:
+        | "text_box"
+        | "image"
+        | "divider"
+        | "spacer"
+        | "short_answer"
+        | "free_response"
+        | "date_select"
+        | "initials"
+        | "signature"
+        | "dropdown"
+        | "checkboxes"
+        | "multiple_choice"
       contract_status: "draft" | "sent" | "signed"
       contractor_role:
         | "second_shooter"
@@ -2931,6 +3123,20 @@ export const Constants = {
         "sent",
         "skipped",
         "edited",
+      ],
+      contract_block_type: [
+        "text_box",
+        "image",
+        "divider",
+        "spacer",
+        "short_answer",
+        "free_response",
+        "date_select",
+        "initials",
+        "signature",
+        "dropdown",
+        "checkboxes",
+        "multiple_choice",
       ],
       contract_status: ["draft", "sent", "signed"],
       contractor_role: [
