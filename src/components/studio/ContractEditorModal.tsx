@@ -83,7 +83,12 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
     return () => { window.removeEventListener("keydown", onEsc); document.body.style.overflow = ""; };
   }, [onClose]);
 
-  const ctx = useMemo(() => buildClientPlaceholderContext(client), [client]);
+  const ctx = useMemo(() => buildClientPlaceholderContext(client, {
+    photographerName: studioRow?.photographer_name,
+    photographerCompany: studioRow?.photographer_company,
+    studioEmail: studioRow?.studio_email,
+    studioPhone: studioRow?.studio_phone,
+  }), [client, studioRow]);
 
   const applyTemplate = (tplId: string) => {
     setSelectedTemplateId(tplId);
