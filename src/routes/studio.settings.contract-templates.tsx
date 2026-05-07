@@ -63,6 +63,60 @@ function ContractTemplatesSettings() {
   };
   useEffect(() => { load(); }, []);
 
+  // Handle ?duplicate=<templateId> — clone the template (and blocks) then open editor.
+  useEffect(() => {
+    const dupId = (urlSearch as any)?.duplicate as string | undefined;
+    if (!dupId || duplicateProcessed) return;
+    setDuplicateProcessed(true);
+    (async () => {
+      const { data: orig } = await supabase
+        .from("contract_templates")
+        .select("*")
+        .eq("id", dupId)
+        .maybeSingle();
+      if (!orig) {
+        toast.error("Template to duplicate not found");
+        navigate({ search: {} as any, replace: true });
+        return;
+      }
+      const dateStr = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      const { data: dupe, error } = await supabase
+        .from("contract_templates")
+        .insert({
+          name: `${orig.name} — Custom for ${dateStr}`,
+          content: orig.content,
+          template_type: orig.template_type,
+          signature_required_role: orig.signature_required_role,
+          is_block_based: orig.is_block_based,
+          created_by: user?.id ?? null,
+        })
+        .select("*")
+        .single();
+      if (error || !dupe) {
+        toast.error(error?.message ?? "Failed to duplicate");
+        navigate({ search: {} as any, replace: true });
+        return;
+      }
+      if (orig.is_block_based) {
+        const { data: blocks } = await supabase
+          .from("contract_template_blocks")
+          .select("position, block_type, config, content")
+          .eq("template_id", orig.id)
+          .order("position");
+        if (blocks?.length) {
+          await supabase.from("contract_template_blocks").insert(
+            blocks.map((b: any) => ({ ...b, template_id: dupe.id }))
+          );
+        }
+      }
+      toast.success("Custom template created");
+      navigate({ search: {} as any, replace: true });
+      await load();
+      setEditing(dupe as any);
+    })();
+  }, [urlSearch, duplicateProcessed, user?.id, navigate]);
+
+
   const visible = useMemo(() => {
     return rows.filter((r) => {
       if (typeFilter !== "all" && (r.template_type ?? "other") !== typeFilter) return false;
