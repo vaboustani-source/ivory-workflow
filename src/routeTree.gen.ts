@@ -50,6 +50,7 @@ import { Route as StudioSettingsIntegrationsRouteImport } from './routes/studio.
 import { Route as StudioSettingsEmailTemplatesRouteImport } from './routes/studio.settings.email-templates'
 import { Route as StudioSettingsContractorsRouteImport } from './routes/studio.settings.contractors'
 import { Route as StudioSettingsContractTemplatesRouteImport } from './routes/studio.settings.contract-templates'
+import { Route as StudioSettingsContractDefaultsRouteImport } from './routes/studio.settings.contract-defaults'
 import { Route as StudioSettingsCalendarRouteImport } from './routes/studio.settings.calendar'
 import { Route as StudioSettingsActivityLogRouteImport } from './routes/studio.settings.activity-log'
 import { Route as StudioQueueHiddenRouteImport } from './routes/studio.queue.hidden'
@@ -276,6 +277,12 @@ const StudioSettingsContractTemplatesRoute =
     path: '/contract-templates',
     getParentRoute: () => StudioSettingsRoute,
   } as any)
+const StudioSettingsContractDefaultsRoute =
+  StudioSettingsContractDefaultsRouteImport.update({
+    id: '/contract-defaults',
+    path: '/contract-defaults',
+    getParentRoute: () => StudioSettingsRoute,
+  } as any)
 const StudioSettingsCalendarRoute = StudioSettingsCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
@@ -400,6 +407,7 @@ export interface FileRoutesByFullPath {
   '/studio/queue/hidden': typeof StudioQueueHiddenRoute
   '/studio/settings/activity-log': typeof StudioSettingsActivityLogRoute
   '/studio/settings/calendar': typeof StudioSettingsCalendarRoute
+  '/studio/settings/contract-defaults': typeof StudioSettingsContractDefaultsRoute
   '/studio/settings/contract-templates': typeof StudioSettingsContractTemplatesRoute
   '/studio/settings/contractors': typeof StudioSettingsContractorsRoute
   '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
@@ -455,6 +463,7 @@ export interface FileRoutesByTo {
   '/studio/queue/hidden': typeof StudioQueueHiddenRoute
   '/studio/settings/activity-log': typeof StudioSettingsActivityLogRoute
   '/studio/settings/calendar': typeof StudioSettingsCalendarRoute
+  '/studio/settings/contract-defaults': typeof StudioSettingsContractDefaultsRoute
   '/studio/settings/contract-templates': typeof StudioSettingsContractTemplatesRoute
   '/studio/settings/contractors': typeof StudioSettingsContractorsRoute
   '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
@@ -514,6 +523,7 @@ export interface FileRoutesById {
   '/studio/queue/hidden': typeof StudioQueueHiddenRoute
   '/studio/settings/activity-log': typeof StudioSettingsActivityLogRoute
   '/studio/settings/calendar': typeof StudioSettingsCalendarRoute
+  '/studio/settings/contract-defaults': typeof StudioSettingsContractDefaultsRoute
   '/studio/settings/contract-templates': typeof StudioSettingsContractTemplatesRoute
   '/studio/settings/contractors': typeof StudioSettingsContractorsRoute
   '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
@@ -574,6 +584,7 @@ export interface FileRouteTypes {
     | '/studio/queue/hidden'
     | '/studio/settings/activity-log'
     | '/studio/settings/calendar'
+    | '/studio/settings/contract-defaults'
     | '/studio/settings/contract-templates'
     | '/studio/settings/contractors'
     | '/studio/settings/email-templates'
@@ -629,6 +640,7 @@ export interface FileRouteTypes {
     | '/studio/queue/hidden'
     | '/studio/settings/activity-log'
     | '/studio/settings/calendar'
+    | '/studio/settings/contract-defaults'
     | '/studio/settings/contract-templates'
     | '/studio/settings/contractors'
     | '/studio/settings/email-templates'
@@ -687,6 +699,7 @@ export interface FileRouteTypes {
     | '/studio/queue/hidden'
     | '/studio/settings/activity-log'
     | '/studio/settings/calendar'
+    | '/studio/settings/contract-defaults'
     | '/studio/settings/contract-templates'
     | '/studio/settings/contractors'
     | '/studio/settings/email-templates'
@@ -1002,6 +1015,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioSettingsContractTemplatesRouteImport
       parentRoute: typeof StudioSettingsRoute
     }
+    '/studio/settings/contract-defaults': {
+      id: '/studio/settings/contract-defaults'
+      path: '/contract-defaults'
+      fullPath: '/studio/settings/contract-defaults'
+      preLoaderRoute: typeof StudioSettingsContractDefaultsRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
     '/studio/settings/calendar': {
       id: '/studio/settings/calendar'
       path: '/calendar'
@@ -1204,6 +1224,7 @@ const StudioQueueRouteWithChildren = StudioQueueRoute._addFileChildren(
 interface StudioSettingsRouteChildren {
   StudioSettingsActivityLogRoute: typeof StudioSettingsActivityLogRoute
   StudioSettingsCalendarRoute: typeof StudioSettingsCalendarRoute
+  StudioSettingsContractDefaultsRoute: typeof StudioSettingsContractDefaultsRoute
   StudioSettingsContractTemplatesRoute: typeof StudioSettingsContractTemplatesRoute
   StudioSettingsContractorsRoute: typeof StudioSettingsContractorsRoute
   StudioSettingsEmailTemplatesRoute: typeof StudioSettingsEmailTemplatesRoute
@@ -1221,6 +1242,7 @@ interface StudioSettingsRouteChildren {
 const StudioSettingsRouteChildren: StudioSettingsRouteChildren = {
   StudioSettingsActivityLogRoute: StudioSettingsActivityLogRoute,
   StudioSettingsCalendarRoute: StudioSettingsCalendarRoute,
+  StudioSettingsContractDefaultsRoute: StudioSettingsContractDefaultsRoute,
   StudioSettingsContractTemplatesRoute: StudioSettingsContractTemplatesRoute,
   StudioSettingsContractorsRoute: StudioSettingsContractorsRoute,
   StudioSettingsEmailTemplatesRoute: StudioSettingsEmailTemplatesRoute,
