@@ -433,6 +433,13 @@ function SendContractModal({ request, client, onClose, onSent }: { request: Serv
       contractor: contractor ?? undefined,
       serviceRequest: request,
       timeline: timeline ?? undefined,
+      studio: {
+        name: studioRow?.photographer_company ?? "Stories by Victoria",
+        photographer_name: studioRow?.photographer_name ?? "",
+        photographer_company: studioRow?.photographer_company ?? "Stories by Victoria",
+        studio_email: studioRow?.studio_email ?? "",
+        studio_phone: studioRow?.studio_phone ?? "",
+      },
     });
     const { data, error } = await supabase.functions.invoke("send-contractor-contract", {
       body: { service_request_id: request.id, template_id: templateId === "blank" ? null : templateId, title: title.trim(), content: resolved },
