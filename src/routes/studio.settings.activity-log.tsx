@@ -131,6 +131,8 @@ function ActivityLogPage() {
     if (userFilter === "system") q = q.is("user_id", null);
     else if (userFilter !== "all") q = q.eq("user_id", userFilter);
     if (search.trim()) q = q.ilike("description", `%${search.trim()}%`);
+    if (clientFilter === "system") q = q.is("client_id", null);
+    else if (clientFilter !== "all") q = q.eq("client_id", clientFilter);
 
     const { data } = await q;
     const incoming = (data ?? []) as LogRow[];
