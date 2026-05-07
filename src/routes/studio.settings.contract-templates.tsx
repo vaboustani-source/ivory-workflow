@@ -20,6 +20,7 @@ interface TplRow {
   updated_at: string;
   created_by: string | null;
   signature_required_role: string;
+  is_block_based: boolean;
 }
 
 const TYPE_OPTIONS = [
