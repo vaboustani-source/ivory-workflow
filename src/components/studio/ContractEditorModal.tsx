@@ -43,7 +43,7 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
   const [signatureRole, setSignatureRole] = useState<"partner_1" | "both_partners">("partner_1");
   const [contractStatus, setContractStatus] = useState<string>("draft");
   const [showSentWarning, setShowSentWarning] = useState(false);
-  const [studioRow, setStudioRow] = useState<{ photographer_name: string | null; photographer_company: string | null; studio_email: string | null; studio_phone: string | null } | null>(null);
+  const [studioRow, setStudioRow] = useState<any>(null);
   const isEdit = !!existingContractId;
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
       const contractPromise = existingContractId
         ? supabase.from("contracts").select("*").eq("id", existingContractId).maybeSingle()
         : Promise.resolve({ data: null });
-      const studioPromise = supabase.from("studio_settings").select("photographer_name, photographer_company, studio_email, studio_phone").eq("is_active", true).maybeSingle();
+      const studioPromise = supabase.from("studio_settings").select("photographer_name, photographer_company, studio_email, studio_phone, studio_address, studio_mailing_address, ein, instagram, website, overage_hourly_rate, video_cancellation_fee, album_credit_expiry_months, rescheduling_fee_pct").eq("is_active", true).maybeSingle();
       const [{ data: tpls }, { data: contract }, { data: studio }] = await Promise.all([tplPromise, contractPromise as any, studioPromise]);
       if (cancelled) return;
       const filtered = ((tpls ?? []) as any[]).filter((t) => !t.template_type || t.template_type === "couple_booking" || t.template_type === "couple_retainer" || t.template_type === "couple" || t.template_type === "addendum");

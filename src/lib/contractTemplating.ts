@@ -45,6 +45,15 @@ export const PLACEHOLDERS: PlaceholderDef[] = [
   { key: "photographer_company", token: "{photographer_company}", label: "Photographer company", description: "Studio company name", category: "studio" },
   { key: "studio_email", token: "{studio_email}", label: "Studio email", description: "Studio primary email", category: "studio" },
   { key: "studio_phone", token: "{studio_phone}", label: "Studio phone", description: "Studio phone number", category: "studio" },
+  { key: "studio_address", token: "{studio_address}", label: "Studio address", description: "Studio physical business address", category: "studio" },
+  { key: "studio_mailing_address", token: "{studio_mailing_address}", label: "Studio mailing address", description: "Studio mailing address (if different)", category: "studio" },
+  { key: "ein", token: "{ein}", label: "EIN / Tax ID", description: "Studio EIN / tax ID", category: "studio" },
+  { key: "instagram", token: "{instagram}", label: "Instagram", description: "Studio Instagram handle", category: "studio" },
+  { key: "website", token: "{website}", label: "Website", description: "Studio website URL", category: "studio" },
+  { key: "overage_hourly_rate", token: "{overage_hourly_rate}", label: "Overage hourly rate", description: "Hourly rate for additional coverage time", category: "studio" },
+  { key: "video_cancellation_fee", token: "{video_cancellation_fee}", label: "Video cancellation fee", description: "Video cancellation fee", category: "studio" },
+  { key: "album_credit_expiry_months", token: "{album_credit_expiry_months}", label: "Album credit expiry", description: "Album credit expiry in months", category: "studio" },
+  { key: "rescheduling_fee_pct", token: "{rescheduling_fee_pct}", label: "Rescheduling fee", description: "Rescheduling fee percentage", category: "studio" },
   { key: "sbv_signer_name", token: "{sbv_signer_name}", label: "Signer name", description: "Whoever's sending", category: "studio" },
   { key: "today_date", token: "{today_date}", label: "Today's date", description: "Today's date (long)", category: "studio" },
   { key: "today_year", token: "{today_year}", label: "Current year", description: "e.g., 2026", category: "studio" },
@@ -86,6 +95,15 @@ export interface TemplatingContext {
     photographer_company?: string;
     studio_email?: string;
     studio_phone?: string;
+    studio_address?: string;
+    studio_mailing_address?: string;
+    ein?: string;
+    instagram?: string;
+    website?: string;
+    overage_hourly_rate?: number;
+    video_cancellation_fee?: number;
+    album_credit_expiry_months?: number;
+    rescheduling_fee_pct?: number;
     signer_name?: string | null;
   };
 }
@@ -152,6 +170,17 @@ export function buildContextValues(ctx: TemplatingContext): Record<string, strin
     photographer_company: studio.photographer_company ?? "Stories by Victoria",
     studio_email: studio.studio_email ?? "",
     studio_phone: studio.studio_phone ?? "",
+    studio_address: studio.studio_address ?? "",
+    studio_mailing_address: studio.studio_mailing_address ?? "",
+    ein: studio.ein ?? "",
+    instagram: studio.instagram
+      ? (studio.instagram.startsWith("@") ? studio.instagram : "@" + studio.instagram)
+      : "",
+    website: studio.website ?? "",
+    overage_hourly_rate: studio.overage_hourly_rate != null ? `$${studio.overage_hourly_rate}/hr` : "",
+    video_cancellation_fee: studio.video_cancellation_fee != null ? `$${studio.video_cancellation_fee.toLocaleString()}` : "",
+    album_credit_expiry_months: studio.album_credit_expiry_months != null ? `${studio.album_credit_expiry_months} months` : "",
+    rescheduling_fee_pct: studio.rescheduling_fee_pct != null ? `${studio.rescheduling_fee_pct}%` : "",
     sbv_signer_name: studio.signer_name ?? "",
     today_date: today.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
     today_year: String(today.getFullYear()),
@@ -206,8 +235,17 @@ export const SAMPLE_CONTEXT: TemplatingContext = {
     name: "Stories by Victoria",
     photographer_name: "Victoria Boustani",
     photographer_company: "Stories by Victoria",
-    studio_email: "hello@mail.victoriaboustani.com",
+    studio_email: "hello@victoriaboustani.com",
     studio_phone: "(555) 999-1234",
+    studio_address: "123 Studio Way, Brooklyn, NY 11201",
+    studio_mailing_address: "PO Box 4567, Brooklyn, NY 11202",
+    ein: "12-3456789",
+    instagram: "@storiesbyvictoria",
+    website: "https://victoriaboustani.com",
+    overage_hourly_rate: 700,
+    video_cancellation_fee: 1500,
+    album_credit_expiry_months: 8,
+    rescheduling_fee_pct: 25,
     signer_name: "Victoria",
   },
 };

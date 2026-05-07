@@ -393,7 +393,7 @@ function SendContractModal({ request, client, onClose, onSent }: { request: Serv
   const [content, setContent] = useState("");
   const [contractor, setContractor] = useState<{ full_name: string; email: string } | null>(null);
   const [timeline, setTimeline] = useState<{ ceremony_start_time: string | null; coverage_end_time: string | null } | null>(null);
-  const [studioRow, setStudioRow] = useState<{ photographer_name: string | null; photographer_company: string | null; studio_email: string | null; studio_phone: string | null } | null>(null);
+  const [studioRow, setStudioRow] = useState<any>(null);
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
@@ -406,7 +406,7 @@ function SendContractModal({ request, client, onClose, onSent }: { request: Serv
           .order("name"),
         supabase.from("contractors").select("full_name, email").eq("id", request.contractor_id).maybeSingle(),
         supabase.from("photography_timelines").select("ceremony_start_time, coverage_end_time").eq("client_id", client.id).maybeSingle(),
-        supabase.from("studio_settings").select("photographer_name, photographer_company, studio_email, studio_phone").eq("is_active", true).maybeSingle(),
+        supabase.from("studio_settings").select("photographer_name, photographer_company, studio_email, studio_phone, studio_address, studio_mailing_address, ein, instagram, website, overage_hourly_rate, video_cancellation_fee, album_credit_expiry_months, rescheduling_fee_pct").eq("is_active", true).maybeSingle(),
       ]);
       const filtered = ((tpls ?? []) as any[]).filter((t) => !t.template_type || t.template_type === "contractor");
       setTemplates(filtered);
@@ -439,6 +439,15 @@ function SendContractModal({ request, client, onClose, onSent }: { request: Serv
         photographer_company: studioRow?.photographer_company ?? "Stories by Victoria",
         studio_email: studioRow?.studio_email ?? "",
         studio_phone: studioRow?.studio_phone ?? "",
+        studio_address: studioRow?.studio_address ?? "",
+        studio_mailing_address: studioRow?.studio_mailing_address ?? "",
+        ein: studioRow?.ein ?? "",
+        instagram: studioRow?.instagram ?? "",
+        website: studioRow?.website ?? "",
+        overage_hourly_rate: studioRow?.overage_hourly_rate ?? undefined,
+        video_cancellation_fee: studioRow?.video_cancellation_fee ?? undefined,
+        album_credit_expiry_months: studioRow?.album_credit_expiry_months ?? undefined,
+        rescheduling_fee_pct: studioRow?.rescheduling_fee_pct ?? undefined,
       },
     });
     const { data, error } = await supabase.functions.invoke("send-contractor-contract", {
