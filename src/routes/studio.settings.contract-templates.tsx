@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { relativeTime } from "@/lib/dates";
 import { ContractTemplateEditor } from "@/components/studio/ContractTemplateEditor";
+import { BlockBuilder } from "@/components/studio/BlockBuilder";
 import { Plus, Search, ArrowLeft, Copy, Archive, ArchiveRestore, Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/studio/settings/contract-templates")({
