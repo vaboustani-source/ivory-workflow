@@ -2072,44 +2072,59 @@ export type Database = {
         Row: {
           album_credit_expiry_months: number | null
           created_at: string | null
+          ein: string | null
           id: string
+          instagram: string | null
           is_active: boolean | null
           overage_hourly_rate: number | null
           photographer_company: string | null
           photographer_name: string | null
           rescheduling_fee_pct: number | null
+          studio_address: string | null
           studio_email: string | null
+          studio_mailing_address: string | null
           studio_phone: string | null
           updated_at: string | null
           video_cancellation_fee: number | null
+          website: string | null
         }
         Insert: {
           album_credit_expiry_months?: number | null
           created_at?: string | null
+          ein?: string | null
           id?: string
+          instagram?: string | null
           is_active?: boolean | null
           overage_hourly_rate?: number | null
           photographer_company?: string | null
           photographer_name?: string | null
           rescheduling_fee_pct?: number | null
+          studio_address?: string | null
           studio_email?: string | null
+          studio_mailing_address?: string | null
           studio_phone?: string | null
           updated_at?: string | null
           video_cancellation_fee?: number | null
+          website?: string | null
         }
         Update: {
           album_credit_expiry_months?: number | null
           created_at?: string | null
+          ein?: string | null
           id?: string
+          instagram?: string | null
           is_active?: boolean | null
           overage_hourly_rate?: number | null
           photographer_company?: string | null
           photographer_name?: string | null
           rescheduling_fee_pct?: number | null
+          studio_address?: string | null
           studio_email?: string | null
+          studio_mailing_address?: string | null
           studio_phone?: string | null
           updated_at?: string | null
           video_cancellation_fee?: number | null
+          website?: string | null
         }
         Relationships: []
       }
