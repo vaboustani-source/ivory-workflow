@@ -451,3 +451,49 @@ function TeamRow({ label, name }: { label: string; name: string }) {
     </div>
   );
 }
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium pt-3 pb-1">{children}</p>;
+}
+
+function TextFieldRow({ label, value, field, clientId, onSaved, maxLength }: {
+  label: string;
+  value: string | null;
+  field: string;
+  clientId: string;
+  onSaved: (v: string | null) => void;
+  maxLength?: number;
+}) {
+  const [val, setVal] = useState<string>(value ?? "");
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { setVal(value ?? ""); }, [value]);
+
+  const save = async () => {
+    const trimmed = val.trim();
+    const next = trimmed === "" ? null : trimmed;
+    if (next === (value ?? null)) return;
+    setSaving(true);
+    const { error } = await supabase.from("clients").update({ [field]: next }).eq("id", clientId);
+    setSaving(false);
+    if (error) { toast.error(`Couldn't save ${label.toLowerCase()}.`); return; }
+    onSaved(next);
+  };
+
+  return (
+    <div className="flex justify-between items-center gap-3 py-2 border-b border-border last:border-0">
+      <span className="text-xs uppercase tracking-wider text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-2 flex-1 max-w-[220px]">
+        <input
+          type="text"
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onBlur={save}
+          maxLength={maxLength}
+          placeholder="—"
+          className="w-full px-2 py-1 bg-background border border-border rounded-md text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/20"
+        />
+        {saving && <span className="text-[10px] text-muted-foreground">…</span>}
+      </div>
+    </div>
+  );
+}
