@@ -357,6 +357,8 @@ export type Database = {
         Row: {
           album_workflow_activated_at: string | null
           album_workflow_active: boolean
+          alternate_client_last_name: string | null
+          alternate_client_phone: string | null
           booked_at: string | null
           couple_name_1: string
           couple_name_2: string | null
@@ -378,12 +380,18 @@ export type Database = {
           portal_first_login_at: string | null
           portal_invited_at: string | null
           portal_login_mode: string | null
+          primary_client_last_name: string | null
+          primary_client_phone: string | null
           primary_email: string
           production_stage_override: string | null
           production_stage_override_at: string | null
           production_stage_override_by: string | null
           secondary_email: string | null
           services_added: Json
+          shared_city: string | null
+          shared_state: string | null
+          shared_street_address: string | null
+          shared_zipcode: string | null
           status: Database["public"]["Enums"]["client_status"]
           updated_at: string
           venue_address: string | null
@@ -397,6 +405,8 @@ export type Database = {
         Insert: {
           album_workflow_activated_at?: string | null
           album_workflow_active?: boolean
+          alternate_client_last_name?: string | null
+          alternate_client_phone?: string | null
           booked_at?: string | null
           couple_name_1: string
           couple_name_2?: string | null
@@ -418,12 +428,18 @@ export type Database = {
           portal_first_login_at?: string | null
           portal_invited_at?: string | null
           portal_login_mode?: string | null
+          primary_client_last_name?: string | null
+          primary_client_phone?: string | null
           primary_email: string
           production_stage_override?: string | null
           production_stage_override_at?: string | null
           production_stage_override_by?: string | null
           secondary_email?: string | null
           services_added?: Json
+          shared_city?: string | null
+          shared_state?: string | null
+          shared_street_address?: string | null
+          shared_zipcode?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           updated_at?: string
           venue_address?: string | null
@@ -437,6 +453,8 @@ export type Database = {
         Update: {
           album_workflow_activated_at?: string | null
           album_workflow_active?: boolean
+          alternate_client_last_name?: string | null
+          alternate_client_phone?: string | null
           booked_at?: string | null
           couple_name_1?: string
           couple_name_2?: string | null
@@ -458,12 +476,18 @@ export type Database = {
           portal_first_login_at?: string | null
           portal_invited_at?: string | null
           portal_login_mode?: string | null
+          primary_client_last_name?: string | null
+          primary_client_phone?: string | null
           primary_email?: string
           production_stage_override?: string | null
           production_stage_override_at?: string | null
           production_stage_override_by?: string | null
           secondary_email?: string | null
           services_added?: Json
+          shared_city?: string | null
+          shared_state?: string | null
+          shared_street_address?: string | null
+          shared_zipcode?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           updated_at?: string
           venue_address?: string | null

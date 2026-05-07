@@ -57,6 +57,14 @@ interface ClientDetailRow {
   last_contacted_at: string | null;
   portal_invited_at: string | null;
   portal_first_login_at: string | null;
+  primary_client_last_name: string | null;
+  alternate_client_last_name: string | null;
+  primary_client_phone: string | null;
+  alternate_client_phone: string | null;
+  shared_street_address: string | null;
+  shared_city: string | null;
+  shared_state: string | null;
+  shared_zipcode: string | null;
   package: { name: string } | null;
   photographer: { full_name: string | null } | null;
   manager: { full_name: string | null } | null;
@@ -103,6 +111,8 @@ function ClientDetail() {
       supabase.from("clients").select(`
         id, couple_name_1, couple_name_2, primary_email, secondary_email, phone,
         wedding_date, venue_name, venue_address, venue_street, venue_city, venue_state, venue_postal_code, guest_count, package_price, coverage_hours, status,
+        primary_client_last_name, alternate_client_last_name, primary_client_phone, alternate_client_phone,
+        shared_street_address, shared_city, shared_state, shared_zipcode,
         last_contacted_at, portal_invited_at, portal_first_login_at,
         package:packages(name),
         photographer:profiles!clients_photographer_id_fkey(full_name),
@@ -215,6 +225,29 @@ function ClientDetail() {
                 <Row label="Package" value={client.package?.name ?? "—"} />
                 <Row label="Investment" value={client.package_price ? `$${Number(client.package_price).toLocaleString()}` : "—"} />
                 <CoverageHoursRow clientId={client.id} initial={client.coverage_hours} onSaved={(v: number | null) => setClient((c) => c ? { ...c, coverage_hours: v } : c)} />
+              </Card>
+              <Card title="Client contact info">
+                <SectionHeader>Primary client</SectionHeader>
+                <TextFieldRow label="Last name" value={client.primary_client_last_name} field="primary_client_last_name" clientId={client.id}
+                  onSaved={(v) => setClient((c) => c ? { ...c, primary_client_last_name: v } : c)} />
+                <TextFieldRow label="Phone" value={client.primary_client_phone} field="primary_client_phone" clientId={client.id}
+                  onSaved={(v) => setClient((c) => c ? { ...c, primary_client_phone: v } : c)} />
+                <SectionHeader>Alternate client</SectionHeader>
+                <TextFieldRow label="Last name" value={client.alternate_client_last_name} field="alternate_client_last_name" clientId={client.id}
+                  onSaved={(v) => setClient((c) => c ? { ...c, alternate_client_last_name: v } : c)} />
+                <TextFieldRow label="Phone" value={client.alternate_client_phone} field="alternate_client_phone" clientId={client.id}
+                  onSaved={(v) => setClient((c) => c ? { ...c, alternate_client_phone: v } : c)} />
+                <SectionHeader>Shared home address</SectionHeader>
+                <TextFieldRow label="Street address" value={client.shared_street_address} field="shared_street_address" clientId={client.id}
+                  onSaved={(v) => setClient((c) => c ? { ...c, shared_street_address: v } : c)} />
+                <TextFieldRow label="City" value={client.shared_city} field="shared_city" clientId={client.id}
+                  onSaved={(v) => setClient((c) => c ? { ...c, shared_city: v } : c)} />
+                <div className="grid grid-cols-2 gap-3">
+                  <TextFieldRow label="State" value={client.shared_state} field="shared_state" clientId={client.id} maxLength={2}
+                    onSaved={(v) => setClient((c) => c ? { ...c, shared_state: v } : c)} />
+                  <TextFieldRow label="ZIP" value={client.shared_zipcode} field="shared_zipcode" clientId={client.id}
+                    onSaved={(v) => setClient((c) => c ? { ...c, shared_zipcode: v } : c)} />
+                </div>
               </Card>
             </div>
 
@@ -414,6 +447,52 @@ function TeamRow({ label, name }: { label: string; name: string }) {
       <div>
         <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
         <p className="text-sm text-foreground">{name}</p>
+      </div>
+    </div>
+  );
+}
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium pt-3 pb-1">{children}</p>;
+}
+
+function TextFieldRow({ label, value, field, clientId, onSaved, maxLength }: {
+  label: string;
+  value: string | null;
+  field: string;
+  clientId: string;
+  onSaved: (v: string | null) => void;
+  maxLength?: number;
+}) {
+  const [val, setVal] = useState<string>(value ?? "");
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { setVal(value ?? ""); }, [value]);
+
+  const save = async () => {
+    const trimmed = val.trim();
+    const next = trimmed === "" ? null : trimmed;
+    if (next === (value ?? null)) return;
+    setSaving(true);
+    const { error } = await supabase.from("clients").update({ [field]: next }).eq("id", clientId);
+    setSaving(false);
+    if (error) { toast.error(`Couldn't save ${label.toLowerCase()}.`); return; }
+    onSaved(next);
+  };
+
+  return (
+    <div className="flex justify-between items-center gap-3 py-2 border-b border-border last:border-0">
+      <span className="text-xs uppercase tracking-wider text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-2 flex-1 max-w-[220px]">
+        <input
+          type="text"
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onBlur={save}
+          maxLength={maxLength}
+          placeholder="—"
+          className="w-full px-2 py-1 bg-background border border-border rounded-md text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/20"
+        />
+        {saving && <span className="text-[10px] text-muted-foreground">…</span>}
       </div>
     </div>
   );

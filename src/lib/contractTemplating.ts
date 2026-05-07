@@ -31,6 +31,25 @@ export const PLACEHOLDERS: PlaceholderDef[] = [
   { key: "primary_email", token: "{primary_email}", label: "Primary email", description: "Couple's primary email", category: "couple" },
   { key: "secondary_email", token: "{secondary_email}", label: "Secondary email", description: "Couple's secondary email", category: "couple" },
 
+  // Primary client (contract terminology)
+  { key: "primary_client_first_name", token: "{primary_client_first_name}", label: "Primary client first name", description: "Primary client first name", category: "couple" },
+  { key: "primary_client_last_name", token: "{primary_client_last_name}", label: "Primary client last name", description: "Primary client last name", category: "couple" },
+  { key: "primary_client_full_name", token: "{primary_client_full_name}", label: "Primary client full name", description: "Primary client full name (first + last)", category: "couple" },
+  { key: "primary_client_phone", token: "{primary_client_phone}", label: "Primary client phone", description: "Primary client phone", category: "couple" },
+
+  // Alternate client (contract terminology)
+  { key: "alternate_client_first_name", token: "{alternate_client_first_name}", label: "Alternate client first name", description: "Alternate client first name", category: "couple" },
+  { key: "alternate_client_last_name", token: "{alternate_client_last_name}", label: "Alternate client last name", description: "Alternate client last name", category: "couple" },
+  { key: "alternate_client_full_name", token: "{alternate_client_full_name}", label: "Alternate client full name", description: "Alternate client full name (first + last)", category: "couple" },
+  { key: "alternate_client_phone", token: "{alternate_client_phone}", label: "Alternate client phone", description: "Alternate client phone", category: "couple" },
+
+  // Shared address
+  { key: "shared_street_address", token: "{shared_street_address}", label: "Shared street", description: "Couple shared street address", category: "couple" },
+  { key: "shared_city", token: "{shared_city}", label: "Shared city", description: "Couple shared city", category: "couple" },
+  { key: "shared_state", token: "{shared_state}", label: "Shared state", description: "Couple shared state", category: "couple" },
+  { key: "shared_zipcode", token: "{shared_zipcode}", label: "Shared ZIP", description: "Couple shared ZIP code", category: "couple" },
+  { key: "shared_full_address", token: "{shared_full_address}", label: "Shared full address", description: "Couple shared full address (assembled)", category: "couple" },
+
   // Contractor (only relevant for contractor templates)
   { key: "contractor_name", token: "{contractor_name}", label: "Contractor full name", description: "Contractor's full name", category: "contractor" },
   { key: "contractor_first_name", token: "{contractor_first_name}", label: "Contractor first name", description: "First word of contractor name", category: "contractor" },
@@ -74,6 +93,14 @@ export interface TemplatingContext {
     venue_postal_code?: string | null;
     primary_email?: string | null;
     secondary_email?: string | null;
+    primary_client_last_name?: string | null;
+    alternate_client_last_name?: string | null;
+    primary_client_phone?: string | null;
+    alternate_client_phone?: string | null;
+    shared_street_address?: string | null;
+    shared_city?: string | null;
+    shared_state?: string | null;
+    shared_zipcode?: string | null;
   };
   contractor?: {
     full_name?: string | null;
@@ -158,6 +185,23 @@ export function buildContextValues(ctx: TemplatingContext): Record<string, strin
     primary_email: c.primary_email ?? "",
     secondary_email: c.secondary_email ?? "",
 
+    primary_client_first_name: c.couple_name_1 ?? "",
+    primary_client_last_name: c.primary_client_last_name ?? "",
+    primary_client_full_name: [c.couple_name_1, c.primary_client_last_name].filter(Boolean).join(" "),
+    primary_client_phone: c.primary_client_phone ?? "",
+    alternate_client_first_name: c.couple_name_2 ?? "",
+    alternate_client_last_name: c.alternate_client_last_name ?? "",
+    alternate_client_full_name: [c.couple_name_2, c.alternate_client_last_name].filter(Boolean).join(" "),
+    alternate_client_phone: c.alternate_client_phone ?? "",
+    shared_street_address: c.shared_street_address ?? "",
+    shared_city: c.shared_city ?? "",
+    shared_state: c.shared_state ?? "",
+    shared_zipcode: c.shared_zipcode ?? "",
+    shared_full_address: [
+      c.shared_street_address,
+      [c.shared_city, c.shared_state, c.shared_zipcode].filter(Boolean).join(", "),
+    ].filter(Boolean).join("\n"),
+
     contractor_name: co.full_name ?? "",
     contractor_first_name: (co.full_name ?? "").split(" ")[0] ?? "",
     contractor_role: roleLabel(sr.role ?? null),
@@ -212,7 +256,8 @@ function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replace(/>/g, "&gt;")
+    .replace(/\n/g, "<br />");
 }
 
 export const SAMPLE_CONTEXT: TemplatingContext = {
@@ -227,6 +272,14 @@ export const SAMPLE_CONTEXT: TemplatingContext = {
     venue_postal_code: "13776",
     primary_email: "sophia@example.com",
     secondary_email: "ethan@example.com",
+    primary_client_last_name: "Reyes",
+    alternate_client_last_name: "Marlowe",
+    primary_client_phone: "(555) 123-4567",
+    alternate_client_phone: "(555) 234-5678",
+    shared_street_address: "123 Main St",
+    shared_city: "Brooklyn",
+    shared_state: "NY",
+    shared_zipcode: "11201",
   },
   contractor: { full_name: "Sample Contractor", email: "sample@example.com" },
   serviceRequest: { role: "second_shooter", agreed_hourly_rate: 75, agreed_hours: 8, agreed_total: 600 },
