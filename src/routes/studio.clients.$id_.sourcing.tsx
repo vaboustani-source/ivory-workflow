@@ -338,7 +338,7 @@ function LogResponseModal({ request, onClose, onSaved }: { request: ServiceReque
       if (!r || !h) { setSaving(false); toast.error("Rate and hours required for accepted"); return; }
       update.agreed_hourly_rate = r;
       update.agreed_hours = h;
-      update.agreed_total = Math.round(r * h);
+      // agreed_total is a generated column — Postgres calculates it
     }
     const { error } = await supabase.from("contractor_service_requests").update(update).eq("id", request.id);
     setSaving(false);
