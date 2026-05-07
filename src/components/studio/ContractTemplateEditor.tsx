@@ -13,10 +13,11 @@ interface Props {
   onChange: (html: string) => void;
 }
 
-const CATEGORY_LABELS: Record<PlaceholderCategory, string> = {
-  couple: "Couple / client",
-  contractor: "Contractor",
-  studio: "Studio",
+const categoryLabel = (cat: PlaceholderCategory, templateType: string): string => {
+  if (cat === "contractor") return "Contractor";
+  if (cat === "studio") return "Studio";
+  // couple
+  return templateType === "contractor" ? "Couple" : "Client";
 };
 
 export function ContractTemplateEditor({ initialContent, templateType, onChange }: Props) {
