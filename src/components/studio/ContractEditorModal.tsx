@@ -60,7 +60,7 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
     (async () => {
       const tplPromise = supabase
         .from("contract_templates")
-        .select("id, name, content, signature_required_role, template_type")
+        .select("id, name, content, signature_required_role, template_type, is_block_based")
         .eq("is_archived", false)
         .order("name");
       const contractPromise = existingContractId
