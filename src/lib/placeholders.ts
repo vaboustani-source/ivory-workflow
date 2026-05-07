@@ -8,7 +8,9 @@ export interface PlaceholderContext {
   wedding_date_short?: string;     // "06/14/2026"
   venue_name?: string;
   photographer_name?: string;
+  photographer_company?: string;
   studio_email?: string;
+  studio_phone?: string;
   studio_signature?: string;
 }
 
@@ -19,7 +21,9 @@ export const SAMPLE_CONTEXT: PlaceholderContext = {
   wedding_date_short: "06/14/2026",
   venue_name: "The Boathouse at Oakmoor",
   photographer_name: "Victoria Boustani",
+  photographer_company: "Stories by Victoria",
   studio_email: "hello@victoriaboustani.com",
+  studio_phone: "(555) 999-1234",
   studio_signature: "with care,\nStories by Victoria",
 };
 
@@ -30,7 +34,9 @@ export const PLACEHOLDER_LIST = [
   "wedding_date_short",
   "venue_name",
   "photographer_name",
+  "photographer_company",
   "studio_email",
+  "studio_phone",
   "studio_signature",
 ] as const;
 
