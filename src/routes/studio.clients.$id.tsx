@@ -57,6 +57,14 @@ interface ClientDetailRow {
   last_contacted_at: string | null;
   portal_invited_at: string | null;
   portal_first_login_at: string | null;
+  primary_client_last_name: string | null;
+  alternate_client_last_name: string | null;
+  primary_client_phone: string | null;
+  alternate_client_phone: string | null;
+  shared_street_address: string | null;
+  shared_city: string | null;
+  shared_state: string | null;
+  shared_zipcode: string | null;
   package: { name: string } | null;
   photographer: { full_name: string | null } | null;
   manager: { full_name: string | null } | null;
