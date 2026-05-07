@@ -171,7 +171,7 @@ function ActivityLogPage() {
     setPage(0);
     loadPage(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [from, to, actionGroup, targetType, userFilter, search]);
+  }, [from, to, actionGroup, targetType, userFilter, clientFilter, search]);
 
   const userMap = useMemo(() => {
     const m: Record<string, UserLite> = {};
