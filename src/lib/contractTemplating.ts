@@ -148,6 +148,10 @@ export function buildContextValues(ctx: TemplatingContext): Record<string, strin
     total_compensation: sr.agreed_total != null ? `$${sr.agreed_total}` : "",
 
     studio_name: studio.name ?? "Stories by Victoria",
+    photographer_name: studio.photographer_name ?? "",
+    photographer_company: studio.photographer_company ?? "Stories by Victoria",
+    studio_email: studio.studio_email ?? "",
+    studio_phone: studio.studio_phone ?? "",
     sbv_signer_name: studio.signer_name ?? "",
     today_date: today.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
     today_year: String(today.getFullYear()),
