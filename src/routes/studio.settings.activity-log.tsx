@@ -332,6 +332,19 @@ function ActivityLogPage() {
                       {relativeTime(r.created_at)}
                     </td>
                     <td className="px-6 py-4">
+                      {r.client_id && clientMap[r.client_id] ? (
+                        <Link
+                          to="/studio/clients/$id"
+                          params={{ id: r.client_id }}
+                          className="text-[13px] text-magenta hover:underline"
+                        >
+                          {clientLabel(clientMap[r.client_id])}
+                        </Link>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <span className="h-7 w-7 rounded-full bg-plum text-background flex items-center justify-center text-[10px] font-medium shrink-0">
                           {u?.full_name?.[0]?.toUpperCase() ?? "S"}
