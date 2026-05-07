@@ -31,6 +31,25 @@ export const PLACEHOLDERS: PlaceholderDef[] = [
   { key: "primary_email", token: "{primary_email}", label: "Primary email", description: "Couple's primary email", category: "couple" },
   { key: "secondary_email", token: "{secondary_email}", label: "Secondary email", description: "Couple's secondary email", category: "couple" },
 
+  // Primary client (contract terminology)
+  { key: "primary_client_first_name", token: "{primary_client_first_name}", label: "Primary client first name", description: "Primary client first name", category: "couple" },
+  { key: "primary_client_last_name", token: "{primary_client_last_name}", label: "Primary client last name", description: "Primary client last name", category: "couple" },
+  { key: "primary_client_full_name", token: "{primary_client_full_name}", label: "Primary client full name", description: "Primary client full name (first + last)", category: "couple" },
+  { key: "primary_client_phone", token: "{primary_client_phone}", label: "Primary client phone", description: "Primary client phone", category: "couple" },
+
+  // Alternate client (contract terminology)
+  { key: "alternate_client_first_name", token: "{alternate_client_first_name}", label: "Alternate client first name", description: "Alternate client first name", category: "couple" },
+  { key: "alternate_client_last_name", token: "{alternate_client_last_name}", label: "Alternate client last name", description: "Alternate client last name", category: "couple" },
+  { key: "alternate_client_full_name", token: "{alternate_client_full_name}", label: "Alternate client full name", description: "Alternate client full name (first + last)", category: "couple" },
+  { key: "alternate_client_phone", token: "{alternate_client_phone}", label: "Alternate client phone", description: "Alternate client phone", category: "couple" },
+
+  // Shared address
+  { key: "shared_street_address", token: "{shared_street_address}", label: "Shared street", description: "Couple shared street address", category: "couple" },
+  { key: "shared_city", token: "{shared_city}", label: "Shared city", description: "Couple shared city", category: "couple" },
+  { key: "shared_state", token: "{shared_state}", label: "Shared state", description: "Couple shared state", category: "couple" },
+  { key: "shared_zipcode", token: "{shared_zipcode}", label: "Shared ZIP", description: "Couple shared ZIP code", category: "couple" },
+  { key: "shared_full_address", token: "{shared_full_address}", label: "Shared full address", description: "Couple shared full address (assembled)", category: "couple" },
+
   // Contractor (only relevant for contractor templates)
   { key: "contractor_name", token: "{contractor_name}", label: "Contractor full name", description: "Contractor's full name", category: "contractor" },
   { key: "contractor_first_name", token: "{contractor_first_name}", label: "Contractor first name", description: "First word of contractor name", category: "contractor" },
