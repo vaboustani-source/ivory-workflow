@@ -111,6 +111,8 @@ function ClientDetail() {
       supabase.from("clients").select(`
         id, couple_name_1, couple_name_2, primary_email, secondary_email, phone,
         wedding_date, venue_name, venue_address, venue_street, venue_city, venue_state, venue_postal_code, guest_count, package_price, coverage_hours, status,
+        primary_client_last_name, alternate_client_last_name, primary_client_phone, alternate_client_phone,
+        shared_street_address, shared_city, shared_state, shared_zipcode,
         last_contacted_at, portal_invited_at, portal_first_login_at,
         package:packages(name),
         photographer:profiles!clients_photographer_id_fkey(full_name),
