@@ -309,6 +309,7 @@ function ActivityLogPage() {
             <thead>
               <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
                 <th className="px-6 py-3 font-medium w-[140px]">Time</th>
+                <th className="px-6 py-3 font-medium w-[200px]">Client</th>
                 <th className="px-6 py-3 font-medium w-[180px]">User</th>
                 <th className="px-6 py-3 font-medium w-[200px]">Action</th>
                 <th className="px-6 py-3 font-medium">Description</th>
