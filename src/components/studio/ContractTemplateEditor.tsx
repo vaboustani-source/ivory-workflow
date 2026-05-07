@@ -121,7 +121,7 @@ export function ContractTemplateEditor({ initialContent, templateType, onChange 
                     {Object.entries(grouped).map(([cat, items]) => (
                       <div key={cat} className="py-1">
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground px-3 py-1">
-                          {CATEGORY_LABELS[cat as PlaceholderCategory]}
+                          {categoryLabel(cat as PlaceholderCategory, templateType)}
                         </p>
                         {items.map((p) => (
                           <button
@@ -160,7 +160,7 @@ export function ContractTemplateEditor({ initialContent, templateType, onChange 
               {Object.entries(grouped).map(([cat, items]) => (
                 <div key={cat}>
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">
-                    {CATEGORY_LABELS[cat as PlaceholderCategory]}
+                    {categoryLabel(cat as PlaceholderCategory, templateType)}
                   </p>
                   <div className="space-y-1">
                     {items.map((p) => (
