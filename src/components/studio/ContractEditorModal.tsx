@@ -111,7 +111,8 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
 
   const validate = (): string | null => {
     if (!title.trim()) return "Title is required";
-    if (!content.trim()) return "Contract body is required";
+    const tpl = templates.find((t) => t.id === selectedTemplateId);
+    if (!tpl?.is_block_based && !content.trim()) return "Contract body is required";
     return null;
   };
 
