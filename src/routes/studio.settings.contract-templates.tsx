@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -9,6 +9,9 @@ import { BlockBuilder } from "@/components/studio/BlockBuilder";
 import { Plus, Search, ArrowLeft, Copy, Archive, ArchiveRestore, Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/studio/settings/contract-templates")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    duplicate: typeof search.duplicate === "string" ? search.duplicate : undefined,
+  }),
   component: ContractTemplatesSettings,
 });
 
@@ -39,12 +42,15 @@ function typePill(type: string) {
 
 function ContractTemplatesSettings() {
   const { user } = useAuth();
+  const urlSearch = useSearch({ from: "/studio/settings/contract-templates" });
+  const navigate = useNavigate({ from: "/studio/settings/contract-templates" });
   const [rows, setRows] = useState<TplRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [archivedFilter, setArchivedFilter] = useState<"active" | "archived" | "all">("active");
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<TplRow | "new" | null>(null);
+  const [duplicateProcessed, setDuplicateProcessed] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -56,6 +62,60 @@ function ContractTemplatesSettings() {
     setLoading(false);
   };
   useEffect(() => { load(); }, []);
+
+  // Handle ?duplicate=<templateId> — clone the template (and blocks) then open editor.
+  useEffect(() => {
+    const dupId = (urlSearch as any)?.duplicate as string | undefined;
+    if (!dupId || duplicateProcessed) return;
+    setDuplicateProcessed(true);
+    (async () => {
+      const { data: orig } = await supabase
+        .from("contract_templates")
+        .select("*")
+        .eq("id", dupId)
+        .maybeSingle();
+      if (!orig) {
+        toast.error("Template to duplicate not found");
+        navigate({ search: {} as any, replace: true });
+        return;
+      }
+      const dateStr = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      const { data: dupe, error } = await supabase
+        .from("contract_templates")
+        .insert({
+          name: `${orig.name} — Custom for ${dateStr}`,
+          content: orig.content,
+          template_type: orig.template_type,
+          signature_required_role: orig.signature_required_role,
+          is_block_based: orig.is_block_based,
+          created_by: user?.id ?? null,
+        })
+        .select("*")
+        .single();
+      if (error || !dupe) {
+        toast.error(error?.message ?? "Failed to duplicate");
+        navigate({ search: {} as any, replace: true });
+        return;
+      }
+      if (orig.is_block_based) {
+        const { data: blocks } = await supabase
+          .from("contract_template_blocks")
+          .select("position, block_type, config, content")
+          .eq("template_id", orig.id)
+          .order("position");
+        if (blocks?.length) {
+          await supabase.from("contract_template_blocks").insert(
+            blocks.map((b: any) => ({ ...b, template_id: dupe.id }))
+          );
+        }
+      }
+      toast.success("Custom template created");
+      navigate({ search: {} as any, replace: true });
+      await load();
+      setEditing(dupe as any);
+    })();
+  }, [urlSearch, duplicateProcessed, user?.id, navigate]);
+
 
   const visible = useMemo(() => {
     return rows.filter((r) => {
