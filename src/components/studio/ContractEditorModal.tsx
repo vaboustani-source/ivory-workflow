@@ -43,7 +43,7 @@ export function ContractEditorModal({ client, existingContractId, onClose, onSav
   const [signatureRole, setSignatureRole] = useState<"partner_1" | "both_partners">("partner_1");
   const [contractStatus, setContractStatus] = useState<string>("draft");
   const [showSentWarning, setShowSentWarning] = useState(false);
-  const [studioRow, setStudioRow] = useState<{ photographer_name: string | null; photographer_company: string | null; studio_email: string | null; studio_phone: string | null } | null>(null);
+  const [studioRow, setStudioRow] = useState<any>(null);
   const isEdit = !!existingContractId;
 
   useEffect(() => {
