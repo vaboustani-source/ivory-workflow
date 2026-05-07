@@ -42,13 +42,13 @@ function typePill(type: string) {
 
 function ContractTemplatesSettings() {
   const { user } = useAuth();
-  const search = useSearch({ from: "/studio/settings/contract-templates" });
+  const urlSearch = useSearch({ from: "/studio/settings/contract-templates" });
   const navigate = useNavigate({ from: "/studio/settings/contract-templates" });
   const [rows, setRows] = useState<TplRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [archivedFilter, setArchivedFilter] = useState<"active" | "archived" | "all">("active");
-  const [search_, setSearch] = useState("");
+  const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<TplRow | "new" | null>(null);
   const [duplicateProcessed, setDuplicateProcessed] = useState(false);
 
