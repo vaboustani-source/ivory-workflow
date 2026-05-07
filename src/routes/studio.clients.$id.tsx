@@ -13,6 +13,7 @@ import { StudioDocumentsTab } from "@/components/studio/DocumentsTab";
 import { StudioFormsTab } from "@/components/studio/FormsTab";
 import { ActivityList } from "@/components/ActivityList";
 import { ServicesAndTeamCard } from "@/components/studio/ServicesAndTeamCard";
+import { fullName, coupleFullNames } from "@/lib/coupleNames";
 
 type SearchSchema = { tab?: string; contract_id?: string; questionnaire_id?: string };
 
@@ -70,6 +71,26 @@ interface ClientDetailRow {
   manager: { full_name: string | null } | null;
 }
 
+type EditableFields = {
+  couple_name_1: string;
+  couple_name_2: string | null;
+  primary_client_last_name: string | null;
+  alternate_client_last_name: string | null;
+  primary_email: string;
+  secondary_email: string | null;
+  primary_client_phone: string | null;
+  alternate_client_phone: string | null;
+  shared_street_address: string | null;
+  shared_city: string | null;
+  shared_state: string | null;
+  shared_zipcode: string | null;
+  wedding_date: string | null;
+  venue_name: string | null;
+  venue_address: string | null;
+  guest_count: number | null;
+  package_price: number | null;
+};
+
 const STATUS_DOT: Record<string, string> = {
   lead: "bg-accent",
   booked: "bg-sage",
@@ -79,14 +100,39 @@ const STATUS_DOT: Record<string, string> = {
   archived: "bg-muted-foreground",
 };
 
+function snapshot(c: ClientDetailRow): EditableFields {
+  return {
+    couple_name_1: c.couple_name_1,
+    couple_name_2: c.couple_name_2,
+    primary_client_last_name: c.primary_client_last_name,
+    alternate_client_last_name: c.alternate_client_last_name,
+    primary_email: c.primary_email,
+    secondary_email: c.secondary_email,
+    primary_client_phone: c.primary_client_phone,
+    alternate_client_phone: c.alternate_client_phone,
+    shared_street_address: c.shared_street_address,
+    shared_city: c.shared_city,
+    shared_state: c.shared_state,
+    shared_zipcode: c.shared_zipcode,
+    wedding_date: c.wedding_date,
+    venue_name: c.venue_name,
+    venue_address: c.venue_address,
+    guest_count: c.guest_count,
+    package_price: c.package_price,
+  };
+}
+
 function ClientDetail() {
   const { id } = useParams({ from: "/studio/clients/$id" });
   const search = useSearch({ from: "/studio/clients/$id" });
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { profile: _profile } = useAuth();
   const [client, setClient] = useState<ClientDetailRow | null>(null);
   const initialTab: Tab = (search.tab && KEY_TO_TAB[search.tab]) || "Overview";
   const [tab, setTab] = useState<Tab>(initialTab);
+  const [editMode, setEditMode] = useState(false);
+  const [edited, setEdited] = useState<EditableFields | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const t = (search.tab && KEY_TO_TAB[search.tab]) || "Overview";
@@ -128,6 +174,53 @@ function ClientDetail() {
 
   useEffect(() => { load(); }, [id]);
 
+  const startEdit = () => {
+    if (!client) return;
+    setEdited(snapshot(client));
+    setEditMode(true);
+  };
+  const cancelEdit = () => {
+    setEdited(null);
+    setEditMode(false);
+  };
+  const saveEdit = async () => {
+    if (!edited || !client) return;
+    setSaving(true);
+    const payload = {
+      couple_name_1: edited.couple_name_1.trim() || client.couple_name_1,
+      couple_name_2: edited.couple_name_2?.trim() || null,
+      primary_client_last_name: edited.primary_client_last_name?.trim() || null,
+      alternate_client_last_name: edited.alternate_client_last_name?.trim() || null,
+      primary_email: edited.primary_email.trim() || client.primary_email,
+      secondary_email: edited.secondary_email?.trim() || null,
+      primary_client_phone: edited.primary_client_phone?.trim() || null,
+      alternate_client_phone: edited.alternate_client_phone?.trim() || null,
+      shared_street_address: edited.shared_street_address?.trim() || null,
+      shared_city: edited.shared_city?.trim() || null,
+      shared_state: edited.shared_state?.trim() || null,
+      shared_zipcode: edited.shared_zipcode?.trim() || null,
+      wedding_date: edited.wedding_date || null,
+      venue_name: edited.venue_name?.trim() || null,
+      venue_address: edited.venue_address?.trim() || null,
+      guest_count: edited.guest_count,
+      package_price: edited.package_price,
+    };
+    const { error } = await supabase.from("clients").update(payload).eq("id", client.id);
+    setSaving(false);
+    if (error) {
+      toast.error(error.message ?? "Couldn't save changes.");
+      return;
+    }
+    toast.success("Client updated.");
+    setEditMode(false);
+    setEdited(null);
+    await load();
+  };
+
+  const updateField = <K extends keyof EditableFields>(key: K, value: EditableFields[K]) => {
+    setEdited((prev) => (prev ? { ...prev, [key]: value } : prev));
+  };
+
   const sendInvite = async () => {
     const isResend = !!client?.portal_invited_at;
     try {
@@ -156,6 +249,11 @@ function ClientDetail() {
   const portalState: "not_invited" | "invited" | "active" =
     client.portal_first_login_at ? "active" : client.portal_invited_at ? "invited" : "not_invited";
 
+  const headerNames = coupleFullNames(
+    client.couple_name_1, client.primary_client_last_name,
+    client.couple_name_2, client.alternate_client_last_name,
+  ) || client.couple_name_1;
+
   return (
     <div className="-mx-8 -my-8">
       {/* Breadcrumb */}
@@ -163,16 +261,14 @@ function ClientDetail() {
         <nav className="text-xs text-muted-foreground flex items-center gap-1.5">
           <Link to="/studio/clients" className="hover:text-primary">Clients</Link>
           <ChevronRight size={12} />
-          <span className="text-foreground">{client.couple_name_1}{client.couple_name_2 ? " & " + client.couple_name_2 : ""}</span>
+          <span className="text-foreground">{headerNames}</span>
         </nav>
       </div>
 
       {/* Hero */}
       <div className="bg-primary px-8 min-h-[120px] max-h-[120px] flex items-center justify-between">
         <div>
-          <h1 className="font-serif italic text-[32px] text-background">
-            {client.couple_name_1}{client.couple_name_2 ? " & " + client.couple_name_2 : ""}
-          </h1>
+          <h1 className="font-serif italic text-[32px] text-background">{headerNames}</h1>
           <p className="text-sm text-gold mt-1">
             {client.wedding_date ? shortDate(client.wedding_date) : "Date TBD"}
             {client.venue_name && <> · {client.venue_name}</>}
@@ -183,7 +279,20 @@ function ClientDetail() {
             <span className={`h-2 w-2 rounded-full ${STATUS_DOT[client.status]}`} />
             {client.status}
           </span>
-          <button className="border border-gold text-gold px-4 py-1.5 rounded-md text-sm hover:bg-gold/10">Edit</button>
+          {tab === "Overview" && (
+            editMode ? (
+              <>
+                <button onClick={cancelEdit} disabled={saving} className="text-background/80 hover:text-background underline text-sm px-2">
+                  Cancel
+                </button>
+                <button onClick={saveEdit} disabled={saving} className="bg-background text-primary px-4 py-1.5 rounded-md text-sm hover:bg-background/90 disabled:opacity-60">
+                  {saving ? "Saving…" : "Save"}
+                </button>
+              </>
+            ) : (
+              <button onClick={startEdit} className="border border-gold text-gold px-4 py-1.5 rounded-md text-sm hover:bg-gold/10">Edit</button>
+            )
+          )}
         </div>
       </div>
 
@@ -210,44 +319,112 @@ function ClientDetail() {
             {/* Left column */}
             <div className="space-y-6">
               <Card title="Couple">
-                <div className="space-y-4">
-                  <PersonBlock name={client.couple_name_1} email={client.primary_email} phone={client.phone} />
-                  {client.couple_name_2 && (
-                    <PersonBlock name={client.couple_name_2} email={client.secondary_email} phone={null} />
-                  )}
-                </div>
+                {editMode && edited ? (
+                  <div className="space-y-5">
+                    <PersonEdit
+                      label="Primary client"
+                      first={edited.couple_name_1}
+                      last={edited.primary_client_last_name}
+                      email={edited.primary_email}
+                      phone={edited.primary_client_phone}
+                      onFirst={(v) => updateField("couple_name_1", v)}
+                      onLast={(v) => updateField("primary_client_last_name", v || null)}
+                      onEmail={(v) => updateField("primary_email", v)}
+                      onPhone={(v) => updateField("primary_client_phone", v || null)}
+                    />
+                    <PersonEdit
+                      label="Alternate client"
+                      first={edited.couple_name_2 ?? ""}
+                      last={edited.alternate_client_last_name}
+                      email={edited.secondary_email ?? ""}
+                      phone={edited.alternate_client_phone}
+                      onFirst={(v) => updateField("couple_name_2", v || null)}
+                      onLast={(v) => updateField("alternate_client_last_name", v || null)}
+                      onEmail={(v) => updateField("secondary_email", v || null)}
+                      onPhone={(v) => updateField("alternate_client_phone", v || null)}
+                    />
+                    <div>
+                      <SectionHeader>Shared home address</SectionHeader>
+                      <div className="space-y-2">
+                        <EditInput placeholder="Street" value={edited.shared_street_address ?? ""} onChange={(v) => updateField("shared_street_address", v || null)} />
+                        <EditInput placeholder="City" value={edited.shared_city ?? ""} onChange={(v) => updateField("shared_city", v || null)} />
+                        <div className="grid grid-cols-2 gap-2">
+                          <EditInput placeholder="State" maxLength={2} value={edited.shared_state ?? ""} onChange={(v) => updateField("shared_state", v || null)} />
+                          <EditInput placeholder="ZIP" value={edited.shared_zipcode ?? ""} onChange={(v) => updateField("shared_zipcode", v || null)} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-5">
+                    <PersonView
+                      label="Primary client"
+                      name={fullName(client.couple_name_1, client.primary_client_last_name) || client.couple_name_1}
+                      email={client.primary_email}
+                      phone={client.primary_client_phone}
+                    />
+                    {(client.couple_name_2 || client.alternate_client_last_name) && (
+                      <PersonView
+                        label="Alternate client"
+                        name={fullName(client.couple_name_2, client.alternate_client_last_name) || (client.couple_name_2 ?? "")}
+                        email={client.secondary_email}
+                        phone={client.alternate_client_phone}
+                      />
+                    )}
+                    {(client.shared_street_address || client.shared_city) && (
+                      <div>
+                        <SectionHeader>Shared home address</SectionHeader>
+                        <p className="text-sm text-foreground">
+                          {client.shared_street_address && <>{client.shared_street_address}<br /></>}
+                          {[client.shared_city, client.shared_state].filter(Boolean).join(", ")}
+                          {client.shared_zipcode ? ` ${client.shared_zipcode}` : ""}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </Card>
+
               <Card title="Wedding details">
-                <Row label="Date" value={client.wedding_date ? shortDate(client.wedding_date) : "—"} />
-                <Row label="Venue" value={client.venue_name ?? "—"} />
-                <AddressRow client={client} />
-                <Row label="Guest count" value={client.guest_count?.toString() ?? "—"} />
-                <Row label="Package" value={client.package?.name ?? "—"} />
-                <Row label="Investment" value={client.package_price ? `$${Number(client.package_price).toLocaleString()}` : "—"} />
-                <CoverageHoursRow clientId={client.id} initial={client.coverage_hours} onSaved={(v: number | null) => setClient((c) => c ? { ...c, coverage_hours: v } : c)} />
-              </Card>
-              <Card title="Client contact info">
-                <SectionHeader>Primary client</SectionHeader>
-                <TextFieldRow label="Last name" value={client.primary_client_last_name} field="primary_client_last_name" clientId={client.id}
-                  onSaved={(v) => setClient((c) => c ? { ...c, primary_client_last_name: v } : c)} />
-                <TextFieldRow label="Phone" value={client.primary_client_phone} field="primary_client_phone" clientId={client.id}
-                  onSaved={(v) => setClient((c) => c ? { ...c, primary_client_phone: v } : c)} />
-                <SectionHeader>Alternate client</SectionHeader>
-                <TextFieldRow label="Last name" value={client.alternate_client_last_name} field="alternate_client_last_name" clientId={client.id}
-                  onSaved={(v) => setClient((c) => c ? { ...c, alternate_client_last_name: v } : c)} />
-                <TextFieldRow label="Phone" value={client.alternate_client_phone} field="alternate_client_phone" clientId={client.id}
-                  onSaved={(v) => setClient((c) => c ? { ...c, alternate_client_phone: v } : c)} />
-                <SectionHeader>Shared home address</SectionHeader>
-                <TextFieldRow label="Street address" value={client.shared_street_address} field="shared_street_address" clientId={client.id}
-                  onSaved={(v) => setClient((c) => c ? { ...c, shared_street_address: v } : c)} />
-                <TextFieldRow label="City" value={client.shared_city} field="shared_city" clientId={client.id}
-                  onSaved={(v) => setClient((c) => c ? { ...c, shared_city: v } : c)} />
-                <div className="grid grid-cols-2 gap-3">
-                  <TextFieldRow label="State" value={client.shared_state} field="shared_state" clientId={client.id} maxLength={2}
-                    onSaved={(v) => setClient((c) => c ? { ...c, shared_state: v } : c)} />
-                  <TextFieldRow label="ZIP" value={client.shared_zipcode} field="shared_zipcode" clientId={client.id}
-                    onSaved={(v) => setClient((c) => c ? { ...c, shared_zipcode: v } : c)} />
-                </div>
+                {editMode && edited ? (
+                  <div className="space-y-3">
+                    <EditRow label="Date">
+                      <input type="date" value={edited.wedding_date ?? ""} onChange={(e) => updateField("wedding_date", e.target.value || null)}
+                        className="px-2 py-1 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                    </EditRow>
+                    <EditRow label="Venue">
+                      <EditInput value={edited.venue_name ?? ""} onChange={(v) => updateField("venue_name", v || null)} placeholder="Venue name" />
+                    </EditRow>
+                    <EditRow label="Address">
+                      <EditInput value={edited.venue_address ?? ""} onChange={(v) => updateField("venue_address", v || null)} placeholder="Venue address" />
+                    </EditRow>
+                    <EditRow label="Guest count">
+                      <input type="number" min="0" value={edited.guest_count ?? ""} onChange={(e) => updateField("guest_count", e.target.value === "" ? null : Number(e.target.value))}
+                        className="w-24 px-2 py-1 bg-background border border-border rounded-md text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                    </EditRow>
+                    <EditRow label="Package">
+                      <span className="text-sm text-muted-foreground italic">{client.package?.name ?? "—"}</span>
+                    </EditRow>
+                    <EditRow label="Investment">
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm text-muted-foreground">$</span>
+                        <input type="number" min="0" value={edited.package_price ?? ""} onChange={(e) => updateField("package_price", e.target.value === "" ? null : Number(e.target.value))}
+                          className="w-28 px-2 py-1 bg-background border border-border rounded-md text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                      </div>
+                    </EditRow>
+                    <CoverageHoursRow clientId={client.id} initial={client.coverage_hours} onSaved={(v: number | null) => setClient((c) => c ? { ...c, coverage_hours: v } : c)} />
+                  </div>
+                ) : (
+                  <>
+                    <Row label="Date" value={client.wedding_date ? shortDate(client.wedding_date) : "—"} />
+                    <Row label="Venue" value={client.venue_name ?? "—"} />
+                    <AddressRow client={client} />
+                    <Row label="Guest count" value={client.guest_count?.toString() ?? "—"} />
+                    <Row label="Package" value={client.package?.name ?? "—"} />
+                    <Row label="Investment" value={client.package_price ? `$${Number(client.package_price).toLocaleString()}` : "—"} />
+                    <CoverageHoursRow clientId={client.id} initial={client.coverage_hours} onSaved={(v: number | null) => setClient((c) => c ? { ...c, coverage_hours: v } : c)} />
+                  </>
+                )}
               </Card>
             </div>
 
@@ -344,10 +521,31 @@ function Row({ label, value, valueClass = "" }: { label: string; value: string; 
   );
 }
 
+function EditRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex justify-between items-center gap-3 py-2 border-b border-border last:border-0">
+      <span className="text-xs uppercase tracking-wider text-muted-foreground">{label}</span>
+      <div>{children}</div>
+    </div>
+  );
+}
+
+function EditInput({ value, onChange, placeholder, maxLength }: { value: string; onChange: (v: string) => void; placeholder?: string; maxLength?: number }) {
+  return (
+    <input
+      type="text"
+      value={value}
+      maxLength={maxLength}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full px-2 py-1 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+    />
+  );
+}
+
 function AddressRow({ client }: { client: ClientDetailRow }) {
   const parts = [client.venue_street, client.venue_city, client.venue_state, client.venue_postal_code].filter(Boolean) as string[];
   if (parts.length === 0) {
-    // Fall back to legacy single-field address if present.
     if (client.venue_address) {
       const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(client.venue_address)}`;
       return (
@@ -428,12 +626,41 @@ function CoverageHoursRow({ clientId, initial, onSaved }: { clientId: string; in
   );
 }
 
-function PersonBlock({ name, email, phone }: { name: string; email: string | null; phone: string | null }) {
+function PersonView({ label, name, email, phone }: { label: string; name: string; email: string | null; phone: string | null }) {
   return (
     <div>
-      <p className="font-serif italic text-lg text-primary">{name}</p>
+      <SectionHeader>{label}</SectionHeader>
+      <p className="font-serif italic text-lg text-primary">{name || "—"}</p>
       {email && <p className="text-sm text-foreground mt-1">{email}</p>}
       {phone && <p className="text-sm text-muted-foreground">{phone}</p>}
+    </div>
+  );
+}
+
+function PersonEdit({
+  label, first, last, email, phone, onFirst, onLast, onEmail, onPhone,
+}: {
+  label: string;
+  first: string;
+  last: string | null;
+  email: string;
+  phone: string | null;
+  onFirst: (v: string) => void;
+  onLast: (v: string) => void;
+  onEmail: (v: string) => void;
+  onPhone: (v: string) => void;
+}) {
+  return (
+    <div>
+      <SectionHeader>{label}</SectionHeader>
+      <div className="grid grid-cols-2 gap-2 mb-2">
+        <EditInput value={first} onChange={onFirst} placeholder="First name" />
+        <EditInput value={last ?? ""} onChange={onLast} placeholder="Last name" />
+      </div>
+      <div className="space-y-2">
+        <EditInput value={email} onChange={onEmail} placeholder="Email" />
+        <EditInput value={phone ?? ""} onChange={onPhone} placeholder="Phone" />
+      </div>
     </div>
   );
 }
@@ -453,47 +680,5 @@ function TeamRow({ label, name }: { label: string; name: string }) {
 }
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
-  return <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium pt-3 pb-1">{children}</p>;
-}
-
-function TextFieldRow({ label, value, field, clientId, onSaved, maxLength }: {
-  label: string;
-  value: string | null;
-  field: string;
-  clientId: string;
-  onSaved: (v: string | null) => void;
-  maxLength?: number;
-}) {
-  const [val, setVal] = useState<string>(value ?? "");
-  const [saving, setSaving] = useState(false);
-  useEffect(() => { setVal(value ?? ""); }, [value]);
-
-  const save = async () => {
-    const trimmed = val.trim();
-    const next = trimmed === "" ? null : trimmed;
-    if (next === (value ?? null)) return;
-    setSaving(true);
-    const { error } = await supabase.from("clients").update({ [field]: next }).eq("id", clientId);
-    setSaving(false);
-    if (error) { toast.error(`Couldn't save ${label.toLowerCase()}.`); return; }
-    onSaved(next);
-  };
-
-  return (
-    <div className="flex justify-between items-center gap-3 py-2 border-b border-border last:border-0">
-      <span className="text-xs uppercase tracking-wider text-muted-foreground">{label}</span>
-      <div className="flex items-center gap-2 flex-1 max-w-[220px]">
-        <input
-          type="text"
-          value={val}
-          onChange={(e) => setVal(e.target.value)}
-          onBlur={save}
-          maxLength={maxLength}
-          placeholder="—"
-          className="w-full px-2 py-1 bg-background border border-border rounded-md text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/20"
-        />
-        {saving && <span className="text-[10px] text-muted-foreground">…</span>}
-      </div>
-    </div>
-  );
+  return <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium pt-1 pb-2">{children}</p>;
 }
