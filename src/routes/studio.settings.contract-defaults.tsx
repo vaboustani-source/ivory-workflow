@@ -26,7 +26,7 @@ function ContractDefaultsPage() {
     (async () => {
       const { data } = await supabase
         .from("studio_settings")
-        .select("id, overage_hourly_rate, video_cancellation_fee, album_credit_expiry_months, rescheduling_fee_pct")
+        .select("id, overage_hourly_rate, video_cancellation_fee, album_credit_expiry_months, rescheduling_fee_pct, default_editing_rate")
         .eq("is_active", true)
         .maybeSingle();
       setRow(data as any);
