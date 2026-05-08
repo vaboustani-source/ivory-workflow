@@ -90,6 +90,21 @@ function ContractDefaultsPage() {
           onSave={(v) => save("rescheduling_fee_pct", v)}
         />
       </section>
+
+      <section className="space-y-5">
+        <div>
+          <h2 className="font-serif italic text-xl text-primary">Editing</h2>
+          <p className="text-sm text-muted-foreground mt-1">Used by Financials calculations.</p>
+        </div>
+        <NumField
+          label="Default editing rate"
+          prefix="$"
+          suffix="/image"
+          defaultValue={row.default_editing_rate}
+          helper="Default rate applied to new clients. Existing clients keep their own rate."
+          onSave={(v) => save("default_editing_rate", v)}
+        />
+      </section>
     </div>
   );
 }
