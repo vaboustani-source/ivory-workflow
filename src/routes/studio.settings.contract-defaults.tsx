@@ -13,9 +13,10 @@ interface Settings {
   video_cancellation_fee: number | null;
   album_credit_expiry_months: number | null;
   rescheduling_fee_pct: number | null;
+  default_editing_rate: number | null;
 }
 
-type FieldKey = "overage_hourly_rate" | "video_cancellation_fee" | "album_credit_expiry_months" | "rescheduling_fee_pct";
+type FieldKey = "overage_hourly_rate" | "video_cancellation_fee" | "album_credit_expiry_months" | "rescheduling_fee_pct" | "default_editing_rate";
 
 function ContractDefaultsPage() {
   const [row, setRow] = useState<Settings | null>(null);
