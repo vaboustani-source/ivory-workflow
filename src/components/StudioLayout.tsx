@@ -35,6 +35,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Contracts", to: "/studio/contracts", icon: FileText, badgeKey: "contracts", badgeStyle: "dot" },
   { label: "Forms", to: "/studio/forms", icon: ClipboardList, badgeKey: "forms", badgeStyle: "dot" },
   { label: "Invoices", to: "/studio/invoices", icon: Receipt },
+  { label: "Financials", to: "/studio/financials", icon: DollarSign },
   { label: "Resources", to: "/studio/resources", icon: BookOpen },
   { label: "Settings", to: "/studio/settings/team", icon: Settings, matchPrefix: "/studio/settings" },
 ];
