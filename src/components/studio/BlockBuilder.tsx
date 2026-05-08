@@ -42,9 +42,6 @@ const GROUP_STYLES: Record<Group, { card: string; header: string; pill: string; 
   },
 };
 
-function groupOf(type: BlockType): Group {
-  return BLOCK_LIBRARY.find((b) => b.type === type)?.group ?? "Display";
-}
 
 export function BlockBuilder({ templateId }: Props) {
   const [blocks, setBlocks] = useState<ContractBlock[]>([]);
