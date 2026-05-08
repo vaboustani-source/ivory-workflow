@@ -26,6 +26,7 @@ import { Route as StudioFormsRouteImport } from './routes/studio.forms'
 import { Route as StudioFinancialsRouteImport } from './routes/studio.financials'
 import { Route as StudioContractsRouteImport } from './routes/studio.contracts'
 import { Route as StudioCalendarRouteImport } from './routes/studio.calendar'
+import { Route as StudioBriefingsRouteImport } from './routes/studio.briefings'
 import { Route as StudioApprovalQueueRouteImport } from './routes/studio.approval-queue'
 import { Route as PortalWelcomeRouteImport } from './routes/portal.welcome'
 import { Route as PortalTimelineRouteImport } from './routes/portal.timeline'
@@ -59,6 +60,7 @@ import { Route as StudioPipelineSalesRouteImport } from './routes/studio.pipelin
 import { Route as StudioPipelineProductionRouteImport } from './routes/studio.pipeline.production'
 import { Route as StudioContractsTemplatesRouteImport } from './routes/studio.contracts.templates'
 import { Route as StudioClientsIdRouteImport } from './routes/studio.clients.$id'
+import { Route as StudioBriefingsIdRouteImport } from './routes/studio.briefings.$id'
 import { Route as SignContractContractIdRouteImport } from './routes/sign.contract.$contractId'
 import { Route as PortalAccountSecurityRouteImport } from './routes/portal.account.security'
 import { Route as PortalAccountPartnerRouteImport } from './routes/portal.account.partner'
@@ -151,6 +153,11 @@ const StudioContractsRoute = StudioContractsRouteImport.update({
 const StudioCalendarRoute = StudioCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioBriefingsRoute = StudioBriefingsRouteImport.update({
+  id: '/briefings',
+  path: '/briefings',
   getParentRoute: () => StudioRoute,
 } as any)
 const StudioApprovalQueueRoute = StudioApprovalQueueRouteImport.update({
@@ -327,6 +334,11 @@ const StudioClientsIdRoute = StudioClientsIdRouteImport.update({
   path: '/clients/$id',
   getParentRoute: () => StudioRoute,
 } as any)
+const StudioBriefingsIdRoute = StudioBriefingsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => StudioBriefingsRoute,
+} as any)
 const SignContractContractIdRoute = SignContractContractIdRouteImport.update({
   id: '/sign/contract/$contractId',
   path: '/sign/contract/$contractId',
@@ -390,6 +402,7 @@ export interface FileRoutesByFullPath {
   '/portal/timeline': typeof PortalTimelineRoute
   '/portal/welcome': typeof PortalWelcomeRoute
   '/studio/approval-queue': typeof StudioApprovalQueueRoute
+  '/studio/briefings': typeof StudioBriefingsRouteWithChildren
   '/studio/calendar': typeof StudioCalendarRoute
   '/studio/contracts': typeof StudioContractsRouteWithChildren
   '/studio/financials': typeof StudioFinancialsRoute
@@ -407,6 +420,7 @@ export interface FileRoutesByFullPath {
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
   '/sign/contract/$contractId': typeof SignContractContractIdRoute
+  '/studio/briefings/$id': typeof StudioBriefingsIdRoute
   '/studio/clients/$id': typeof StudioClientsIdRoute
   '/studio/contracts/templates': typeof StudioContractsTemplatesRouteWithChildren
   '/studio/pipeline/production': typeof StudioPipelineProductionRoute
@@ -447,6 +461,7 @@ export interface FileRoutesByTo {
   '/portal/timeline': typeof PortalTimelineRoute
   '/portal/welcome': typeof PortalWelcomeRoute
   '/studio/approval-queue': typeof StudioApprovalQueueRoute
+  '/studio/briefings': typeof StudioBriefingsRouteWithChildren
   '/studio/calendar': typeof StudioCalendarRoute
   '/studio/contracts': typeof StudioContractsRouteWithChildren
   '/studio/financials': typeof StudioFinancialsRoute
@@ -464,6 +479,7 @@ export interface FileRoutesByTo {
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
   '/sign/contract/$contractId': typeof SignContractContractIdRoute
+  '/studio/briefings/$id': typeof StudioBriefingsIdRoute
   '/studio/clients/$id': typeof StudioClientsIdRoute
   '/studio/contracts/templates': typeof StudioContractsTemplatesRouteWithChildren
   '/studio/pipeline/production': typeof StudioPipelineProductionRoute
@@ -508,6 +524,7 @@ export interface FileRoutesById {
   '/portal/timeline': typeof PortalTimelineRoute
   '/portal/welcome': typeof PortalWelcomeRoute
   '/studio/approval-queue': typeof StudioApprovalQueueRoute
+  '/studio/briefings': typeof StudioBriefingsRouteWithChildren
   '/studio/calendar': typeof StudioCalendarRoute
   '/studio/contracts': typeof StudioContractsRouteWithChildren
   '/studio/financials': typeof StudioFinancialsRoute
@@ -525,6 +542,7 @@ export interface FileRoutesById {
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
   '/sign/contract/$contractId': typeof SignContractContractIdRoute
+  '/studio/briefings/$id': typeof StudioBriefingsIdRoute
   '/studio/clients/$id': typeof StudioClientsIdRoute
   '/studio/contracts/templates': typeof StudioContractsTemplatesRouteWithChildren
   '/studio/pipeline/production': typeof StudioPipelineProductionRoute
@@ -570,6 +588,7 @@ export interface FileRouteTypes {
     | '/portal/timeline'
     | '/portal/welcome'
     | '/studio/approval-queue'
+    | '/studio/briefings'
     | '/studio/calendar'
     | '/studio/contracts'
     | '/studio/financials'
@@ -587,6 +606,7 @@ export interface FileRouteTypes {
     | '/portal/account/partner'
     | '/portal/account/security'
     | '/sign/contract/$contractId'
+    | '/studio/briefings/$id'
     | '/studio/clients/$id'
     | '/studio/contracts/templates'
     | '/studio/pipeline/production'
@@ -627,6 +647,7 @@ export interface FileRouteTypes {
     | '/portal/timeline'
     | '/portal/welcome'
     | '/studio/approval-queue'
+    | '/studio/briefings'
     | '/studio/calendar'
     | '/studio/contracts'
     | '/studio/financials'
@@ -644,6 +665,7 @@ export interface FileRouteTypes {
     | '/portal/account/partner'
     | '/portal/account/security'
     | '/sign/contract/$contractId'
+    | '/studio/briefings/$id'
     | '/studio/clients/$id'
     | '/studio/contracts/templates'
     | '/studio/pipeline/production'
@@ -687,6 +709,7 @@ export interface FileRouteTypes {
     | '/portal/timeline'
     | '/portal/welcome'
     | '/studio/approval-queue'
+    | '/studio/briefings'
     | '/studio/calendar'
     | '/studio/contracts'
     | '/studio/financials'
@@ -704,6 +727,7 @@ export interface FileRouteTypes {
     | '/portal/account/partner'
     | '/portal/account/security'
     | '/sign/contract/$contractId'
+    | '/studio/briefings/$id'
     | '/studio/clients/$id'
     | '/studio/contracts/templates'
     | '/studio/pipeline/production'
@@ -857,6 +881,13 @@ declare module '@tanstack/react-router' {
       path: '/calendar'
       fullPath: '/studio/calendar'
       preLoaderRoute: typeof StudioCalendarRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/briefings': {
+      id: '/studio/briefings'
+      path: '/briefings'
+      fullPath: '/studio/briefings'
+      preLoaderRoute: typeof StudioBriefingsRouteImport
       parentRoute: typeof StudioRoute
     }
     '/studio/approval-queue': {
@@ -1090,6 +1121,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioClientsIdRouteImport
       parentRoute: typeof StudioRoute
     }
+    '/studio/briefings/$id': {
+      id: '/studio/briefings/$id'
+      path: '/$id'
+      fullPath: '/studio/briefings/$id'
+      preLoaderRoute: typeof StudioBriefingsIdRouteImport
+      parentRoute: typeof StudioBriefingsRoute
+    }
     '/sign/contract/$contractId': {
       id: '/sign/contract/$contractId'
       path: '/sign/contract/$contractId'
@@ -1202,6 +1240,18 @@ const PortalRouteChildren: PortalRouteChildren = {
 const PortalRouteWithChildren =
   PortalRoute._addFileChildren(PortalRouteChildren)
 
+interface StudioBriefingsRouteChildren {
+  StudioBriefingsIdRoute: typeof StudioBriefingsIdRoute
+}
+
+const StudioBriefingsRouteChildren: StudioBriefingsRouteChildren = {
+  StudioBriefingsIdRoute: StudioBriefingsIdRoute,
+}
+
+const StudioBriefingsRouteWithChildren = StudioBriefingsRoute._addFileChildren(
+  StudioBriefingsRouteChildren,
+)
+
 interface StudioContractsTemplatesRouteChildren {
   StudioContractsTemplatesIdRoute: typeof StudioContractsTemplatesIdRoute
 }
@@ -1282,6 +1332,7 @@ const StudioSettingsRouteWithChildren = StudioSettingsRoute._addFileChildren(
 
 interface StudioRouteChildren {
   StudioApprovalQueueRoute: typeof StudioApprovalQueueRoute
+  StudioBriefingsRoute: typeof StudioBriefingsRouteWithChildren
   StudioCalendarRoute: typeof StudioCalendarRoute
   StudioContractsRoute: typeof StudioContractsRouteWithChildren
   StudioFinancialsRoute: typeof StudioFinancialsRoute
@@ -1303,6 +1354,7 @@ interface StudioRouteChildren {
 
 const StudioRouteChildren: StudioRouteChildren = {
   StudioApprovalQueueRoute: StudioApprovalQueueRoute,
+  StudioBriefingsRoute: StudioBriefingsRouteWithChildren,
   StudioCalendarRoute: StudioCalendarRoute,
   StudioContractsRoute: StudioContractsRouteWithChildren,
   StudioFinancialsRoute: StudioFinancialsRoute,
