@@ -13,9 +13,10 @@ interface Settings {
   video_cancellation_fee: number | null;
   album_credit_expiry_months: number | null;
   rescheduling_fee_pct: number | null;
+  default_editing_rate: number | null;
 }
 
-type FieldKey = "overage_hourly_rate" | "video_cancellation_fee" | "album_credit_expiry_months" | "rescheduling_fee_pct";
+type FieldKey = "overage_hourly_rate" | "video_cancellation_fee" | "album_credit_expiry_months" | "rescheduling_fee_pct" | "default_editing_rate";
 
 function ContractDefaultsPage() {
   const [row, setRow] = useState<Settings | null>(null);
@@ -25,7 +26,7 @@ function ContractDefaultsPage() {
     (async () => {
       const { data } = await supabase
         .from("studio_settings")
-        .select("id, overage_hourly_rate, video_cancellation_fee, album_credit_expiry_months, rescheduling_fee_pct")
+        .select("id, overage_hourly_rate, video_cancellation_fee, album_credit_expiry_months, rescheduling_fee_pct, default_editing_rate")
         .eq("is_active", true)
         .maybeSingle();
       setRow(data as any);
@@ -87,6 +88,21 @@ function ContractDefaultsPage() {
           defaultValue={row.rescheduling_fee_pct}
           helper="Percentage of total fee charged to reschedule a wedding. Used as {rescheduling_fee_pct} placeholder."
           onSave={(v) => save("rescheduling_fee_pct", v)}
+        />
+      </section>
+
+      <section className="space-y-5">
+        <div>
+          <h2 className="font-serif italic text-xl text-primary">Editing</h2>
+          <p className="text-sm text-muted-foreground mt-1">Used by Financials calculations.</p>
+        </div>
+        <NumField
+          label="Default editing rate"
+          prefix="$"
+          suffix="/image"
+          defaultValue={row.default_editing_rate}
+          helper="Default rate applied to new clients. Existing clients keep their own rate."
+          onSave={(v) => save("default_editing_rate", v)}
         />
       </section>
     </div>

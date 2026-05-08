@@ -364,6 +364,8 @@ export type Database = {
           couple_name_2: string | null
           coverage_hours: number | null
           created_at: string
+          editing_rate_per_image: number | null
+          final_image_count: number | null
           guest_count: number | null
           has_album: boolean | null
           has_engagement: boolean | null
@@ -412,6 +414,8 @@ export type Database = {
           couple_name_2?: string | null
           coverage_hours?: number | null
           created_at?: string
+          editing_rate_per_image?: number | null
+          final_image_count?: number | null
           guest_count?: number | null
           has_album?: boolean | null
           has_engagement?: boolean | null
@@ -460,6 +464,8 @@ export type Database = {
           couple_name_2?: string | null
           coverage_hours?: number | null
           created_at?: string
+          editing_rate_per_image?: number | null
+          final_image_count?: number | null
           guest_count?: number | null
           has_album?: boolean | null
           has_engagement?: boolean | null
@@ -2275,6 +2281,7 @@ export type Database = {
         Row: {
           album_credit_expiry_months: number | null
           created_at: string | null
+          default_editing_rate: number | null
           ein: string | null
           id: string
           instagram: string | null
@@ -2294,6 +2301,7 @@ export type Database = {
         Insert: {
           album_credit_expiry_months?: number | null
           created_at?: string | null
+          default_editing_rate?: number | null
           ein?: string | null
           id?: string
           instagram?: string | null
@@ -2313,6 +2321,7 @@ export type Database = {
         Update: {
           album_credit_expiry_months?: number | null
           created_at?: string | null
+          default_editing_rate?: number | null
           ein?: string | null
           id?: string
           instagram?: string | null
@@ -2486,6 +2495,54 @@ export type Database = {
           {
             foreignKeyName: "timeline_milestones_completed_by_fkey"
             columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wedding_expenses: {
+        Row: {
+          amount: number
+          category: string | null
+          client_id: string
+          created_at: string | null
+          created_by: string | null
+          description: string
+          expense_date: string | null
+          id: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          client_id: string
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          expense_date?: string | null
+          id?: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          client_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          expense_date?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_expenses_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wedding_expenses_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
