@@ -13,6 +13,7 @@ import { StudioDocumentsTab } from "@/components/studio/DocumentsTab";
 import { StudioFormsTab } from "@/components/studio/FormsTab";
 import { ActivityList } from "@/components/ActivityList";
 import { ServicesAndTeamCard } from "@/components/studio/ServicesAndTeamCard";
+import { ClientFinancialsTab } from "@/components/studio/ClientFinancialsTab";
 import { fullName, coupleFullNames } from "@/lib/coupleNames";
 
 type SearchSchema = { tab?: string; contract_id?: string; questionnaire_id?: string };
