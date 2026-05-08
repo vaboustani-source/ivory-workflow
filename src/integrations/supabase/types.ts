@@ -175,6 +175,45 @@ export type Database = {
           },
         ]
       }
+      briefings: {
+        Row: {
+          ai_summary: string | null
+          created_at: string
+          data: Json
+          email_sent_at: string | null
+          email_sent_to: string | null
+          generated_at: string
+          generated_by: string
+          id: string
+          period_end: string
+          period_start: string
+        }
+        Insert: {
+          ai_summary?: string | null
+          created_at?: string
+          data: Json
+          email_sent_at?: string | null
+          email_sent_to?: string | null
+          generated_at?: string
+          generated_by?: string
+          id?: string
+          period_end: string
+          period_start: string
+        }
+        Update: {
+          ai_summary?: string | null
+          created_at?: string
+          data?: Json
+          email_sent_at?: string | null
+          email_sent_to?: string | null
+          generated_at?: string
+          generated_by?: string
+          id?: string
+          period_end?: string
+          period_start?: string
+        }
+        Relationships: []
+      }
       business_calendar_holidays: {
         Row: {
           created_at: string
