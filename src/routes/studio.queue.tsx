@@ -994,7 +994,7 @@ function ContractFollowupCard({ item, onDone }: { item: QueueItem; onDone: () =>
         <button onClick={regenerate} disabled={loading} className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground hover:text-primary disabled:opacity-40">Regenerate</button>
         <div className="flex items-center gap-2">
           <button onClick={onDone} className="px-3 py-1.5 text-xs text-muted-foreground hover:text-magenta inline-flex items-center gap-1.5"><X size={12} /> Dismiss</button>
-          <button onClick={send} disabled={!draft.trim() || sending} className="px-4 py-1.5 text-xs bg-primary text-primary-foreground rounded-sm inline-flex items-center gap-1.5 hover:opacity-90 disabled:opacity-40">
+          <button onClick={send} data-action="primary" disabled={!draft.trim() || sending} className="px-4 py-1.5 text-xs bg-primary text-primary-foreground rounded-sm inline-flex items-center gap-1.5 hover:opacity-90 disabled:opacity-40">
             <Send size={12} /> {sending ? "Sending…" : "Send nudge"}
           </button>
         </div>
@@ -1065,7 +1065,7 @@ function QuestionnaireFollowupCard({ item, onDone }: { item: QueueItem; onDone: 
         <button onClick={regenerate} disabled={loading} className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground hover:text-primary disabled:opacity-40">Regenerate</button>
         <div className="flex items-center gap-2">
           <button onClick={onDone} className="px-3 py-1.5 text-xs text-muted-foreground hover:text-magenta inline-flex items-center gap-1.5"><X size={12} /> Dismiss</button>
-          <button onClick={send} disabled={!draft.trim() || sending} className="px-4 py-1.5 text-xs bg-primary text-primary-foreground rounded-sm inline-flex items-center gap-1.5 hover:opacity-90 disabled:opacity-40">
+          <button onClick={send} data-action="primary" disabled={!draft.trim() || sending} className="px-4 py-1.5 text-xs bg-primary text-primary-foreground rounded-sm inline-flex items-center gap-1.5 hover:opacity-90 disabled:opacity-40">
             <Send size={12} /> {sending ? "Sending…" : "Send nudge"}
           </button>
         </div>
@@ -1134,7 +1134,7 @@ function MilestoneCard({ item, onDone }: { item: QueueItem; onDone: () => void }
         <button onClick={snooze} disabled={busy} className="px-3 py-1.5 text-xs text-primary hover:bg-primary/5 rounded-sm border border-primary/20 inline-flex items-center gap-1.5 disabled:opacity-40">
           <Clock size={12} /> Snooze 3 days
         </button>
-        <button onClick={markComplete} disabled={busy} className="px-4 py-1.5 text-xs bg-primary text-primary-foreground rounded-sm inline-flex items-center gap-1.5 hover:opacity-90 disabled:opacity-40">
+        <button onClick={markComplete} data-action="primary" disabled={busy} className="px-4 py-1.5 text-xs bg-primary text-primary-foreground rounded-sm inline-flex items-center gap-1.5 hover:opacity-90 disabled:opacity-40">
           <Check size={12} /> Mark complete
         </button>
       </div>
