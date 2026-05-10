@@ -256,40 +256,54 @@ export function StudioLayout({ children }: { children: ReactNode }) {
             {collapsed ? <Menu size={18} /> : <X size={18} />}
           </button>
         </div>
-        <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item);
-            const badgeCount = item.badgeKey ? badges[item.badgeKey] : 0;
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={`group flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm transition-colors relative ${
-                  active ? "bg-sidebar-accent text-sidebar-foreground" : "text-sidebar-foreground/80 hover:text-magenta"
-                }`}
-                title={collapsed ? item.label : undefined}
-              >
-                {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-sidebar-foreground rounded-r" />}
-                <Icon size={18} className={active ? "text-gold" : ""} />
-                {!collapsed && <span className="flex-1">{item.label}</span>}
-                {!collapsed && badgeCount > 0 && item.badgeStyle === "dot" && (
-                  <span className="h-2 w-2 rounded-full bg-gold" title={`${badgeCount} pending`} />
-                )}
-                {!collapsed && badgeCount > 0 && item.badgeStyle !== "dot" && (
-                  <span
-                    className="bg-magenta text-background text-[10px] font-semibold rounded-full px-1.5 min-w-[20px] h-[18px] inline-flex items-center justify-center relative"
-                    title={item.badgeKey === "messages" && unreadMentions > 0 ? `${badgeCount} unread, ${unreadMentions} mentions` : undefined}
-                  >
-                    {badgeCount > 99 ? "99+" : badgeCount}
-                    {item.badgeKey === "messages" && unreadMentions > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-gold ring-1 ring-sidebar" />
-                    )}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 px-2 overflow-y-auto pb-4">
+          {NAV_GROUPS.map((group, gi) => (
+            <div key={group.label ?? `g-${gi}`} className={gi === 0 ? "" : "mt-5"}>
+              {!collapsed && group.label && (
+                <p className="px-3 mb-1 text-[10px] uppercase tracking-[0.18em] text-sidebar-foreground/40">
+                  {group.label}
+                </p>
+              )}
+              {collapsed && group.label && gi !== 0 && (
+                <div className="mx-3 my-2 border-t border-sidebar-border/40" />
+              )}
+              <div className="space-y-0.5">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item);
+                  const badgeCount = item.badgeKey ? badges[item.badgeKey] : 0;
+                  return (
+                    <Link
+                      key={item.to + item.label}
+                      to={item.to}
+                      className={`group flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm transition-colors relative ${
+                        active ? "bg-sidebar-accent text-sidebar-foreground" : "text-sidebar-foreground/80 hover:text-magenta"
+                      }`}
+                      title={collapsed ? item.label : undefined}
+                    >
+                      {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-sidebar-foreground rounded-r" />}
+                      <Icon size={18} className={active ? "text-gold" : ""} />
+                      {!collapsed && <span className="flex-1">{item.label}</span>}
+                      {!collapsed && badgeCount > 0 && item.badgeStyle === "dot" && (
+                        <span className="h-2 w-2 rounded-full bg-gold" title={`${badgeCount} pending`} />
+                      )}
+                      {!collapsed && badgeCount > 0 && item.badgeStyle !== "dot" && (
+                        <span
+                          className="bg-magenta text-background text-[10px] font-semibold rounded-full px-1.5 min-w-[20px] h-[18px] inline-flex items-center justify-center relative"
+                          title={item.badgeKey === "messages" && unreadMentions > 0 ? `${badgeCount} unread, ${unreadMentions} mentions` : undefined}
+                        >
+                          {badgeCount > 99 ? "99+" : badgeCount}
+                          {item.badgeKey === "messages" && unreadMentions > 0 && (
+                            <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-gold ring-1 ring-sidebar" />
+                          )}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
         <div className="p-2 border-t border-sidebar-border">
           <button onClick={() => signOut()} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm text-sidebar-foreground/70 hover:text-magenta" title="Sign out">
