@@ -339,41 +339,141 @@ function QueuePage() {
     }, 250);
   }, [loadQueue]);
 
+  // ---------- Group items by client ----------
+  const groups = useMemo(() => {
+    const map = new Map<string, { client_id: string | null; couple_names: string; wedding_date: string | null; items: QueueItem[] }>();
+    items.forEach((it) => {
+      const key = it.client_id ?? "__none__";
+      if (!map.has(key)) {
+        map.set(key, { client_id: it.client_id, couple_names: it.couple_names, wedding_date: it.wedding_date, items: [] });
+      }
+      map.get(key)!.items.push(it);
+    });
+    // Sort groups: most-urgent item first (highest priority within group, then oldest age)
+    return Array.from(map.values()).sort((a, b) => {
+      const ai = a.items[0]; const bi = b.items[0];
+      if (bi.priority !== ai.priority) return bi.priority - ai.priority;
+      return bi.ageMs - ai.ageMs;
+    });
+  }, [items]);
+
+  // ---------- Keyboard shortcuts ----------
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
+  const flatItems = useMemo(() => groups.flatMap((g) => g.items), [groups]);
+  const cardRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
+
+  useEffect(() => {
+    if (!selectedId && flatItems.length > 0) setSelectedId(flatItems[0].id);
+    if (selectedId && !flatItems.find((it) => it.id === selectedId)) {
+      setSelectedId(flatItems[0]?.id ?? null);
+    }
+  }, [flatItems, selectedId]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const idx = flatItems.findIndex((it) => it.id === selectedId);
+      if (e.key === "j") {
+        e.preventDefault();
+        const next = flatItems[Math.min(flatItems.length - 1, Math.max(0, idx + 1))];
+        if (next) setSelectedId(next.id);
+      } else if (e.key === "k") {
+        e.preventDefault();
+        const prev = flatItems[Math.max(0, idx - 1)];
+        if (prev) setSelectedId(prev.id);
+      } else if (e.key === "?") {
+        e.preventDefault();
+        setHelpOpen((v) => !v);
+      } else if (e.key === "f") {
+        e.preventDefault();
+        if (flatItems.length > 0) setFocusMode((v) => !v);
+      } else if (e.key === "Escape") {
+        if (focusMode) setFocusMode(false);
+        else if (helpOpen) setHelpOpen(false);
+      } else if (e.key === "r") {
+        e.preventDefault();
+        const el = cardRefs.current.get(selectedId ?? "");
+        const ta = el?.querySelector("textarea") as HTMLTextAreaElement | null;
+        if (ta) { ta.focus(); }
+      } else if (e.key === "e") {
+        e.preventDefault();
+        const el = cardRefs.current.get(selectedId ?? "");
+        const btn = el?.querySelector<HTMLButtonElement>('[data-action="primary"]');
+        btn?.click();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [flatItems, selectedId, focusMode, helpOpen]);
+
+  // Scroll selected into view
+  useEffect(() => {
+    if (!selectedId) return;
+    const el = cardRefs.current.get(selectedId);
+    el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [selectedId]);
+
+  const selectedItem = flatItems.find((it) => it.id === selectedId);
+
   return (
     <div>
       {/* Header */}
-      <div className="flex items-end justify-between mb-8">
+      <div className="flex items-end justify-between mb-2">
         <div>
           <h1 className="font-serif italic text-4xl text-primary tracking-tight">Today</h1>
           <p className="font-serif italic text-base text-muted-foreground mt-1">
-            What needs your attention right now.
+            {greeting(profile?.full_name)}
           </p>
         </div>
-        <button
-          onClick={() => loadQueue()}
-          disabled={loading || refreshing}
-          className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground hover:text-primary disabled:opacity-50"
-        >
-          <RefreshCw size={13} className={refreshing ? "animate-spin" : ""} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-4">
+          {flatItems.length > 0 && (
+            <button
+              onClick={() => setFocusMode(true)}
+              className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-muted-foreground hover:text-primary"
+              title="Focus mode (f)"
+            >
+              <Maximize2 size={13} /> Focus
+            </button>
+          )}
+          <button
+            onClick={() => setHelpOpen(true)}
+            className="flex items-center gap-1.5 text-xs uppercase tracking-[0.18em] text-muted-foreground hover:text-primary"
+            title="Keyboard shortcuts (?)"
+          >
+            <Keyboard size={13} /> Shortcuts
+          </button>
+          <button
+            onClick={() => loadQueue()}
+            disabled={loading || refreshing}
+            className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground hover:text-primary disabled:opacity-50"
+          >
+            <RefreshCw size={13} className={refreshing ? "animate-spin" : ""} />
+            Refresh
+          </button>
+        </div>
       </div>
+      <div className="h-px bg-gold/30 max-w-3xl mb-6" />
 
       {loading ? (
         <LoadingState />
-      ) : items.length === 0 ? (
+      ) : groups.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="space-y-4 max-w-3xl">
-          {items.map((it) => (
-            <div
-              key={it.id}
-              className={`transition-all duration-250 ease-out ${
-                removing.has(it.id) ? "opacity-0 -translate-x-4" : "opacity-100"
-              }`}
-            >
-              <QueueCard item={it} onRemove={() => removeWithAnim(it.id)} />
-            </div>
+        <div className="space-y-6 max-w-3xl">
+          {groups.map((g) => (
+            <ClientGroupCard
+              key={g.client_id ?? "__none__"}
+              group={g}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              cardRefs={cardRefs}
+              removing={removing}
+              onRemove={removeWithAnim}
+            />
           ))}
         </div>
       )}
@@ -388,9 +488,231 @@ function QueuePage() {
           </Link>
         </div>
       )}
+
+      {helpOpen && <ShortcutsOverlay onClose={() => setHelpOpen(false)} />}
+      {focusMode && selectedItem && (
+        <FocusOverlay
+          item={selectedItem}
+          index={flatItems.findIndex((it) => it.id === selectedItem.id)}
+          total={flatItems.length}
+          onPrev={() => {
+            const i = flatItems.findIndex((it) => it.id === selectedItem.id);
+            const prev = flatItems[Math.max(0, i - 1)];
+            if (prev) setSelectedId(prev.id);
+          }}
+          onNext={() => {
+            const i = flatItems.findIndex((it) => it.id === selectedItem.id);
+            const next = flatItems[Math.min(flatItems.length - 1, i + 1)];
+            if (next) setSelectedId(next.id);
+          }}
+          onRemove={() => removeWithAnim(selectedItem.id)}
+          onClose={() => setFocusMode(false)}
+        />
+      )}
     </div>
   );
 }
+
+function greeting(name?: string | null): string {
+  const hr = new Date().getHours();
+  const first = (name ?? "").split(" ")[0] || "there";
+  if (hr < 5) return `Late night, ${first}.`;
+  if (hr < 12) return `Morning, ${first}.`;
+  if (hr < 17) return `Afternoon, ${first}.`;
+  return `Evening, ${first}.`;
+}
+
+// =====================================================================
+// Client group card
+// =====================================================================
+function urgencyForWedding(wedding_date: string | null): { label: string; tone: "magenta" | "gold" | "muted" } | null {
+  if (!wedding_date) return null;
+  const ms = new Date(wedding_date).getTime() - Date.now();
+  const days = Math.ceil(ms / (24 * 60 * 60 * 1000));
+  if (days < 0) return { label: "Past", tone: "muted" };
+  if (days <= 7) return { label: "Today", tone: "magenta" };
+  if (days <= 30) return { label: "This week", tone: "gold" };
+  return { label: "Soon", tone: "muted" };
+}
+
+function countdownLabel(wedding_date: string | null): string | null {
+  if (!wedding_date) return null;
+  const ms = new Date(wedding_date).getTime() - Date.now();
+  const days = Math.ceil(ms / (24 * 60 * 60 * 1000));
+  if (days < 0) return `${Math.abs(days)} days ago`;
+  if (days === 0) return "today";
+  if (days === 1) return "tomorrow";
+  return `${days} days`;
+}
+
+function ClientGroupCard({
+  group, selectedId, onSelect, cardRefs, removing, onRemove,
+}: {
+  group: { client_id: string | null; couple_names: string; wedding_date: string | null; items: QueueItem[] };
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  cardRefs: React.MutableRefObject<Map<string, HTMLDivElement | null>>;
+  removing: Set<string>;
+  onRemove: (id: string) => void;
+}) {
+  const urgency = urgencyForWedding(group.wedding_date);
+  const countdown = countdownLabel(group.wedding_date);
+  const toneClass =
+    urgency?.tone === "magenta" ? "bg-magenta/10 text-magenta border-magenta/30"
+    : urgency?.tone === "gold" ? "bg-gold/15 text-plum border-gold/40"
+    : "bg-muted/30 text-muted-foreground border-border";
+
+  return (
+    <section className="bg-surface border border-primary/15 rounded-sm shadow-sm overflow-hidden">
+      <header className="flex items-start justify-between px-5 py-4 border-b border-primary/10 bg-background-alt/40">
+        <div className="min-w-0">
+          {group.client_id ? (
+            <Link to="/studio/clients/$id" params={{ id: group.client_id }}
+              className="font-serif italic text-2xl text-primary hover:underline leading-tight">
+              {group.couple_names}
+            </Link>
+          ) : (
+            <span className="font-serif italic text-2xl text-primary leading-tight">{group.couple_names}</span>
+          )}
+          <div className="flex items-center gap-2 mt-1 text-[12px] text-muted-foreground">
+            {group.wedding_date && <span>{shortDate(group.wedding_date)}</span>}
+            {countdown && <span className="text-foreground/70">· {countdown}</span>}
+            <span>· {group.items.length} item{group.items.length === 1 ? "" : "s"}</span>
+          </div>
+        </div>
+        {urgency && (
+          <span className={`text-[10px] uppercase tracking-[0.18em] px-2 py-1 rounded-full border ${toneClass}`}>
+            {urgency.label}
+          </span>
+        )}
+      </header>
+      <div className="divide-y divide-primary/10">
+        {group.items.map((it) => (
+          <div
+            key={it.id}
+            ref={(el) => { cardRefs.current.set(it.id, el); }}
+            onClick={() => onSelect(it.id)}
+            className={`transition-all duration-250 ease-out ${
+              removing.has(it.id) ? "opacity-0 -translate-x-4" : "opacity-100"
+            } ${selectedId === it.id ? "bg-gold/[0.04]" : ""} relative`}
+          >
+            {selectedId === it.id && <span className="absolute left-0 top-2 bottom-2 w-[3px] bg-gold rounded-r" />}
+            <CompactItemRow item={it} onRemove={() => onRemove(it.id)} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CompactItemRow({ item, onRemove }: { item: QueueItem; onRemove: () => void }) {
+  const Icon = TYPE_ICON[item.type];
+  return (
+    <div className="px-5 py-4">
+      <div className="flex items-center gap-2 mb-2">
+        <Icon size={13} className="text-gold" />
+        <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{TYPE_LABEL[item.type]}</span>
+        <span className="text-[10px] text-muted-foreground italic ml-auto">
+          {item.ageMs > 0 ? relativeTime(new Date(Date.now() - item.ageMs).toISOString()) : "just now"}
+        </span>
+      </div>
+      {item.type === "message_reply" || item.type === "mention_reply" ? (
+        <MessageReplyCard item={item} onDone={onRemove} />
+      ) : item.type === "contract_followup" ? (
+        <ContractFollowupCard item={item} onDone={onRemove} />
+      ) : item.type === "questionnaire_followup" ? (
+        <QuestionnaireFollowupCard item={item} onDone={onRemove} />
+      ) : (
+        <MilestoneCard item={item} onDone={onRemove} />
+      )}
+    </div>
+  );
+}
+
+// =====================================================================
+// Shortcuts overlay
+// =====================================================================
+function ShortcutsOverlay({ onClose }: { onClose: () => void }) {
+  const rows: [string, string][] = [
+    ["j", "Next item"],
+    ["k", "Previous item"],
+    ["r", "Reply (focus draft)"],
+    ["e", "Mark done / send"],
+    ["f", "Toggle Focus mode"],
+    ["?", "Show this help"],
+    ["Esc", "Close overlay"],
+  ];
+  return (
+    <div className="fixed inset-0 z-50 bg-foreground/40 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-surface rounded-md shadow-elevated w-full max-w-[420px] p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-serif italic text-xl text-primary">Keyboard shortcuts</h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-primary"><X size={16} /></button>
+        </div>
+        <ul className="space-y-2">
+          {rows.map(([k, label]) => (
+            <li key={k} className="flex items-center justify-between text-sm">
+              <span className="text-foreground/80">{label}</span>
+              <kbd className="font-mono text-[11px] bg-background-alt border border-border px-2 py-0.5 rounded">{k}</kbd>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+// =====================================================================
+// Focus mode overlay (one item, full-bleed)
+// =====================================================================
+function FocusOverlay({
+  item, index, total, onPrev, onNext, onRemove, onClose,
+}: {
+  item: QueueItem; index: number; total: number;
+  onPrev: () => void; onNext: () => void; onRemove: () => void; onClose: () => void;
+}) {
+  const Icon = TYPE_ICON[item.type];
+  const countdown = countdownLabel(item.wedding_date);
+  return (
+    <div className="fixed inset-0 z-50 bg-background flex flex-col">
+      <header className="flex items-center justify-between px-8 py-5 border-b border-border">
+        <div className="flex items-center gap-3">
+          <Icon size={16} className="text-gold" />
+          <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{TYPE_LABEL[item.type]}</span>
+          <span className="text-muted-foreground">·</span>
+          <span className="font-serif italic text-2xl text-primary">{item.couple_names}</span>
+          {countdown && <span className="text-xs text-muted-foreground ml-2">{countdown}</span>}
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-muted-foreground tabular-nums">{index + 1} / {total}</span>
+          <button onClick={onPrev} className="p-2 rounded hover:bg-background-alt text-muted-foreground hover:text-primary" title="Previous (k)">
+            <ChevronUp size={16} />
+          </button>
+          <button onClick={onNext} className="p-2 rounded hover:bg-background-alt text-muted-foreground hover:text-primary" title="Next (j)">
+            <ChevronDown size={16} />
+          </button>
+          <button onClick={onClose} className="p-2 rounded hover:bg-background-alt text-muted-foreground hover:text-primary" title="Exit (Esc)">
+            <X size={16} />
+          </button>
+        </div>
+      </header>
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-2xl mx-auto py-12 px-8">
+          {item.type === "message_reply" || item.type === "mention_reply" ? (
+            <MessageReplyCard item={item} onDone={onRemove} />
+          ) : item.type === "contract_followup" ? (
+            <ContractFollowupCard item={item} onDone={onRemove} />
+          ) : item.type === "questionnaire_followup" ? (
+            <QuestionnaireFollowupCard item={item} onDone={onRemove} />
+          ) : (
+            <MilestoneCard item={item} onDone={onRemove} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 // =====================================================================
 // Card
