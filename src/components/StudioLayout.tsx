@@ -10,6 +10,8 @@ import { useViewAs } from "@/lib/view-as";
 import { firstName } from "@/lib/dates";
 import { supabase } from "@/integrations/supabase/client";
 import { ViewAsModal } from "@/components/ViewAsModal";
+import logoFull from "@/assets/logo-full.png";
+import logoMark from "@/assets/logo-mark.png";
 
 type NavItem = {
   label: string;
@@ -248,8 +250,12 @@ export function StudioLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen flex bg-background">
       <aside className={`${collapsed ? "w-[60px]" : "w-[220px]"} shrink-0 bg-sidebar text-sidebar-foreground flex flex-col transition-[width] duration-200 sticky top-0 h-screen`}>
         <div className="flex items-center justify-between px-4 py-6">
-          {!collapsed && <span className="font-serif italic text-2xl text-gold tracking-wide">SBV</span>}
-          {collapsed && <span className="font-serif italic text-xl text-gold mx-auto">S</span>}
+          {!collapsed && (
+            <img src={logoFull} alt="Stories by Victoria" className="h-10 w-auto object-contain" />
+          )}
+          {collapsed && (
+            <img src={logoMark} alt="SBV" className="h-8 w-8 object-contain mx-auto" />
+          )}
           <button onClick={() => setCollapsed((c) => !c)} className="text-sidebar-foreground/70 hover:text-gold lg:hidden" aria-label="Toggle sidebar">
             {collapsed ? <Menu size={18} /> : <X size={18} />}
           </button>
