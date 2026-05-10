@@ -69,9 +69,7 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
-// Flat list, used for badge type + active matching helpers.
-const NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
-// Reference unused icons so tree-shake-friendly imports stay valid.
+// Reference unused icons so imports stay valid for future PRs.
 void [Home, MessageCircle, Workflow, CheckSquare, ClipboardList];
 
 export function StudioLayout({ children }: { children: ReactNode }) {
