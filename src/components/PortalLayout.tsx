@@ -22,18 +22,45 @@ type NavItem = {
   showOnlyIfKey?: "portraitExists";
 };
 
-const NAV_ITEMS: NavItem[] = [
-  { label: "Home", to: "/portal", icon: Home, exact: true },
-  { label: "Timeline", to: "/portal/timeline", icon: Calendar, hideForLead: true },
-  { label: "Messages", to: "/portal/messages", icon: MessageCircle, badgeKey: "messages" },
-  { label: "Documents", to: "/portal/documents", icon: FileText, badgeKey: "documents" },
-  { label: "Forms", to: "/portal/questionnaires", icon: ClipboardList, badgeKey: "questionnaires" },
-  { label: "Activity", to: "/portal/activity", icon: Activity },
-  { label: "Family Portraits", to: "/portal/portrait-sequence", icon: Camera, hideForLead: true, badgeKey: "portrait", showOnlyIfKey: "portraitExists" },
-  { label: "Gallery", to: "/portal/gallery", icon: Image, hideForLead: true },
-  { label: "Invoices", to: "/portal/invoices", icon: Receipt, badgeKey: "documents" },
-  { label: "Resources", to: "/portal/resources", icon: BookOpen, hideForLead: true },
-  { label: "Account", to: "/portal/account", icon: User, matchPrefix: "/portal/account" },
+type NavGroup = { label: string | null; items: NavItem[] };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: null,
+    items: [
+      { label: "Home", to: "/portal", icon: Home, exact: true },
+      { label: "Messages", to: "/portal/messages", icon: MessageCircle, badgeKey: "messages" },
+    ],
+  },
+  {
+    label: "Plan",
+    items: [
+      { label: "Timeline", to: "/portal/timeline", icon: Calendar, hideForLead: true },
+      { label: "Forms", to: "/portal/questionnaires", icon: ClipboardList, badgeKey: "questionnaires" },
+      { label: "Family Portraits", to: "/portal/portrait-sequence", icon: Camera, hideForLead: true, badgeKey: "portrait", showOnlyIfKey: "portraitExists" },
+    ],
+  },
+  {
+    label: "Paperwork",
+    items: [
+      { label: "Documents", to: "/portal/documents", icon: FileText, badgeKey: "documents" },
+      { label: "Invoices", to: "/portal/invoices", icon: Receipt, badgeKey: "documents" },
+    ],
+  },
+  {
+    label: "Memories",
+    items: [
+      { label: "Gallery", to: "/portal/gallery", icon: Image, hideForLead: true },
+      { label: "Activity", to: "/portal/activity", icon: Activity },
+    ],
+  },
+  {
+    label: "You",
+    items: [
+      { label: "Resources", to: "/portal/resources", icon: BookOpen, hideForLead: true },
+      { label: "Account", to: "/portal/account", icon: User, matchPrefix: "/portal/account" },
+    ],
+  },
 ];
 
 
@@ -53,11 +80,14 @@ export function PortalLayout({
   const [flags, setFlags] = useState<{ portraitExists?: boolean }>({});
 
   const isLead = client?.status === "lead";
-  const visibleNav = NAV_ITEMS.filter((i) => {
+  const filterItem = (i: NavItem) => {
     if (isLead && i.hideForLead) return false;
-    if (i.showOnlyIfKey && !flags[i.showOnlyIfKey]) return false;
+    if (i.showOnlyIfKey && !flags[i.showOnlyIfKey as keyof typeof flags]) return false;
     return true;
-  });
+  };
+  const visibleGroups = NAV_GROUPS
+    .map((g) => ({ ...g, items: g.items.filter(filterItem) }))
+    .filter((g) => g.items.length > 0);
   const isActive = (i: NavItem) => {
     if (i.exact) return location.pathname === i.to;
     if (i.matchPrefix) return location.pathname.startsWith(i.matchPrefix);
@@ -141,37 +171,48 @@ export function PortalLayout({
           )}
         </div>
 
-        <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
-          {visibleNav.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item);
-            const badge = item.badgeKey ? badges[item.badgeKey] : undefined;
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                onClick={() => setMobileOpen(false)}
-                className={`group flex items-center gap-3 px-3 py-2.5 text-sm transition-colors relative rounded-sm ${
-                  active
-                    ? "text-primary bg-[#EFE3D8]"
-                    : "text-primary/75 hover:text-magenta"
-                }`}
-              >
-                {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-gold rounded-r" />}
-                <Icon size={17} className={active ? "text-gold" : ""} />
-                <span className="flex-1">{item.label}</span>
-                {badge && badge.kind !== "none" && (
-                  badge.count && badge.count > 0 ? (
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${badge.kind === "magenta" ? "bg-magenta text-background" : "bg-gold text-background"}`}>
-                      +{badge.count}
-                    </span>
-                  ) : (
-                    <span className={`h-2 w-2 rounded-full ${badge.kind === "magenta" ? "bg-magenta" : "bg-gold"}`} />
-                  )
-                )}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 px-3 pb-4 overflow-y-auto">
+          {visibleGroups.map((group, gi) => (
+            <div key={group.label ?? `g${gi}`} className={gi === 0 ? "" : "mt-5"}>
+              {group.label && (
+                <div className="px-3 pb-1.5 text-[10px] uppercase tracking-[0.18em] text-primary/45">
+                  {group.label}
+                </div>
+              )}
+              <div className="space-y-0.5">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item);
+                  const badge = item.badgeKey ? badges[item.badgeKey] : undefined;
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setMobileOpen(false)}
+                      className={`group flex items-center gap-3 px-3 py-2.5 text-sm transition-colors relative rounded-sm ${
+                        active
+                          ? "text-primary bg-[#EFE3D8]"
+                          : "text-primary/75 hover:text-magenta"
+                      }`}
+                    >
+                      {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-gold rounded-r" />}
+                      <Icon size={17} className={active ? "text-gold" : ""} />
+                      <span className="flex-1">{item.label}</span>
+                      {badge && badge.kind !== "none" && (
+                        badge.count && badge.count > 0 ? (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${badge.kind === "magenta" ? "bg-magenta text-background" : "bg-gold text-background"}`}>
+                            +{badge.count}
+                          </span>
+                        ) : (
+                          <span className={`h-2 w-2 rounded-full ${badge.kind === "magenta" ? "bg-magenta" : "bg-gold"}`} />
+                        )
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
 
