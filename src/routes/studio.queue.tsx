@@ -3,11 +3,11 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useViewAs } from "@/lib/view-as";
-import { editorialDate, relativeTime } from "@/lib/dates";
+import { editorialDate, relativeTime, shortDate } from "@/lib/dates";
 import { toast } from "sonner";
 import {
   RefreshCw, MessageCircle, FileText, ClipboardList, AlertCircle,
-  AtSign, Send, Check, Clock, X, Sparkles,
+  AtSign, Send, Check, Clock, X, Sparkles, Keyboard, Maximize2, ChevronUp, ChevronDown,
 } from "lucide-react";
 
 export const Route = createFileRoute("/studio/queue")({
