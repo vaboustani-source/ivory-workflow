@@ -80,11 +80,14 @@ export function PortalLayout({
   const [flags, setFlags] = useState<{ portraitExists?: boolean }>({});
 
   const isLead = client?.status === "lead";
-  const visibleNav = NAV_ITEMS.filter((i) => {
+  const filterItem = (i: NavItem) => {
     if (isLead && i.hideForLead) return false;
-    if (i.showOnlyIfKey && !flags[i.showOnlyIfKey]) return false;
+    if (i.showOnlyIfKey && !flags[i.showOnlyIfKey as keyof typeof flags]) return false;
     return true;
-  });
+  };
+  const visibleGroups = NAV_GROUPS
+    .map((g) => ({ ...g, items: g.items.filter(filterItem) }))
+    .filter((g) => g.items.length > 0);
   const isActive = (i: NavItem) => {
     if (i.exact) return location.pathname === i.to;
     if (i.matchPrefix) return location.pathname.startsWith(i.matchPrefix);
