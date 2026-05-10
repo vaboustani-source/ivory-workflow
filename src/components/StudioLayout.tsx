@@ -17,29 +17,62 @@ type NavItem = {
   icon: typeof Home;
   exact?: boolean;
   matchPrefix?: string;
-  badgeKey?: "approval" | "tasks" | "sales" | "production" | "messages" | "contracts" | "forms" | "queue";
+  badgeKey?: "approval" | "tasks" | "sales" | "production" | "messages" | "contracts" | "forms" | "queue" | "inbox";
   badgeStyle?: "count" | "dot";
 };
 
-const NAV_ITEMS: NavItem[] = [
-  { label: "Today", to: "/studio/queue", icon: ClipboardCheck, badgeKey: "queue" },
-  { label: "Dashboard", to: "/studio", icon: Home, exact: true },
-  { label: "Clients", to: "/studio/clients", icon: Users },
-  { label: "Approval Queue", to: "/studio/approval-queue", icon: Inbox, badgeKey: "approval" },
-  { label: "Sales Pipeline", to: "/studio/pipeline/sales", icon: KanbanSquare, badgeKey: "sales" },
-  { label: "Production Pipeline", to: "/studio/pipeline/production", icon: Workflow, badgeKey: "production" },
-  { label: "Messages", to: "/studio/messages", icon: MessageCircle, badgeKey: "messages" },
-  { label: "Calendar", to: "/studio/calendar", icon: Calendar },
-  { label: "Tasks", to: "/studio/tasks", icon: CheckSquare, badgeKey: "tasks" },
-  { label: "Galleries", to: "/studio/galleries", icon: Image },
-  { label: "Contracts", to: "/studio/contracts", icon: FileText, badgeKey: "contracts", badgeStyle: "dot" },
-  { label: "Forms", to: "/studio/forms", icon: ClipboardList, badgeKey: "forms", badgeStyle: "dot" },
-  { label: "Invoices", to: "/studio/invoices", icon: Receipt },
-  { label: "Financials", to: "/studio/financials", icon: DollarSign },
-  { label: "Briefings", to: "/studio/briefings", icon: Newspaper },
-  { label: "Resources", to: "/studio/resources", icon: BookOpen },
-  { label: "Settings", to: "/studio/settings/team", icon: Settings, matchPrefix: "/studio/settings" },
+type NavGroup = { label: string | null; items: NavItem[] };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: null,
+    items: [
+      { label: "Today", to: "/studio/queue", icon: ClipboardCheck, badgeKey: "queue" },
+    ],
+  },
+  {
+    label: "Daily",
+    items: [
+      { label: "Inbox", to: "/studio/approval-queue", icon: Inbox, badgeKey: "inbox" },
+      { label: "Calendar", to: "/studio/calendar", icon: Calendar },
+    ],
+  },
+  {
+    label: "Clients",
+    items: [
+      { label: "All clients", to: "/studio/clients", icon: Users },
+      { label: "Pipeline", to: "/studio/pipeline/sales", icon: KanbanSquare, matchPrefix: "/studio/pipeline", badgeKey: "sales" },
+      { label: "Approvals", to: "/studio/approval-queue", icon: ClipboardCheck, badgeKey: "approval" },
+    ],
+  },
+  {
+    label: "Library",
+    items: [
+      { label: "Galleries", to: "/studio/galleries", icon: Image },
+      { label: "Documents", to: "/studio/contracts", icon: FileText, matchPrefix: "/studio/contracts", badgeKey: "contracts", badgeStyle: "dot" },
+      { label: "Briefings", to: "/studio/briefings", icon: Newspaper },
+      { label: "Resources", to: "/studio/resources", icon: BookOpen },
+    ],
+  },
+  {
+    label: "Books",
+    items: [
+      { label: "Financials", to: "/studio/financials", icon: DollarSign },
+      { label: "Invoices", to: "/studio/invoices", icon: Receipt },
+    ],
+  },
+  {
+    label: "Settings",
+    items: [
+      { label: "Settings", to: "/studio/settings/team", icon: Settings, matchPrefix: "/studio/settings" },
+    ],
+  },
 ];
+
+// Flat list, used for badge type + active matching helpers.
+const NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
+// Reference unused icons so tree-shake-friendly imports stay valid.
+void [Home, MessageCircle, Workflow, CheckSquare, ClipboardList];
 
 export function StudioLayout({ children }: { children: ReactNode }) {
   const { profile, signOut } = useAuth();
