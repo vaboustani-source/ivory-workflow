@@ -22,18 +22,45 @@ type NavItem = {
   showOnlyIfKey?: "portraitExists";
 };
 
-const NAV_ITEMS: NavItem[] = [
-  { label: "Home", to: "/portal", icon: Home, exact: true },
-  { label: "Timeline", to: "/portal/timeline", icon: Calendar, hideForLead: true },
-  { label: "Messages", to: "/portal/messages", icon: MessageCircle, badgeKey: "messages" },
-  { label: "Documents", to: "/portal/documents", icon: FileText, badgeKey: "documents" },
-  { label: "Forms", to: "/portal/questionnaires", icon: ClipboardList, badgeKey: "questionnaires" },
-  { label: "Activity", to: "/portal/activity", icon: Activity },
-  { label: "Family Portraits", to: "/portal/portrait-sequence", icon: Camera, hideForLead: true, badgeKey: "portrait", showOnlyIfKey: "portraitExists" },
-  { label: "Gallery", to: "/portal/gallery", icon: Image, hideForLead: true },
-  { label: "Invoices", to: "/portal/invoices", icon: Receipt, badgeKey: "documents" },
-  { label: "Resources", to: "/portal/resources", icon: BookOpen, hideForLead: true },
-  { label: "Account", to: "/portal/account", icon: User, matchPrefix: "/portal/account" },
+type NavGroup = { label: string | null; items: NavItem[] };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: null,
+    items: [
+      { label: "Home", to: "/portal", icon: Home, exact: true },
+      { label: "Messages", to: "/portal/messages", icon: MessageCircle, badgeKey: "messages" },
+    ],
+  },
+  {
+    label: "Plan",
+    items: [
+      { label: "Timeline", to: "/portal/timeline", icon: Calendar, hideForLead: true },
+      { label: "Forms", to: "/portal/questionnaires", icon: ClipboardList, badgeKey: "questionnaires" },
+      { label: "Family Portraits", to: "/portal/portrait-sequence", icon: Camera, hideForLead: true, badgeKey: "portrait", showOnlyIfKey: "portraitExists" },
+    ],
+  },
+  {
+    label: "Paperwork",
+    items: [
+      { label: "Documents", to: "/portal/documents", icon: FileText, badgeKey: "documents" },
+      { label: "Invoices", to: "/portal/invoices", icon: Receipt, badgeKey: "documents" },
+    ],
+  },
+  {
+    label: "Memories",
+    items: [
+      { label: "Gallery", to: "/portal/gallery", icon: Image, hideForLead: true },
+      { label: "Activity", to: "/portal/activity", icon: Activity },
+    ],
+  },
+  {
+    label: "You",
+    items: [
+      { label: "Resources", to: "/portal/resources", icon: BookOpen, hideForLead: true },
+      { label: "Account", to: "/portal/account", icon: User, matchPrefix: "/portal/account" },
+    ],
+  },
 ];
 
 
