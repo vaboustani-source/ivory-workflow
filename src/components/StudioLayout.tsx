@@ -225,6 +225,7 @@ export function StudioLayout({ children }: { children: ReactNode }) {
           contracts: contractsRes.count ?? 0,
           forms: formsRes.count ?? 0,
           queue: unreadMessages + (mentionCount ?? 0) + overdueMilestonesCount,
+          inbox: unreadMessages + (mentionCount ?? 0) + (approval.count ?? 0) + (tasks.count ?? 0),
         });
         setUnreadMentions(mentionCount ?? 0);
       }
