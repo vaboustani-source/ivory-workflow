@@ -120,13 +120,18 @@ export function TemplateEditorModal({ open, onClose, onSaved, template, packages
     setSaving(true);
     try {
       const pkg = packageId === "__global__" ? null : packageId;
-      const installmentsPayload = installments.map((r, i) => ({
-        sequence_order: i,
-        label: r.label.trim(),
-        percentage: r.percentage,
-        due_offset_type: r.due_offset_type,
-        due_offset_days: r.due_offset_type === "on_booking" ? null : r.due_offset_days,
-      }));
+      const installmentsPayload = installments.map((r, i) => {
+        const base: { sequence_order: number; label: string; percentage: number; due_offset_type: DueOffsetType; due_offset_days?: number } = {
+          sequence_order: i,
+          label: r.label.trim(),
+          percentage: r.percentage,
+          due_offset_type: r.due_offset_type,
+        };
+        if (r.due_offset_type !== "on_booking" && r.due_offset_days != null) {
+          base.due_offset_days = r.due_offset_days;
+        }
+        return base;
+      });
 
       if (!template) {
         // Create new
