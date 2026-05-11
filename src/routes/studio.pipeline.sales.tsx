@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth";
 import { useEffectiveScope } from "@/lib/view-as";
 import { shortDate, daysBetween } from "@/lib/dates";
 import { NewClientModal } from "@/components/NewClientModal";
+import { BookingConfirmationModal } from "@/components/invoicing/BookingConfirmationModal";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/studio/pipeline/sales")({
@@ -66,6 +67,7 @@ function PipelinePage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [confirm, setConfirm] = useState<{ leadId: string; from: ColumnId; to: ColumnId; lead: Lead } | null>(null);
+  const [bookingLead, setBookingLead] = useState<Lead | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -119,6 +121,10 @@ function PipelinePage() {
     if (!lead) return;
     const fromCol = bucketize(lead).col;
     if (fromCol === toCol) return;
+    if (toCol === "booked") {
+      setBookingLead(lead);
+      return;
+    }
     setConfirm({ leadId, from: fromCol, to: toCol, lead });
   };
 
@@ -200,6 +206,15 @@ function PipelinePage() {
           onCancel={() => setConfirm(null)}
         />
       )}
+
+      <BookingConfirmationModal
+        open={!!bookingLead}
+        clientId={bookingLead?.id ?? null}
+        coupleLabel={bookingLead ? `${bookingLead.couple_name_1}${bookingLead.couple_name_2 ? " & " + bookingLead.couple_name_2 : ""}` : ""}
+        weddingDateISO={bookingLead?.wedding_date ?? null}
+        onClose={() => setBookingLead(null)}
+        onConfirmed={load}
+      />
     </div>
   );
 }

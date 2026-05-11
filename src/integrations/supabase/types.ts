@@ -3222,6 +3222,10 @@ export type Database = {
         Args: { _client_id: string }
         Returns: string
       }
+      create_booking_invoices: {
+        Args: { p_client_id: string; p_overrides?: Json; p_template_id: string }
+        Returns: Json
+      }
       create_draft_from_published: { Args: never; Returns: string }
       discard_draft: { Args: { _draft_id: string }; Returns: undefined }
       hard_delete_old_messages: { Args: never; Returns: number }
