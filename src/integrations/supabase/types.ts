@@ -1371,42 +1371,154 @@ export type Database = {
           },
         ]
       }
+      invoice_line_items: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          description: string
+          id: string
+          invoice_id: string
+          sequence_order: number
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          description: string
+          id?: string
+          invoice_id: string
+          sequence_order?: number
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          description?: string
+          id?: string
+          invoice_id?: string
+          sequence_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_line_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_recipients: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          invoice_id: string
+          name: string
+          role: Database["public"]["Enums"]["invoice_recipient_role"]
+          view_token: string
+          viewed_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          invoice_id: string
+          name: string
+          role?: Database["public"]["Enums"]["invoice_recipient_role"]
+          view_token?: string
+          viewed_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          invoice_id?: string
+          name?: string
+          role?: Database["public"]["Enums"]["invoice_recipient_role"]
+          view_token?: string
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_recipients_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           amount: number | null
           client_id: string | null
           created_at: string
+          currency: string
           due_date: string | null
           id: string
           invoice_number: string | null
           invoice_type: Database["public"]["Enums"]["invoice_type"] | null
+          label: string | null
+          notes: string | null
           paid_at: string | null
+          payment_method_last4: string | null
+          processing_fee_cents: number
+          sent_at: string | null
+          sequence_order: number | null
           status: Database["public"]["Enums"]["invoice_status"]
+          stripe_checkout_session_id: string | null
           stripe_payment_intent_id: string | null
+          subtotal_cents: number | null
+          total_cents: number | null
+          updated_at: string
+          viewed_at: string | null
         }
         Insert: {
           amount?: number | null
           client_id?: string | null
           created_at?: string
+          currency?: string
           due_date?: string | null
           id?: string
           invoice_number?: string | null
           invoice_type?: Database["public"]["Enums"]["invoice_type"] | null
+          label?: string | null
+          notes?: string | null
           paid_at?: string | null
+          payment_method_last4?: string | null
+          processing_fee_cents?: number
+          sent_at?: string | null
+          sequence_order?: number | null
           status?: Database["public"]["Enums"]["invoice_status"]
+          stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
+          subtotal_cents?: number | null
+          total_cents?: number | null
+          updated_at?: string
+          viewed_at?: string | null
         }
         Update: {
           amount?: number | null
           client_id?: string | null
           created_at?: string
+          currency?: string
           due_date?: string | null
           id?: string
           invoice_number?: string | null
           invoice_type?: Database["public"]["Enums"]["invoice_type"] | null
+          label?: string | null
+          notes?: string | null
           paid_at?: string | null
+          payment_method_last4?: string | null
+          processing_fee_cents?: number
+          sent_at?: string | null
+          sequence_order?: number | null
           status?: Database["public"]["Enums"]["invoice_status"]
+          stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
+          subtotal_cents?: number | null
+          total_cents?: number | null
+          updated_at?: string
+          viewed_at?: string | null
         }
         Relationships: [
           {
@@ -1625,9 +1737,11 @@ export type Database = {
       }
       packages: {
         Row: {
+          add_processing_fees: boolean
           base_price: number | null
           created_at: string
           default_hours: number | null
+          default_payment_schedule_template_id: string | null
           description: string | null
           display_order: number | null
           id: string
@@ -1640,9 +1754,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          add_processing_fees?: boolean
           base_price?: number | null
           created_at?: string
           default_hours?: number | null
+          default_payment_schedule_template_id?: string | null
           description?: string | null
           display_order?: number | null
           id?: string
@@ -1655,9 +1771,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          add_processing_fees?: boolean
           base_price?: number | null
           created_at?: string
           default_hours?: number | null
+          default_payment_schedule_template_id?: string | null
           description?: string | null
           display_order?: number | null
           id?: string
@@ -1669,7 +1787,132 @@ export type Database = {
           name?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "packages_default_pst_fk"
+            columns: ["default_payment_schedule_template_id"]
+            isOneToOne: false
+            referencedRelation: "payment_schedule_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_attempts: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          id: string
+          invoice_id: string
+          raw_event: Json | null
+          status: Database["public"]["Enums"]["payment_attempt_status"]
+          stripe_event_id: string | null
+          stripe_event_type: string | null
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          id?: string
+          invoice_id: string
+          raw_event?: Json | null
+          status: Database["public"]["Enums"]["payment_attempt_status"]
+          stripe_event_id?: string | null
+          stripe_event_type?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          raw_event?: Json | null
+          status?: Database["public"]["Enums"]["payment_attempt_status"]
+          stripe_event_id?: string | null
+          stripe_event_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_attempts_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_schedule_template_installments: {
+        Row: {
+          created_at: string
+          due_offset_days: number
+          due_offset_type: Database["public"]["Enums"]["due_offset_type"]
+          id: string
+          label: string
+          percentage: number
+          sequence_order: number
+          template_id: string
+        }
+        Insert: {
+          created_at?: string
+          due_offset_days?: number
+          due_offset_type: Database["public"]["Enums"]["due_offset_type"]
+          id?: string
+          label: string
+          percentage: number
+          sequence_order: number
+          template_id: string
+        }
+        Update: {
+          created_at?: string
+          due_offset_days?: number
+          due_offset_type?: Database["public"]["Enums"]["due_offset_type"]
+          id?: string
+          label?: string
+          percentage?: number
+          sequence_order?: number
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_schedule_template_installments_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "payment_schedule_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_schedule_templates: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          package_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          package_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          package_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_schedule_templates_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       photography_timelines: {
         Row: {
@@ -1926,6 +2169,27 @@ export type Database = {
           },
         ]
       }
+      processing_fee_settings: {
+        Row: {
+          id: string
+          stripe_flat_cents: number
+          stripe_percentage: number
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          stripe_flat_cents?: number
+          stripe_percentage?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          stripe_flat_cents?: number
+          stripe_percentage?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -2132,6 +2396,66 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "questionnaire_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reschedule_requests: {
+        Row: {
+          conversation_message_id: string | null
+          created_at: string
+          id: string
+          invoice_id: string
+          original_due_date: string
+          proposed_due_date: string
+          reason: string | null
+          requested_by: Database["public"]["Enums"]["reschedule_requested_by"]
+          requested_by_name: string | null
+          responded_at: string | null
+          responded_by: string | null
+          status: Database["public"]["Enums"]["reschedule_status"]
+        }
+        Insert: {
+          conversation_message_id?: string | null
+          created_at?: string
+          id?: string
+          invoice_id: string
+          original_due_date: string
+          proposed_due_date: string
+          reason?: string | null
+          requested_by: Database["public"]["Enums"]["reschedule_requested_by"]
+          requested_by_name?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: Database["public"]["Enums"]["reschedule_status"]
+        }
+        Update: {
+          conversation_message_id?: string | null
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          original_due_date?: string
+          proposed_due_date?: string
+          reason?: string | null
+          requested_by?: Database["public"]["Enums"]["reschedule_requested_by"]
+          requested_by_name?: string | null
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: Database["public"]["Enums"]["reschedule_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reschedule_requests_conversation_message_id_fkey"
+            columns: ["conversation_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reschedule_requests_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -2994,17 +3318,36 @@ export type Database = {
         | "videographer"
         | "second_videographer"
         | "photo_assistant"
+      due_offset_type: "days_after_booking" | "days_before_event" | "on_booking"
       engagement_status:
         | "pending_scheduling"
         | "scheduled"
         | "complete"
         | "delivered"
       gallery_type: "engagement" | "wedding"
-      invoice_status: "draft" | "sent" | "paid" | "overdue"
+      invoice_recipient_role:
+        | "primary_client"
+        | "partner"
+        | "planner"
+        | "parent"
+        | "other"
+      invoice_status:
+        | "draft"
+        | "sent"
+        | "paid"
+        | "overdue"
+        | "scheduled"
+        | "viewed"
+        | "reschedule_requested"
+        | "cancelled"
+        | "refunded"
       invoice_type: "retainer" | "final" | "album" | "other"
       milestone_status: "upcoming" | "in_progress" | "complete" | "skipped"
+      payment_attempt_status: "succeeded" | "failed" | "refunded" | "disputed"
       proposal_status: "draft" | "sent" | "accepted" | "expired" | "revised"
       questionnaire_status: "not_started" | "in_progress" | "complete"
+      reschedule_requested_by: "client" | "studio"
+      reschedule_status: "pending" | "approved" | "denied" | "cancelled"
       resource_category:
         | "engagement_session"
         | "wedding_prep"
@@ -3242,6 +3585,11 @@ export const Constants = {
         "second_videographer",
         "photo_assistant",
       ],
+      due_offset_type: [
+        "days_after_booking",
+        "days_before_event",
+        "on_booking",
+      ],
       engagement_status: [
         "pending_scheduling",
         "scheduled",
@@ -3249,11 +3597,31 @@ export const Constants = {
         "delivered",
       ],
       gallery_type: ["engagement", "wedding"],
-      invoice_status: ["draft", "sent", "paid", "overdue"],
+      invoice_recipient_role: [
+        "primary_client",
+        "partner",
+        "planner",
+        "parent",
+        "other",
+      ],
+      invoice_status: [
+        "draft",
+        "sent",
+        "paid",
+        "overdue",
+        "scheduled",
+        "viewed",
+        "reschedule_requested",
+        "cancelled",
+        "refunded",
+      ],
       invoice_type: ["retainer", "final", "album", "other"],
       milestone_status: ["upcoming", "in_progress", "complete", "skipped"],
+      payment_attempt_status: ["succeeded", "failed", "refunded", "disputed"],
       proposal_status: ["draft", "sent", "accepted", "expired", "revised"],
       questionnaire_status: ["not_started", "in_progress", "complete"],
+      reschedule_requested_by: ["client", "studio"],
+      reschedule_status: ["pending", "approved", "denied", "cancelled"],
       resource_category: [
         "engagement_session",
         "wedding_prep",
