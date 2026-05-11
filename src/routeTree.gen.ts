@@ -48,6 +48,7 @@ import { Route as StudioSettingsStudioProfileRouteImport } from './routes/studio
 import { Route as StudioSettingsStorageRouteImport } from './routes/studio.settings.storage'
 import { Route as StudioSettingsResourcesRouteImport } from './routes/studio.settings.resources'
 import { Route as StudioSettingsProfileRouteImport } from './routes/studio.settings.profile'
+import { Route as StudioSettingsPackagesRouteImport } from './routes/studio.settings.packages'
 import { Route as StudioSettingsIntegrationsRouteImport } from './routes/studio.settings.integrations'
 import { Route as StudioSettingsEmailTemplatesRouteImport } from './routes/studio.settings.email-templates'
 import { Route as StudioSettingsContractorsRouteImport } from './routes/studio.settings.contractors'
@@ -266,6 +267,11 @@ const StudioSettingsProfileRoute = StudioSettingsProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => StudioSettingsRoute,
 } as any)
+const StudioSettingsPackagesRoute = StudioSettingsPackagesRouteImport.update({
+  id: '/packages',
+  path: '/packages',
+  getParentRoute: () => StudioSettingsRoute,
+} as any)
 const StudioSettingsIntegrationsRoute =
   StudioSettingsIntegrationsRouteImport.update({
     id: '/integrations',
@@ -433,6 +439,7 @@ export interface FileRoutesByFullPath {
   '/studio/settings/contractors': typeof StudioSettingsContractorsRoute
   '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
   '/studio/settings/integrations': typeof StudioSettingsIntegrationsRoute
+  '/studio/settings/packages': typeof StudioSettingsPackagesRoute
   '/studio/settings/profile': typeof StudioSettingsProfileRoute
   '/studio/settings/resources': typeof StudioSettingsResourcesRoute
   '/studio/settings/storage': typeof StudioSettingsStorageRoute
@@ -492,6 +499,7 @@ export interface FileRoutesByTo {
   '/studio/settings/contractors': typeof StudioSettingsContractorsRoute
   '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
   '/studio/settings/integrations': typeof StudioSettingsIntegrationsRoute
+  '/studio/settings/packages': typeof StudioSettingsPackagesRoute
   '/studio/settings/profile': typeof StudioSettingsProfileRoute
   '/studio/settings/resources': typeof StudioSettingsResourcesRoute
   '/studio/settings/storage': typeof StudioSettingsStorageRoute
@@ -555,6 +563,7 @@ export interface FileRoutesById {
   '/studio/settings/contractors': typeof StudioSettingsContractorsRoute
   '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
   '/studio/settings/integrations': typeof StudioSettingsIntegrationsRoute
+  '/studio/settings/packages': typeof StudioSettingsPackagesRoute
   '/studio/settings/profile': typeof StudioSettingsProfileRoute
   '/studio/settings/resources': typeof StudioSettingsResourcesRoute
   '/studio/settings/storage': typeof StudioSettingsStorageRoute
@@ -619,6 +628,7 @@ export interface FileRouteTypes {
     | '/studio/settings/contractors'
     | '/studio/settings/email-templates'
     | '/studio/settings/integrations'
+    | '/studio/settings/packages'
     | '/studio/settings/profile'
     | '/studio/settings/resources'
     | '/studio/settings/storage'
@@ -678,6 +688,7 @@ export interface FileRouteTypes {
     | '/studio/settings/contractors'
     | '/studio/settings/email-templates'
     | '/studio/settings/integrations'
+    | '/studio/settings/packages'
     | '/studio/settings/profile'
     | '/studio/settings/resources'
     | '/studio/settings/storage'
@@ -740,6 +751,7 @@ export interface FileRouteTypes {
     | '/studio/settings/contractors'
     | '/studio/settings/email-templates'
     | '/studio/settings/integrations'
+    | '/studio/settings/packages'
     | '/studio/settings/profile'
     | '/studio/settings/resources'
     | '/studio/settings/storage'
@@ -1037,6 +1049,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioSettingsProfileRouteImport
       parentRoute: typeof StudioSettingsRoute
     }
+    '/studio/settings/packages': {
+      id: '/studio/settings/packages'
+      path: '/packages'
+      fullPath: '/studio/settings/packages'
+      preLoaderRoute: typeof StudioSettingsPackagesRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
     '/studio/settings/integrations': {
       id: '/studio/settings/integrations'
       path: '/integrations'
@@ -1298,6 +1317,7 @@ interface StudioSettingsRouteChildren {
   StudioSettingsContractorsRoute: typeof StudioSettingsContractorsRoute
   StudioSettingsEmailTemplatesRoute: typeof StudioSettingsEmailTemplatesRoute
   StudioSettingsIntegrationsRoute: typeof StudioSettingsIntegrationsRoute
+  StudioSettingsPackagesRoute: typeof StudioSettingsPackagesRoute
   StudioSettingsProfileRoute: typeof StudioSettingsProfileRoute
   StudioSettingsResourcesRoute: typeof StudioSettingsResourcesRoute
   StudioSettingsStorageRoute: typeof StudioSettingsStorageRoute
@@ -1316,6 +1336,7 @@ const StudioSettingsRouteChildren: StudioSettingsRouteChildren = {
   StudioSettingsContractorsRoute: StudioSettingsContractorsRoute,
   StudioSettingsEmailTemplatesRoute: StudioSettingsEmailTemplatesRoute,
   StudioSettingsIntegrationsRoute: StudioSettingsIntegrationsRoute,
+  StudioSettingsPackagesRoute: StudioSettingsPackagesRoute,
   StudioSettingsProfileRoute: StudioSettingsProfileRoute,
   StudioSettingsResourcesRoute: StudioSettingsResourcesRoute,
   StudioSettingsStorageRoute: StudioSettingsStorageRoute,
