@@ -137,3 +137,38 @@
   font-size: 0.875rem;
 }
 .input:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-primary) 25%, transparent); }
+
+/* ===== Invoicing module palette (Stories by Victoria) ===== */
+:root {
+  --sbv-green: #103200;
+  --sbv-purple: #411928;
+  --sbv-fuchsia: #B41E64;
+  --sbv-ivory: #EBDBC8;
+  --sbv-pink: #F0A5BE;
+  --sbv-foil-1: #F4E2A1;
+  --sbv-foil-2: #C9A24A;
+  --sbv-foil-3: #8C6A1E;
+  --sbv-foil-4: #E7C77A;
+}
+
+/* Foil gold gradient text */
+.foil-gold {
+  background: linear-gradient(135deg, var(--sbv-foil-1) 0%, var(--sbv-foil-4) 30%, var(--sbv-foil-2) 55%, var(--sbv-foil-3) 80%, var(--sbv-foil-2) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Foil gold gradient fill (background) */
+.foil-gold-bg {
+  background: linear-gradient(135deg, var(--sbv-foil-1) 0%, var(--sbv-foil-4) 30%, var(--sbv-foil-2) 55%, var(--sbv-foil-3) 80%, var(--sbv-foil-2) 100%);
+  color: var(--sbv-purple);
+}
+
+.foil-gold-border {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--sbv-pink), var(--sbv-pink)) padding-box,
+    linear-gradient(135deg, var(--sbv-foil-1), var(--sbv-foil-2), var(--sbv-foil-3)) border-box;
+}
