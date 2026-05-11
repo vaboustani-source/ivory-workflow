@@ -3271,12 +3271,29 @@ export type Database = {
         Args: { _client_id: string }
         Returns: string
       }
+      cancel_tbd_booking: {
+        Args: { p_client_id: string; p_reason: string }
+        Returns: Json
+      }
       create_booking_invoices: {
         Args: { p_client_id: string; p_overrides?: Json; p_template_id: string }
         Returns: Json
       }
       create_draft_from_published: { Args: never; Returns: string }
+      create_tbd_booking: {
+        Args: { p_client_id: string; p_deposit_amount_cents: number }
+        Returns: Json
+      }
       discard_draft: { Args: { _draft_id: string }; Returns: undefined }
+      finalize_tbd_booking: {
+        Args: {
+          p_client_id: string
+          p_overrides?: Json
+          p_package_id: string
+          p_template_id: string
+        }
+        Returns: Json
+      }
       hard_delete_old_messages: { Args: never; Returns: number }
       has_role: {
         Args: {

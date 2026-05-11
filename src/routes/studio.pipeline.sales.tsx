@@ -37,6 +37,9 @@ interface Lead {
   manager_id: string | null;
   booked_at: string | null;
   created_at: string;
+  is_tbd_booking?: boolean | null;
+  tbd_finalize_by?: string | null;
+  tbd_cancelled_at?: string | null;
   manager?: { full_name: string | null } | null;
   bookings?: { id: string; event_type: string | null; status: string | null; scheduled_at: string | null }[];
   proposals?: { id: string; status: string | null; sent_at: string | null }[];
@@ -77,6 +80,7 @@ function PipelinePage() {
       .from("clients")
       .select(`
         id, couple_name_1, couple_name_2, wedding_date, inquiry_source, status, manager_id, booked_at, created_at,
+        is_tbd_booking, tbd_finalize_by, tbd_cancelled_at,
         manager:profiles!clients_manager_id_fkey(full_name),
         bookings(id, event_type, status, scheduled_at),
         proposals(id, status, sent_at)
@@ -244,16 +248,38 @@ function LeadCard({ lead, sinceISO }: { lead: Lead; sinceISO: string }) {
   const days = Math.abs(daysBetween(sinceISO) ?? 0);
   const isStale = days >= 7;
   const couple = `${lead.couple_name_1}${lead.couple_name_2 ? " & " + lead.couple_name_2 : ""}`;
+  const isTbd = !!lead.is_tbd_booking;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const finalizeBy = lead.tbd_finalize_by ? new Date(lead.tbd_finalize_by + "T00:00:00") : null;
+  const tbdOverdue = isTbd && finalizeBy ? finalizeBy.getTime() < today.getTime() : false;
+  const tbdDays = finalizeBy ? Math.floor((today.getTime() - new Date(lead.booked_at ?? lead.created_at).setHours(0,0,0,0)) / 86400000) : 0;
+  const tbdTooltip = isTbd && finalizeBy ? `Date hold created ${tbdDays} day${tbdDays === 1 ? "" : "s"} ago. Finalize by ${finalizeBy.toLocaleDateString()} to generate full payment schedule.` : undefined;
+  const cameFromCancelled = !!lead.tbd_cancelled_at && lead.status === "lead";
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={{
+        ...(style ?? {}),
+        ...(isTbd && !tbdOverdue ? { borderLeft: "4px solid transparent", backgroundImage: "linear-gradient(white,white), linear-gradient(180deg,#E8C547,#C9A227,#AE8C29)", backgroundOrigin: "border-box", backgroundClip: "padding-box, border-box" } : {}),
+        ...(isTbd && tbdOverdue ? { borderLeft: "4px solid var(--sbv-green, #103200)" } : {}),
+      }}
+      title={tbdTooltip}
       {...attributes}
       {...listeners}
       className={`bg-surface rounded-md shadow-soft p-4 cursor-grab active:cursor-grabbing relative ${isDragging ? "opacity-40" : ""}`}
     >
-      {isStale && <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-magenta" title={`${days} days in stage`} />}
+      {isStale && !isTbd && <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-magenta" title={`${days} days in stage`} />}
       <p className="font-serif italic text-base text-primary leading-tight">{couple}</p>
+      {isTbd && finalizeBy && (
+        tbdOverdue ? (
+          <p className="text-[10px] uppercase tracking-wider mt-1 font-medium" style={{ color: "var(--sbv-green, #103200)" }}>OVERDUE TO FINALIZE</p>
+        ) : (
+          <p className="text-[10px] uppercase tracking-wider mt-1 foil-gold font-medium">TBD · finalize by {finalizeBy.toLocaleDateString(undefined, { month: "short", day: "numeric" })}</p>
+        )
+      )}
+      {cameFromCancelled && (
+        <p className="text-[10px] italic mt-1 text-muted-foreground">Returning from cancelled date hold</p>
+      )}
       {lead.inquiry_source && <p className="text-[13px] text-muted-foreground mt-1">via {lead.inquiry_source}</p>}
       {lead.wedding_date && <p className="text-xs text-foreground mt-1">{shortDate(lead.wedding_date)}</p>}
       <div className="flex items-center justify-between mt-3">
