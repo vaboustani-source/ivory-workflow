@@ -80,6 +80,7 @@ function PipelinePage() {
       .from("clients")
       .select(`
         id, couple_name_1, couple_name_2, wedding_date, inquiry_source, status, manager_id, booked_at, created_at,
+        is_tbd_booking, tbd_finalize_by, tbd_cancelled_at,
         manager:profiles!clients_manager_id_fkey(full_name),
         bookings(id, event_type, status, scheduled_at),
         proposals(id, status, sent_at)
