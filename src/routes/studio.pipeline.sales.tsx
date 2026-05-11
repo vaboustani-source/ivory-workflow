@@ -37,6 +37,9 @@ interface Lead {
   manager_id: string | null;
   booked_at: string | null;
   created_at: string;
+  is_tbd_booking?: boolean | null;
+  tbd_finalize_by?: string | null;
+  tbd_cancelled_at?: string | null;
   manager?: { full_name: string | null } | null;
   bookings?: { id: string; event_type: string | null; status: string | null; scheduled_at: string | null }[];
   proposals?: { id: string; status: string | null; sent_at: string | null }[];
