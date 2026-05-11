@@ -1841,7 +1841,7 @@ export type Database = {
       payment_schedule_template_installments: {
         Row: {
           created_at: string
-          due_offset_days: number
+          due_offset_days: number | null
           due_offset_type: Database["public"]["Enums"]["due_offset_type"]
           id: string
           label: string
@@ -1851,7 +1851,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          due_offset_days?: number
+          due_offset_days?: number | null
           due_offset_type: Database["public"]["Enums"]["due_offset_type"]
           id?: string
           label: string
@@ -1861,7 +1861,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          due_offset_days?: number
+          due_offset_days?: number | null
           due_offset_type?: Database["public"]["Enums"]["due_offset_type"]
           id?: string
           label?: string
