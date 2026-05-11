@@ -411,6 +411,7 @@ export type Database = {
           has_videography: boolean | null
           id: string
           inquiry_source: string | null
+          is_tbd_booking: boolean
           last_contacted_at: string | null
           manager_id: string | null
           notes: string | null
@@ -434,6 +435,12 @@ export type Database = {
           shared_street_address: string | null
           shared_zipcode: string | null
           status: Database["public"]["Enums"]["client_status"]
+          tbd_booked_at: string | null
+          tbd_cancellation_reason: string | null
+          tbd_cancelled_at: string | null
+          tbd_deposit_amount_cents: number | null
+          tbd_deposit_invoice_id: string | null
+          tbd_finalize_by: string | null
           updated_at: string
           venue_address: string | null
           venue_city: string | null
@@ -461,6 +468,7 @@ export type Database = {
           has_videography?: boolean | null
           id?: string
           inquiry_source?: string | null
+          is_tbd_booking?: boolean
           last_contacted_at?: string | null
           manager_id?: string | null
           notes?: string | null
@@ -484,6 +492,12 @@ export type Database = {
           shared_street_address?: string | null
           shared_zipcode?: string | null
           status?: Database["public"]["Enums"]["client_status"]
+          tbd_booked_at?: string | null
+          tbd_cancellation_reason?: string | null
+          tbd_cancelled_at?: string | null
+          tbd_deposit_amount_cents?: number | null
+          tbd_deposit_invoice_id?: string | null
+          tbd_finalize_by?: string | null
           updated_at?: string
           venue_address?: string | null
           venue_city?: string | null
@@ -511,6 +525,7 @@ export type Database = {
           has_videography?: boolean | null
           id?: string
           inquiry_source?: string | null
+          is_tbd_booking?: boolean
           last_contacted_at?: string | null
           manager_id?: string | null
           notes?: string | null
@@ -534,6 +549,12 @@ export type Database = {
           shared_street_address?: string | null
           shared_zipcode?: string | null
           status?: Database["public"]["Enums"]["client_status"]
+          tbd_booked_at?: string | null
+          tbd_cancellation_reason?: string | null
+          tbd_cancelled_at?: string | null
+          tbd_deposit_amount_cents?: number | null
+          tbd_deposit_invoice_id?: string | null
+          tbd_finalize_by?: string | null
           updated_at?: string
           venue_address?: string | null
           venue_city?: string | null
@@ -570,6 +591,13 @@ export type Database = {
             columns: ["production_stage_override_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_tbd_deposit_invoice_id_fkey"
+            columns: ["tbd_deposit_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -2640,6 +2668,27 @@ export type Database = {
         }
         Relationships: []
       }
+      studio_invoicing_settings: {
+        Row: {
+          id: string
+          tbd_deposit_amount_cents: number
+          tbd_finalize_window_days: number
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tbd_deposit_amount_cents?: number
+          tbd_finalize_window_days?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tbd_deposit_amount_cents?: number
+          tbd_finalize_window_days?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       studio_settings: {
         Row: {
           album_credit_expiry_months: number | null
@@ -3345,7 +3394,15 @@ export type Database = {
         | "reschedule_requested"
         | "cancelled"
         | "refunded"
-      invoice_type: "retainer" | "final" | "album" | "other"
+        | "kill_fee"
+      invoice_type:
+        | "retainer"
+        | "final"
+        | "album"
+        | "other"
+        | "installment"
+        | "date_hold_deposit"
+        | "kill_fee"
       milestone_status: "upcoming" | "in_progress" | "complete" | "skipped"
       payment_attempt_status: "succeeded" | "failed" | "refunded" | "disputed"
       proposal_status: "draft" | "sent" | "accepted" | "expired" | "revised"
@@ -3618,8 +3675,17 @@ export const Constants = {
         "reschedule_requested",
         "cancelled",
         "refunded",
+        "kill_fee",
       ],
-      invoice_type: ["retainer", "final", "album", "other"],
+      invoice_type: [
+        "retainer",
+        "final",
+        "album",
+        "other",
+        "installment",
+        "date_hold_deposit",
+        "kill_fee",
+      ],
       milestone_status: ["upcoming", "in_progress", "complete", "skipped"],
       payment_attempt_status: ["succeeded", "failed", "refunded", "disputed"],
       proposal_status: ["draft", "sent", "accepted", "expired", "revised"],
