@@ -60,6 +60,7 @@ interface Props {
   onSaved: () => void;
   item: ServiceItemRow | null;
   allItems: ServiceItemRow[]; // for inclusion picker
+  hourlyCoverageRateCents?: number | null;
 }
 
 const inputCls =
@@ -72,7 +73,7 @@ function fmtMoney(cents: number) {
   return `${sign}$${v.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 }
 
-export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems }: Props) {
+export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems, hourlyCoverageRateCents: propRate }: Props) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [itemType, setItemType] = useState<ServiceItemType>("wedding_package");
@@ -90,7 +91,14 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems 
   const [inclusions, setInclusions] = useState<Inclusion[]>([]);
   const [addInclusionId, setAddInclusionId] = useState<string>("");
 
-  const [hourlyCoverageRateCents, setHourlyCoverageRateCents] = useState<number | null>(null);
+  const [hourlyCoverageRateCents, setHourlyCoverageRateCents] = useState<number | null>(propRate ?? null);
+
+  // Sync when parent passes an updated rate while modal is open
+  useEffect(() => {
+    if (propRate !== undefined) {
+      setHourlyCoverageRateCents(propRate);
+    }
+  }, [propRate]);
 
   const [saving, setSaving] = useState(false);
 
@@ -98,12 +106,14 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems 
   useEffect(() => {
     if (!open) return;
     (async () => {
-      // hourly coverage rate
-      const { data: inv } = await supabase
-        .from("studio_invoicing_settings")
-        .select("hourly_coverage_rate_cents")
-        .maybeSingle();
-      setHourlyCoverageRateCents((inv as any)?.hourly_coverage_rate_cents ?? null);
+      // hourly coverage rate — only fetch internally if parent didn't pass a rate
+      if (propRate === undefined) {
+        const { data: inv } = await supabase
+          .from("studio_invoicing_settings")
+          .select("hourly_coverage_rate_cents")
+          .maybeSingle();
+        setHourlyCoverageRateCents((inv as any)?.hourly_coverage_rate_cents ?? null);
+      }
 
       if (item) {
         setName(item.name);

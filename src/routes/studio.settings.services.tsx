@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, GripVertical } from "lucide-react";
+import { toast } from "sonner";
+import { Plus, GripVertical, Pencil } from "lucide-react";
 import {
   DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter,
 } from "@dnd-kit/core";
@@ -100,6 +101,104 @@ function ItemCard({
   );
 }
 
+function RatePanel({
+  rateCents,
+  isOwner,
+  editing,
+  input,
+  onStartEdit,
+  onChangeInput,
+  onSave,
+  onCancel,
+}: {
+  rateCents: number | null;
+  isOwner: boolean;
+  editing: boolean;
+  input: string;
+  onStartEdit: () => void;
+  onChangeInput: (v: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  const hasRate = rateCents != null && rateCents > 1;
+
+  return (
+    <div
+      className="rounded-sm px-5 py-4 mb-6"
+      style={{ background: "#F0A5BE" }}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <div
+            className="font-serif text-sm mb-1"
+            style={{ color: "var(--sbv-green)" }}
+          >
+            Coverage rate
+          </div>
+          {editing ? (
+            <div className="flex items-center gap-3">
+              <span className="font-serif text-2xl" style={{ color: "var(--sbv-green)" }}>
+                $
+              </span>
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={input}
+                onChange={(e) => onChangeInput(e.target.value)}
+                className="w-32 px-2 py-1 rounded-sm bg-white/90 text-sm outline-none"
+                style={{ color: "var(--sbv-purple)" }}
+                placeholder="0.00"
+                autoFocus
+              />
+              <span className="text-sm" style={{ color: "var(--sbv-purple)" }}>/ hour</span>
+              <button
+                onClick={onSave}
+                className="text-sm font-medium px-3 py-1 rounded-sm text-white"
+                style={{ background: "var(--sbv-green)" }}
+              >
+                Save
+              </button>
+              <button
+                onClick={onCancel}
+                className="text-sm font-medium hover:underline"
+                style={{ color: "var(--sbv-purple)" }}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-baseline gap-2">
+              <span
+                className="font-serif text-2xl"
+                style={{ color: "var(--sbv-green)" }}
+              >
+                {hasRate
+                  ? `$${(rateCents / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} / hour`
+                  : isOwner
+                    ? "Set your coverage rate"
+                    : "Coverage rate not set"}
+              </span>
+              {isOwner && (
+                <button
+                  onClick={onStartEdit}
+                  className="text-sm opacity-70 hover:opacity-100 inline-flex items-center gap-1"
+                  style={{ color: "var(--sbv-purple)" }}
+                >
+                  <Pencil size={14} /> Edit
+                </button>
+              )}
+            </div>
+          )}
+          <p className="text-xs mt-1.5" style={{ color: "#6B6B6B" }}>
+            Used to suggest pricing for coverage-based packages.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ServicesPage() {
   const isOwner = useIsOwner();
   const [items, setItems] = useState<ServiceItemRow[]>([]);
@@ -109,16 +208,28 @@ function ServicesPage() {
   const [creating, setCreating] = useState(false);
   const [viewing, setViewing] = useState<ServiceItemRow | null>(null);
 
+  // Hourly coverage rate panel state
+  const [rateRowId, setRateRowId] = useState<string | null>(null);
+  const [hourlyRateCents, setHourlyRateCents] = useState<number | null>(null);
+  const [editingRate, setEditingRate] = useState(false);
+  const [rateInput, setRateInput] = useState("");
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("service_items")
-      .select("id,name,description,item_type,price_cents,unit,coverage_hours,is_active,display_order,is_taxable")
-      .order("display_order", { ascending: true, nullsFirst: false })
-      .order("name");
+    const [{ data }, { data: inv }] = await Promise.all([
+      supabase
+        .from("service_items")
+        .select("id,name,description,item_type,price_cents,unit,coverage_hours,is_active,display_order,is_taxable")
+        .order("display_order", { ascending: true, nullsFirst: false })
+        .order("name"),
+      supabase.from("studio_invoicing_settings").select("id,hourly_coverage_rate_cents").maybeSingle(),
+    ]);
     setItems((data ?? []) as ServiceItemRow[]);
+    const invRow = inv as { id: string; hourly_coverage_rate_cents: number | null } | null;
+    setRateRowId(invRow?.id ?? null);
+    setHourlyRateCents(invRow?.hourly_coverage_rate_cents ?? null);
 
     if (isOwner) {
       const { data: cdata } = await supabase
@@ -136,6 +247,22 @@ function ServicesPage() {
   };
 
   useEffect(() => { load(); }, [isOwner]);
+
+  const saveRate = async () => {
+    if (!isOwner || !rateRowId) return;
+    const cents = rateInput ? Math.round(Number(rateInput) * 100) : null;
+    const { error } = await supabase
+      .from("studio_invoicing_settings")
+      .update({ hourly_coverage_rate_cents: cents })
+      .eq("id", rateRowId);
+    if (error) {
+      toast.error(error.message ?? "Failed to save rate");
+      return;
+    }
+    setHourlyRateCents(cents);
+    setEditingRate(false);
+    toast.success("Coverage rate saved");
+  };
 
   const sections = useMemo(() => {
     return SECTION_ORDER.map((s) => {
@@ -188,6 +315,23 @@ function ServicesPage() {
           Read-only — only owners can create or edit service items.
         </p>
       )}
+
+      <RatePanel
+        rateCents={hourlyRateCents}
+        isOwner={isOwner}
+        editing={editingRate}
+        input={rateInput}
+        onStartEdit={() => {
+          setRateInput(hourlyRateCents != null ? String(hourlyRateCents / 100) : "");
+          setEditingRate(true);
+        }}
+        onChangeInput={setRateInput}
+        onSave={saveRate}
+        onCancel={() => {
+          setEditingRate(false);
+          setRateInput("");
+        }}
+      />
 
       {loading ? (
         <p className="text-sm opacity-70">Loading…</p>
@@ -244,6 +388,7 @@ function ServicesPage() {
         onSaved={load}
         item={editing}
         allItems={items}
+        hourlyCoverageRateCents={hourlyRateCents}
       />
       <ServiceItemReadOnlyModal
         open={viewing != null}
