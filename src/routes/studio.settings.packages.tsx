@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PackageEditorModal, type PackageRow } from "@/components/studio/PackageEditorModal";
+import { useIsOwner } from "@/lib/auth";
 
 export const Route = createFileRoute("/studio/settings/packages")({
   component: PackagesPage,
 });
 
 function PackagesPage() {
+  const isOwner = useIsOwner();
   const [rows, setRows] = useState<PackageRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<PackageRow | null>(null);
@@ -31,14 +33,22 @@ function PackagesPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-serif text-3xl" style={{ color: "var(--sbv-green)" }}>Packages</h1>
-        <button
-          onClick={() => setCreating(true)}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-sm text-sm font-medium text-white"
-          style={{ background: "var(--sbv-green)" }}
-        >
-          <Plus size={16} /> New package
-        </button>
+        {isOwner && (
+          <button
+            onClick={() => setCreating(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-sm text-sm font-medium text-white"
+            style={{ background: "var(--sbv-green)" }}
+          >
+            <Plus size={16} /> New package
+          </button>
+        )}
       </div>
+
+      {!isOwner && (
+        <p className="text-xs mb-4 italic" style={{ color: "var(--sbv-purple)" }}>
+          Read-only — only owners can edit packages.
+        </p>
+      )}
 
       {loading ? (
         <p className="text-sm opacity-70">Loading…</p>
@@ -46,13 +56,8 @@ function PackagesPage() {
         <p className="text-sm opacity-70">No packages yet.</p>
       ) : (
         <div className="space-y-2">
-          {rows.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => setEditing(p)}
-              className="w-full text-left rounded-sm px-4 py-3 flex items-center justify-between hover:opacity-90 transition-opacity"
-              style={{ background: "var(--sbv-pink)" }}
-            >
+          {rows.map((p) => {
+            const meta = (
               <div>
                 <div className="font-serif text-base" style={{ color: "var(--sbv-green)" }}>{p.name}</div>
                 <div className="text-xs mt-0.5" style={{ color: "var(--sbv-purple)" }}>
@@ -61,13 +66,36 @@ function PackagesPage() {
                   {!p.is_active ? " · inactive" : ""}
                 </div>
               </div>
-            </button>
-          ))}
+            );
+            return isOwner ? (
+              <button
+                key={p.id}
+                onClick={() => setEditing(p)}
+                className="w-full text-left rounded-sm px-4 py-3 flex items-center justify-between hover:opacity-90 transition-opacity"
+                style={{ background: "var(--sbv-pink)" }}
+              >
+                {meta}
+              </button>
+            ) : (
+              <div
+                key={p.id}
+                className="w-full rounded-sm px-4 py-3 flex items-center justify-between"
+                style={{ background: "var(--sbv-pink)" }}
+              >
+                {meta}
+              </div>
+            );
+          })}
         </div>
       )}
 
-      <PackageEditorModal open={creating} pkg={null} onClose={() => setCreating(false)} onSaved={load} />
-      <PackageEditorModal open={!!editing} pkg={editing} onClose={() => setEditing(null)} onSaved={load} />
+      {isOwner && (
+        <>
+          <PackageEditorModal open={creating} pkg={null} onClose={() => setCreating(false)} onSaved={load} />
+          <PackageEditorModal open={!!editing} pkg={editing} onClose={() => setEditing(null)} onSaved={load} />
+        </>
+      )}
     </div>
   );
 }
+
