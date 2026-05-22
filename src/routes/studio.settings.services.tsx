@@ -149,6 +149,22 @@ function ServicesPage() {
 
   useEffect(() => { load(); }, [isOwner]);
 
+  const saveRate = async () => {
+    if (!isOwner || !rateRowId) return;
+    const cents = rateInput ? Math.round(Number(rateInput) * 100) : null;
+    const { error } = await supabase
+      .from("studio_invoicing_settings")
+      .update({ hourly_coverage_rate_cents: cents })
+      .eq("id", rateRowId);
+    if (error) {
+      toast.error(error.message ?? "Failed to save rate");
+      return;
+    }
+    setHourlyRateCents(cents);
+    setEditingRate(false);
+    toast.success("Coverage rate saved");
+  };
+
   const sections = useMemo(() => {
     return SECTION_ORDER.map((s) => {
       const types: ServiceItemType[] =
