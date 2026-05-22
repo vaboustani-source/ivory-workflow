@@ -31,15 +31,20 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, email, full_name, role, avatar_url, phone")
-      .eq("id", userId)
-      .maybeSingle();
-    setProfile(data as Profile | null);
+    const [{ data: profileRow }, { data: roleRows }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, email, full_name, role, avatar_url, phone")
+        .eq("id", userId)
+        .maybeSingle(),
+      supabase.from("user_roles").select("role").eq("user_id", userId),
+    ]);
+    setProfile(profileRow as Profile | null);
+    setRoles(((roleRows ?? []) as { role: AppRole }[]).map((r) => r.role));
   };
 
   useEffect(() => {
@@ -51,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTimeout(() => loadProfile(newSession.user.id), 0);
       } else {
         setProfile(null);
+        setRoles([]);
       }
     });
 
@@ -71,6 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     user: session?.user ?? null,
     profile,
+    roles,
+    isOwner: roles.includes("owner"),
     loading,
     signInWithPassword: async (email, password) => {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
