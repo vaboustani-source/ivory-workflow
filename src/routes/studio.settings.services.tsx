@@ -101,6 +101,104 @@ function ItemCard({
   );
 }
 
+function RatePanel({
+  rateCents,
+  isOwner,
+  editing,
+  input,
+  onStartEdit,
+  onChangeInput,
+  onSave,
+  onCancel,
+}: {
+  rateCents: number | null;
+  isOwner: boolean;
+  editing: boolean;
+  input: string;
+  onStartEdit: () => void;
+  onChangeInput: (v: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  const hasRate = rateCents != null && rateCents > 1;
+
+  return (
+    <div
+      className="rounded-sm px-5 py-4 mb-6"
+      style={{ background: "#F0A5BE" }}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <div
+            className="font-serif text-sm mb-1"
+            style={{ color: "var(--sbv-green)" }}
+          >
+            Coverage rate
+          </div>
+          {editing ? (
+            <div className="flex items-center gap-3">
+              <span className="font-serif text-2xl" style={{ color: "var(--sbv-green)" }}>
+                $
+              </span>
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={input}
+                onChange={(e) => onChangeInput(e.target.value)}
+                className="w-32 px-2 py-1 rounded-sm bg-white/90 text-sm outline-none"
+                style={{ color: "var(--sbv-purple)" }}
+                placeholder="0.00"
+                autoFocus
+              />
+              <span className="text-sm" style={{ color: "var(--sbv-purple)" }}>/ hour</span>
+              <button
+                onClick={onSave}
+                className="text-sm font-medium px-3 py-1 rounded-sm text-white"
+                style={{ background: "var(--sbv-green)" }}
+              >
+                Save
+              </button>
+              <button
+                onClick={onCancel}
+                className="text-sm font-medium hover:underline"
+                style={{ color: "var(--sbv-purple)" }}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-baseline gap-2">
+              <span
+                className="font-serif text-2xl"
+                style={{ color: "var(--sbv-green)" }}
+              >
+                {hasRate
+                  ? `$${(rateCents / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} / hour`
+                  : isOwner
+                    ? "Set your coverage rate"
+                    : "Coverage rate not set"}
+              </span>
+              {isOwner && (
+                <button
+                  onClick={onStartEdit}
+                  className="text-sm opacity-70 hover:opacity-100 inline-flex items-center gap-1"
+                  style={{ color: "var(--sbv-purple)" }}
+                >
+                  <Pencil size={14} /> Edit
+                </button>
+              )}
+            </div>
+          )}
+          <p className="text-xs mt-1.5" style={{ color: "#6B6B6B" }}>
+            Used to suggest pricing for coverage-based packages.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ServicesPage() {
   const isOwner = useIsOwner();
   const [items, setItems] = useState<ServiceItemRow[]>([]);
