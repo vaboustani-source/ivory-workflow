@@ -106,12 +106,14 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems,
   useEffect(() => {
     if (!open) return;
     (async () => {
-      // hourly coverage rate
-      const { data: inv } = await supabase
-        .from("studio_invoicing_settings")
-        .select("hourly_coverage_rate_cents")
-        .maybeSingle();
-      setHourlyCoverageRateCents((inv as any)?.hourly_coverage_rate_cents ?? null);
+      // hourly coverage rate — only fetch internally if parent didn't pass a rate
+      if (propRate === undefined) {
+        const { data: inv } = await supabase
+          .from("studio_invoicing_settings")
+          .select("hourly_coverage_rate_cents")
+          .maybeSingle();
+        setHourlyCoverageRateCents((inv as any)?.hourly_coverage_rate_cents ?? null);
+      }
 
       if (item) {
         setName(item.name);
