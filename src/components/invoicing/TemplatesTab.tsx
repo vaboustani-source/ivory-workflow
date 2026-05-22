@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TemplateEditorModal, type TemplateRecord } from "./TemplateEditorModal";
+import { useIsOwner } from "@/lib/auth";
 
 interface PackageOption { id: string; name: string }
 
