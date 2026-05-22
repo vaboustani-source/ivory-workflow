@@ -66,7 +66,6 @@ import { Route as SignContractContractIdRouteImport } from './routes/sign.contra
 import { Route as PortalAccountSecurityRouteImport } from './routes/portal.account.security'
 import { Route as PortalAccountPartnerRouteImport } from './routes/portal.account.partner'
 import { Route as PortalAccountNotificationsRouteImport } from './routes/portal.account.notifications'
-import { Route as ApiPublic_test_mint_tokenRouteImport } from './routes/api/public/__test_mint_token'
 import { Route as StudioSettingsEmailsIndexRouteImport } from './routes/studio.settings.emails.index'
 import { Route as StudioSettingsEmailsEmailTypeRouteImport } from './routes/studio.settings.emails.$emailType'
 import { Route as StudioContractsTemplatesIdRouteImport } from './routes/studio.contracts.templates.$id'
@@ -367,12 +366,6 @@ const PortalAccountNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => PortalAccountRoute,
   } as any)
-const ApiPublic_test_mint_tokenRoute =
-  ApiPublic_test_mint_tokenRouteImport.update({
-    id: '/api/public/__test_mint_token',
-    path: '/api/public',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const StudioSettingsEmailsIndexRoute =
   StudioSettingsEmailsIndexRouteImport.update({
     id: '/emails/',
@@ -429,7 +422,6 @@ export interface FileRoutesByFullPath {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
-  '/api/public': typeof ApiPublic_test_mint_tokenRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -490,7 +482,6 @@ export interface FileRoutesByTo {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal': typeof PortalIndexRoute
   '/studio': typeof StudioIndexRoute
-  '/api/public': typeof ApiPublic_test_mint_tokenRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -555,7 +546,6 @@ export interface FileRoutesById {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
-  '/api/public/__test_mint_token': typeof ApiPublic_test_mint_tokenRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -621,7 +611,6 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal/'
     | '/studio/'
-    | '/api/public'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -682,7 +671,6 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal'
     | '/studio'
-    | '/api/public'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -746,7 +734,6 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal/'
     | '/studio/'
-    | '/api/public/__test_mint_token'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -784,7 +771,6 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PortalRoute: typeof PortalRouteWithChildren
   StudioRoute: typeof StudioRouteWithChildren
-  ApiPublic_test_mint_tokenRoute: typeof ApiPublic_test_mint_tokenRoute
   SignContractContractIdRoute: typeof SignContractContractIdRoute
 }
 
@@ -1189,13 +1175,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalAccountNotificationsRouteImport
       parentRoute: typeof PortalAccountRoute
     }
-    '/api/public/__test_mint_token': {
-      id: '/api/public/__test_mint_token'
-      path: '/api/public'
-      fullPath: '/api/public'
-      preLoaderRoute: typeof ApiPublic_test_mint_tokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/studio/settings/emails/': {
       id: '/studio/settings/emails/'
       path: '/emails'
@@ -1424,7 +1403,6 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PortalRoute: PortalRouteWithChildren,
   StudioRoute: StudioRouteWithChildren,
-  ApiPublic_test_mint_tokenRoute: ApiPublic_test_mint_tokenRoute,
   SignContractContractIdRoute: SignContractContractIdRoute,
 }
 export const routeTree = rootRouteImport
