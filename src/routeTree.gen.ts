@@ -40,6 +40,7 @@ import { Route as PortalEngagementRouteImport } from './routes/portal.engagement
 import { Route as PortalDocumentsRouteImport } from './routes/portal.documents'
 import { Route as PortalActivityRouteImport } from './routes/portal.activity'
 import { Route as PortalAccountRouteImport } from './routes/portal.account'
+import { Route as Api_test_mint_tokenRouteImport } from './routes/api/__test_mint_token'
 import { Route as StudioClientsIndexRouteImport } from './routes/studio.clients.index'
 import { Route as PortalAccountIndexRouteImport } from './routes/portal.account.index'
 import { Route as StudioSettingsWorkflowRouteImport } from './routes/studio.settings.workflow'
@@ -226,6 +227,11 @@ const PortalAccountRoute = PortalAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => PortalRoute,
 } as any)
+const Api_test_mint_tokenRoute = Api_test_mint_tokenRouteImport.update({
+  id: '/api/__test_mint_token',
+  path: '/api',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StudioClientsIndexRoute = StudioClientsIndexRouteImport.update({
   id: '/clients/',
   path: '/clients/',
@@ -395,6 +401,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
   '/studio': typeof StudioRouteWithChildren
+  '/api': typeof Api_test_mint_tokenRoute
   '/portal/account': typeof PortalAccountRouteWithChildren
   '/portal/activity': typeof PortalActivityRoute
   '/portal/documents': typeof PortalDocumentsRoute
@@ -456,6 +463,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/api': typeof Api_test_mint_tokenRoute
   '/portal/activity': typeof PortalActivityRoute
   '/portal/documents': typeof PortalDocumentsRoute
   '/portal/engagement': typeof PortalEngagementRoute
@@ -519,6 +527,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
   '/studio': typeof StudioRouteWithChildren
+  '/api/__test_mint_token': typeof Api_test_mint_tokenRoute
   '/portal/account': typeof PortalAccountRouteWithChildren
   '/portal/activity': typeof PortalActivityRoute
   '/portal/documents': typeof PortalDocumentsRoute
@@ -584,6 +593,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/studio'
+    | '/api'
     | '/portal/account'
     | '/portal/activity'
     | '/portal/documents'
@@ -645,6 +655,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/api'
     | '/portal/activity'
     | '/portal/documents'
     | '/portal/engagement'
@@ -707,6 +718,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/studio'
+    | '/api/__test_mint_token'
     | '/portal/account'
     | '/portal/activity'
     | '/portal/documents'
@@ -771,6 +783,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PortalRoute: typeof PortalRouteWithChildren
   StudioRoute: typeof StudioRouteWithChildren
+  Api_test_mint_tokenRoute: typeof Api_test_mint_tokenRoute
   SignContractContractIdRoute: typeof SignContractContractIdRoute
 }
 
@@ -992,6 +1005,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/portal/account'
       preLoaderRoute: typeof PortalAccountRouteImport
       parentRoute: typeof PortalRoute
+    }
+    '/api/__test_mint_token': {
+      id: '/api/__test_mint_token'
+      path: '/api'
+      fullPath: '/api'
+      preLoaderRoute: typeof Api_test_mint_tokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/studio/clients/': {
       id: '/studio/clients/'
@@ -1403,6 +1423,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PortalRoute: PortalRouteWithChildren,
   StudioRoute: StudioRouteWithChildren,
+  Api_test_mint_tokenRoute: Api_test_mint_tokenRoute,
   SignContractContractIdRoute: SignContractContractIdRoute,
 }
 export const routeTree = rootRouteImport
