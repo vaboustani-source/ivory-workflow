@@ -60,6 +60,7 @@ interface Props {
   onSaved: () => void;
   item: ServiceItemRow | null;
   allItems: ServiceItemRow[]; // for inclusion picker
+  hourlyCoverageRateCents?: number | null;
 }
 
 const inputCls =
