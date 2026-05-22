@@ -40,7 +40,6 @@ import { Route as PortalEngagementRouteImport } from './routes/portal.engagement
 import { Route as PortalDocumentsRouteImport } from './routes/portal.documents'
 import { Route as PortalActivityRouteImport } from './routes/portal.activity'
 import { Route as PortalAccountRouteImport } from './routes/portal.account'
-import { Route as Api_test_mint_tokenRouteImport } from './routes/api/__test_mint_token'
 import { Route as StudioClientsIndexRouteImport } from './routes/studio.clients.index'
 import { Route as PortalAccountIndexRouteImport } from './routes/portal.account.index'
 import { Route as StudioSettingsWorkflowRouteImport } from './routes/studio.settings.workflow'
@@ -67,6 +66,7 @@ import { Route as SignContractContractIdRouteImport } from './routes/sign.contra
 import { Route as PortalAccountSecurityRouteImport } from './routes/portal.account.security'
 import { Route as PortalAccountPartnerRouteImport } from './routes/portal.account.partner'
 import { Route as PortalAccountNotificationsRouteImport } from './routes/portal.account.notifications'
+import { Route as ApiPublic_test_mint_tokenRouteImport } from './routes/api/public/__test_mint_token'
 import { Route as StudioSettingsEmailsIndexRouteImport } from './routes/studio.settings.emails.index'
 import { Route as StudioSettingsEmailsEmailTypeRouteImport } from './routes/studio.settings.emails.$emailType'
 import { Route as StudioContractsTemplatesIdRouteImport } from './routes/studio.contracts.templates.$id'
@@ -227,11 +227,6 @@ const PortalAccountRoute = PortalAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => PortalRoute,
 } as any)
-const Api_test_mint_tokenRoute = Api_test_mint_tokenRouteImport.update({
-  id: '/api/__test_mint_token',
-  path: '/api',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const StudioClientsIndexRoute = StudioClientsIndexRouteImport.update({
   id: '/clients/',
   path: '/clients/',
@@ -372,6 +367,12 @@ const PortalAccountNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => PortalAccountRoute,
   } as any)
+const ApiPublic_test_mint_tokenRoute =
+  ApiPublic_test_mint_tokenRouteImport.update({
+    id: '/api/public/__test_mint_token',
+    path: '/api/public',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const StudioSettingsEmailsIndexRoute =
   StudioSettingsEmailsIndexRouteImport.update({
     id: '/emails/',
@@ -401,7 +402,6 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
   '/studio': typeof StudioRouteWithChildren
-  '/api': typeof Api_test_mint_tokenRoute
   '/portal/account': typeof PortalAccountRouteWithChildren
   '/portal/activity': typeof PortalActivityRoute
   '/portal/documents': typeof PortalDocumentsRoute
@@ -429,6 +429,7 @@ export interface FileRoutesByFullPath {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
+  '/api/public': typeof ApiPublic_test_mint_tokenRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -463,7 +464,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/api': typeof Api_test_mint_tokenRoute
   '/portal/activity': typeof PortalActivityRoute
   '/portal/documents': typeof PortalDocumentsRoute
   '/portal/engagement': typeof PortalEngagementRoute
@@ -490,6 +490,7 @@ export interface FileRoutesByTo {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal': typeof PortalIndexRoute
   '/studio': typeof StudioIndexRoute
+  '/api/public': typeof ApiPublic_test_mint_tokenRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -527,7 +528,6 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
   '/studio': typeof StudioRouteWithChildren
-  '/api/__test_mint_token': typeof Api_test_mint_tokenRoute
   '/portal/account': typeof PortalAccountRouteWithChildren
   '/portal/activity': typeof PortalActivityRoute
   '/portal/documents': typeof PortalDocumentsRoute
@@ -555,6 +555,7 @@ export interface FileRoutesById {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
+  '/api/public/__test_mint_token': typeof ApiPublic_test_mint_tokenRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -593,7 +594,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/studio'
-    | '/api'
     | '/portal/account'
     | '/portal/activity'
     | '/portal/documents'
@@ -621,6 +621,7 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal/'
     | '/studio/'
+    | '/api/public'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -655,7 +656,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
-    | '/api'
     | '/portal/activity'
     | '/portal/documents'
     | '/portal/engagement'
@@ -682,6 +682,7 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal'
     | '/studio'
+    | '/api/public'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -718,7 +719,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/studio'
-    | '/api/__test_mint_token'
     | '/portal/account'
     | '/portal/activity'
     | '/portal/documents'
@@ -746,6 +746,7 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal/'
     | '/studio/'
+    | '/api/public/__test_mint_token'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -783,7 +784,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PortalRoute: typeof PortalRouteWithChildren
   StudioRoute: typeof StudioRouteWithChildren
-  Api_test_mint_tokenRoute: typeof Api_test_mint_tokenRoute
+  ApiPublic_test_mint_tokenRoute: typeof ApiPublic_test_mint_tokenRoute
   SignContractContractIdRoute: typeof SignContractContractIdRoute
 }
 
@@ -1006,13 +1007,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalAccountRouteImport
       parentRoute: typeof PortalRoute
     }
-    '/api/__test_mint_token': {
-      id: '/api/__test_mint_token'
-      path: '/api'
-      fullPath: '/api'
-      preLoaderRoute: typeof Api_test_mint_tokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/studio/clients/': {
       id: '/studio/clients/'
       path: '/clients'
@@ -1194,6 +1188,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/portal/account/notifications'
       preLoaderRoute: typeof PortalAccountNotificationsRouteImport
       parentRoute: typeof PortalAccountRoute
+    }
+    '/api/public/__test_mint_token': {
+      id: '/api/public/__test_mint_token'
+      path: '/api/public'
+      fullPath: '/api/public'
+      preLoaderRoute: typeof ApiPublic_test_mint_tokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/studio/settings/emails/': {
       id: '/studio/settings/emails/'
@@ -1423,9 +1424,18 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PortalRoute: PortalRouteWithChildren,
   StudioRoute: StudioRouteWithChildren,
-  Api_test_mint_tokenRoute: Api_test_mint_tokenRoute,
+  ApiPublic_test_mint_tokenRoute: ApiPublic_test_mint_tokenRoute,
   SignContractContractIdRoute: SignContractContractIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
