@@ -388,6 +388,7 @@ function ServicesPage() {
         onSaved={load}
         item={editing}
         allItems={items}
+        hourlyCoverageRateCents={hourlyRateCents}
       />
       <ServiceItemReadOnlyModal
         open={viewing != null}
