@@ -119,12 +119,18 @@ function ServicesPage() {
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("service_items")
-      .select("id,name,description,item_type,price_cents,unit,coverage_hours,is_active,display_order,is_taxable")
-      .order("display_order", { ascending: true, nullsFirst: false })
-      .order("name");
+    const [{ data }, { data: inv }] = await Promise.all([
+      supabase
+        .from("service_items")
+        .select("id,name,description,item_type,price_cents,unit,coverage_hours,is_active,display_order,is_taxable")
+        .order("display_order", { ascending: true, nullsFirst: false })
+        .order("name"),
+      supabase.from("studio_invoicing_settings").select("id,hourly_coverage_rate_cents").maybeSingle(),
+    ]);
     setItems((data ?? []) as ServiceItemRow[]);
+    const invRow = inv as { id: string; hourly_coverage_rate_cents: number | null } | null;
+    setRateRowId(invRow?.id ?? null);
+    setHourlyRateCents(invRow?.hourly_coverage_rate_cents ?? null);
 
     if (isOwner) {
       const { data: cdata } = await supabase
