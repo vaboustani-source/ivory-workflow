@@ -46,6 +46,7 @@ import { Route as StudioSettingsWorkflowRouteImport } from './routes/studio.sett
 import { Route as StudioSettingsTeamRouteImport } from './routes/studio.settings.team'
 import { Route as StudioSettingsStudioProfileRouteImport } from './routes/studio.settings.studio-profile'
 import { Route as StudioSettingsStorageRouteImport } from './routes/studio.settings.storage'
+import { Route as StudioSettingsServicesRouteImport } from './routes/studio.settings.services'
 import { Route as StudioSettingsResourcesRouteImport } from './routes/studio.settings.resources'
 import { Route as StudioSettingsProfileRouteImport } from './routes/studio.settings.profile'
 import { Route as StudioSettingsPackagesRouteImport } from './routes/studio.settings.packages'
@@ -257,6 +258,11 @@ const StudioSettingsStorageRoute = StudioSettingsStorageRouteImport.update({
   path: '/storage',
   getParentRoute: () => StudioSettingsRoute,
 } as any)
+const StudioSettingsServicesRoute = StudioSettingsServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => StudioSettingsRoute,
+} as any)
 const StudioSettingsResourcesRoute = StudioSettingsResourcesRouteImport.update({
   id: '/resources',
   path: '/resources',
@@ -442,6 +448,7 @@ export interface FileRoutesByFullPath {
   '/studio/settings/packages': typeof StudioSettingsPackagesRoute
   '/studio/settings/profile': typeof StudioSettingsProfileRoute
   '/studio/settings/resources': typeof StudioSettingsResourcesRoute
+  '/studio/settings/services': typeof StudioSettingsServicesRoute
   '/studio/settings/storage': typeof StudioSettingsStorageRoute
   '/studio/settings/studio-profile': typeof StudioSettingsStudioProfileRoute
   '/studio/settings/team': typeof StudioSettingsTeamRoute
@@ -502,6 +509,7 @@ export interface FileRoutesByTo {
   '/studio/settings/packages': typeof StudioSettingsPackagesRoute
   '/studio/settings/profile': typeof StudioSettingsProfileRoute
   '/studio/settings/resources': typeof StudioSettingsResourcesRoute
+  '/studio/settings/services': typeof StudioSettingsServicesRoute
   '/studio/settings/storage': typeof StudioSettingsStorageRoute
   '/studio/settings/studio-profile': typeof StudioSettingsStudioProfileRoute
   '/studio/settings/team': typeof StudioSettingsTeamRoute
@@ -566,6 +574,7 @@ export interface FileRoutesById {
   '/studio/settings/packages': typeof StudioSettingsPackagesRoute
   '/studio/settings/profile': typeof StudioSettingsProfileRoute
   '/studio/settings/resources': typeof StudioSettingsResourcesRoute
+  '/studio/settings/services': typeof StudioSettingsServicesRoute
   '/studio/settings/storage': typeof StudioSettingsStorageRoute
   '/studio/settings/studio-profile': typeof StudioSettingsStudioProfileRoute
   '/studio/settings/team': typeof StudioSettingsTeamRoute
@@ -631,6 +640,7 @@ export interface FileRouteTypes {
     | '/studio/settings/packages'
     | '/studio/settings/profile'
     | '/studio/settings/resources'
+    | '/studio/settings/services'
     | '/studio/settings/storage'
     | '/studio/settings/studio-profile'
     | '/studio/settings/team'
@@ -691,6 +701,7 @@ export interface FileRouteTypes {
     | '/studio/settings/packages'
     | '/studio/settings/profile'
     | '/studio/settings/resources'
+    | '/studio/settings/services'
     | '/studio/settings/storage'
     | '/studio/settings/studio-profile'
     | '/studio/settings/team'
@@ -754,6 +765,7 @@ export interface FileRouteTypes {
     | '/studio/settings/packages'
     | '/studio/settings/profile'
     | '/studio/settings/resources'
+    | '/studio/settings/services'
     | '/studio/settings/storage'
     | '/studio/settings/studio-profile'
     | '/studio/settings/team'
@@ -1033,6 +1045,13 @@ declare module '@tanstack/react-router' {
       path: '/storage'
       fullPath: '/studio/settings/storage'
       preLoaderRoute: typeof StudioSettingsStorageRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
+    '/studio/settings/services': {
+      id: '/studio/settings/services'
+      path: '/services'
+      fullPath: '/studio/settings/services'
+      preLoaderRoute: typeof StudioSettingsServicesRouteImport
       parentRoute: typeof StudioSettingsRoute
     }
     '/studio/settings/resources': {
@@ -1320,6 +1339,7 @@ interface StudioSettingsRouteChildren {
   StudioSettingsPackagesRoute: typeof StudioSettingsPackagesRoute
   StudioSettingsProfileRoute: typeof StudioSettingsProfileRoute
   StudioSettingsResourcesRoute: typeof StudioSettingsResourcesRoute
+  StudioSettingsServicesRoute: typeof StudioSettingsServicesRoute
   StudioSettingsStorageRoute: typeof StudioSettingsStorageRoute
   StudioSettingsStudioProfileRoute: typeof StudioSettingsStudioProfileRoute
   StudioSettingsTeamRoute: typeof StudioSettingsTeamRoute
@@ -1339,6 +1359,7 @@ const StudioSettingsRouteChildren: StudioSettingsRouteChildren = {
   StudioSettingsPackagesRoute: StudioSettingsPackagesRoute,
   StudioSettingsProfileRoute: StudioSettingsProfileRoute,
   StudioSettingsResourcesRoute: StudioSettingsResourcesRoute,
+  StudioSettingsServicesRoute: StudioSettingsServicesRoute,
   StudioSettingsStorageRoute: StudioSettingsStorageRoute,
   StudioSettingsStudioProfileRoute: StudioSettingsStudioProfileRoute,
   StudioSettingsTeamRoute: StudioSettingsTeamRoute,
@@ -1408,12 +1429,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

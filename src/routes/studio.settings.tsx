@@ -16,6 +16,7 @@ function SettingsLayout() {
     { label: "Team", to: "/studio/settings/team", visible: true },
     { label: "Contractors", to: "/studio/settings/contractors", visible: true },
     { label: "Packages", to: "/studio/settings/packages", visible: true },
+    { label: "Services", to: "/studio/settings/services", visible: true },
     { label: "Contract templates", to: "/studio/settings/contract-templates", visible: true },
     { label: "Contract Defaults", to: "/studio/settings/contract-defaults", visible: isOwner },
     { label: "Workflow", to: "/studio/settings/workflow", visible: isOwner },
