@@ -316,6 +316,23 @@ function ServicesPage() {
         </p>
       )}
 
+      <RatePanel
+        rateCents={hourlyRateCents}
+        isOwner={isOwner}
+        editing={editingRate}
+        input={rateInput}
+        onStartEdit={() => {
+          setRateInput(hourlyRateCents != null ? String(hourlyRateCents / 100) : "");
+          setEditingRate(true);
+        }}
+        onChangeInput={setRateInput}
+        onSave={saveRate}
+        onCancel={() => {
+          setEditingRate(false);
+          setRateInput("");
+        }}
+      />
+
       {loading ? (
         <p className="text-sm opacity-70">Loading…</p>
       ) : items.length === 0 && !isOwner ? (
