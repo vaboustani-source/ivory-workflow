@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, GripVertical } from "lucide-react";
+import { Plus, GripVertical, Pencil } from "lucide-react";
 import {
   DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter,
 } from "@dnd-kit/core";
