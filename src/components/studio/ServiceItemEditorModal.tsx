@@ -73,7 +73,7 @@ function fmtMoney(cents: number) {
   return `${sign}$${v.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 }
 
-export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems }: Props) {
+export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems, hourlyCoverageRateCents: propRate }: Props) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [itemType, setItemType] = useState<ServiceItemType>("wedding_package");
