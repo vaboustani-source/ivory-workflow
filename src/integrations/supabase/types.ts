@@ -1763,6 +1763,45 @@ export type Database = {
           },
         ]
       }
+      package_default_inclusions: {
+        Row: {
+          created_at: string
+          id: string
+          included_item_id: string
+          package_item_id: string
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          included_item_id: string
+          package_item_id: string
+          quantity?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          included_item_id?: string
+          package_item_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_default_inclusions_included_item_id_fkey"
+            columns: ["included_item_id"]
+            isOneToOne: false
+            referencedRelation: "service_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "package_default_inclusions_package_item_id_fkey"
+            columns: ["package_item_id"]
+            isOneToOne: false
+            referencedRelation: "service_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       packages: {
         Row: {
           add_processing_fees: boolean
@@ -2632,6 +2671,92 @@ export type Database = {
           },
         ]
       }
+      service_item_costs: {
+        Row: {
+          cost_cents: number
+          cost_notes: string | null
+          cost_type: Database["public"]["Enums"]["service_item_unit"]
+          created_at: string
+          estimated_labor_hours: number | null
+          id: string
+          service_item_id: string
+          updated_at: string
+        }
+        Insert: {
+          cost_cents?: number
+          cost_notes?: string | null
+          cost_type?: Database["public"]["Enums"]["service_item_unit"]
+          created_at?: string
+          estimated_labor_hours?: number | null
+          id?: string
+          service_item_id: string
+          updated_at?: string
+        }
+        Update: {
+          cost_cents?: number
+          cost_notes?: string | null
+          cost_type?: Database["public"]["Enums"]["service_item_unit"]
+          created_at?: string
+          estimated_labor_hours?: number | null
+          id?: string
+          service_item_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_item_costs_service_item_id_fkey"
+            columns: ["service_item_id"]
+            isOneToOne: true
+            referencedRelation: "service_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_items: {
+        Row: {
+          coverage_hours: number | null
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          is_taxable: boolean
+          item_type: Database["public"]["Enums"]["service_item_type"]
+          name: string
+          price_cents: number
+          unit: Database["public"]["Enums"]["service_item_unit"]
+          updated_at: string
+        }
+        Insert: {
+          coverage_hours?: number | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_taxable?: boolean
+          item_type: Database["public"]["Enums"]["service_item_type"]
+          name: string
+          price_cents?: number
+          unit?: Database["public"]["Enums"]["service_item_unit"]
+          updated_at?: string
+        }
+        Update: {
+          coverage_hours?: number | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_taxable?: boolean
+          item_type?: Database["public"]["Enums"]["service_item_type"]
+          name?: string
+          price_cents?: number
+          unit?: Database["public"]["Enums"]["service_item_unit"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       storage_cleanup_queue: {
         Row: {
           created_at: string
@@ -2668,21 +2793,51 @@ export type Database = {
         }
         Relationships: []
       }
-      studio_invoicing_settings: {
+      studio_cost_settings: {
         Row: {
           id: string
+          labor_cost_per_hour_cents: number | null
+          travel_cost_per_mile_cents: number | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          labor_cost_per_hour_cents?: number | null
+          travel_cost_per_mile_cents?: number | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          labor_cost_per_hour_cents?: number | null
+          travel_cost_per_mile_cents?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      studio_invoicing_settings: {
+        Row: {
+          annual_rate_escalation_pct: number
+          hourly_coverage_rate_cents: number | null
+          id: string
+          proposal_validity_days: number
           tbd_deposit_amount_cents: number
           tbd_finalize_window_days: number
           updated_at: string
         }
         Insert: {
+          annual_rate_escalation_pct?: number
+          hourly_coverage_rate_cents?: number | null
           id?: string
+          proposal_validity_days?: number
           tbd_deposit_amount_cents?: number
           tbd_finalize_window_days?: number
           updated_at?: string
         }
         Update: {
+          annual_rate_escalation_pct?: number
+          hourly_coverage_rate_cents?: number | null
           id?: string
+          proposal_validity_days?: number
           tbd_deposit_amount_cents?: number
           tbd_finalize_window_days?: number
           updated_at?: string
@@ -3456,6 +3611,23 @@ export type Database = {
         | "travel_lodging"
         | "general"
       resource_content_type: "article" | "pdf" | "video" | "link"
+      service_item_type:
+        | "wedding_package"
+        | "engagement_session"
+        | "portrait_session"
+        | "album"
+        | "videography"
+        | "print"
+        | "add_on"
+        | "deliverable"
+        | "travel"
+        | "custom"
+      service_item_unit:
+        | "flat"
+        | "per_hour"
+        | "per_mile"
+        | "per_person"
+        | "per_unit"
       service_request_status:
         | "sent"
         | "accepted"
@@ -3740,6 +3912,25 @@ export const Constants = {
         "general",
       ],
       resource_content_type: ["article", "pdf", "video", "link"],
+      service_item_type: [
+        "wedding_package",
+        "engagement_session",
+        "portrait_session",
+        "album",
+        "videography",
+        "print",
+        "add_on",
+        "deliverable",
+        "travel",
+        "custom",
+      ],
+      service_item_unit: [
+        "flat",
+        "per_hour",
+        "per_mile",
+        "per_person",
+        "per_unit",
+      ],
       service_request_status: [
         "sent",
         "accepted",
