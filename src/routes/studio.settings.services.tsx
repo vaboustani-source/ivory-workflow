@@ -109,6 +109,12 @@ function ServicesPage() {
   const [creating, setCreating] = useState(false);
   const [viewing, setViewing] = useState<ServiceItemRow | null>(null);
 
+  // Hourly coverage rate panel state
+  const [rateRowId, setRateRowId] = useState<string | null>(null);
+  const [hourlyRateCents, setHourlyRateCents] = useState<number | null>(null);
+  const [editingRate, setEditingRate] = useState(false);
+  const [rateInput, setRateInput] = useState("");
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
   const load = async () => {
