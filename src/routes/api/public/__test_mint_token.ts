@@ -2,7 +2,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { supabaseAdmin } from '@/integrations/supabase/client.server';
 
-export const Route = createFileRoute('/api/__test_mint_token')({
+export const Route = createFileRoute('/api/public/__test_mint_token')({
   server: {
     handlers: {
       POST: async ({ request }) => {
