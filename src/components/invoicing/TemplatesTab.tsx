@@ -12,6 +12,7 @@ interface TemplateRow extends TemplateRecord {
 }
 
 export function TemplatesTab() {
+  const isOwner = useIsOwner();
   const [rows, setRows] = useState<TemplateRow[]>([]);
   const [packages, setPackages] = useState<PackageOption[]>([]);
   const [showInactive, setShowInactive] = useState(false);
