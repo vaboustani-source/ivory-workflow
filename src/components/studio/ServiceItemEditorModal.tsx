@@ -191,7 +191,7 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems 
         name: name.trim(),
         description: description.trim() || null,
         item_type: itemType,
-        price_cents: priceStr ? priceCents : null,
+        price_cents: priceStr ? priceCents : 0,
         unit,
         coverage_hours: isPackage && coverageHoursStr ? Number(coverageHoursStr) : null,
         is_active: isActive,
