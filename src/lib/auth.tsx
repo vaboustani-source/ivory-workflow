@@ -107,3 +107,8 @@ export function useAuth() {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
+
+/** True iff the current logged-in user has the 'owner' role in user_roles. */
+export function useIsOwner() {
+  return useAuth().isOwner;
+}
