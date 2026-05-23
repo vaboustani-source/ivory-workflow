@@ -98,6 +98,7 @@ export function QuoteTab({ clientId }: { clientId: string }) {
   const [pickerQuery, setPickerQuery] = useState("");
   const [discountInput, setDiscountInput] = useState("");
   const [notesInput, setNotesInput] = useState("");
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadInclusions = async (itemIds: string[]) => {
