@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2, X } from "lucide-react";
+import { Plus, Trash2, X, Pencil, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsOwner } from "@/lib/auth";
 import { logActivity } from "@/lib/activityLog";
 import type { Database } from "@/integrations/supabase/types";
+
+type QuoteInclusion = { id: string; quote_item_id: string; text: string; display_order: number };
 
 type ItemType = Database["public"]["Enums"]["service_item_type"];
 type QuoteStatus = Database["public"]["Enums"]["quote_status"];
