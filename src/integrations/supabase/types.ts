@@ -3585,6 +3585,17 @@ export type Database = {
         Args: { days_to_add: number; start_date: string }
         Returns: string
       }
+      add_quote_item: {
+        Args: {
+          p_custom_description?: string
+          p_custom_price_cents?: number
+          p_display_order?: number
+          p_quantity?: number
+          p_quote_id: string
+          p_service_item_id: string
+        }
+        Returns: string
+      }
       calculate_production_stage: {
         Args: { _client_id: string }
         Returns: string
