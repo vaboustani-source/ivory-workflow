@@ -443,8 +443,12 @@ function ClientDetail() {
                     <Row label="Venue" value={client.venue_name ?? "—"} />
                     <AddressRow client={client} />
                     <Row label="Guest count" value={client.guest_count?.toString() ?? "—"} />
-                    <Row label="Package" value={client.package?.name ?? "—"} />
-                    <Row label="Investment" value={client.package_price ? `$${Number(client.package_price).toLocaleString()}` : "—"} />
+                    <Row label="Package" value={quoteSummary?.package_label ?? client.package?.name ?? "—"} />
+                    <Row label="Investment" value={
+                      quoteSummary
+                        ? `$${Math.round(quoteSummary.total_cents / 100).toLocaleString()}`
+                        : client.package_price ? `$${Number(client.package_price).toLocaleString()}` : "—"
+                    } />
                     <CoverageHoursRow clientId={client.id} initial={client.coverage_hours} onSaved={(v: number | null) => setClient((c) => c ? { ...c, coverage_hours: v } : c)} />
                   </>
                 )}
