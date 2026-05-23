@@ -43,6 +43,15 @@ type ServiceItem = {
   is_active: boolean;
 };
 
+type Invoice = {
+  id: string;
+  label: string | null;
+  due_date: string | null;
+  total_cents: number | null;
+  status: Database["public"]["Enums"]["invoice_status"];
+  sequence_order: number | null;
+};
+
 const TYPE_LABEL: Record<string, string> = {
   wedding_package: "Wedding Packages",
   engagement_session: "Sessions",
@@ -89,6 +98,7 @@ export function QuoteTab({ clientId }: { clientId: string }) {
   const [pickerQuery, setPickerQuery] = useState("");
   const [discountInput, setDiscountInput] = useState("");
   const [notesInput, setNotesInput] = useState("");
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadInclusions = async (itemIds: string[]) => {
@@ -107,11 +117,18 @@ export function QuoteTab({ clientId }: { clientId: string }) {
 
   const load = async () => {
     setLoading(true);
-    const { data: q } = await supabase
-      .from("quotes")
-      .select("id,client_id,status,subtotal_cents,discount_cents,total_cents,valid_until,notes")
-      .eq("client_id", clientId)
-      .maybeSingle();
+    const [{ data: q }, { data: invs }] = await Promise.all([
+      supabase
+        .from("quotes")
+        .select("id,client_id,status,subtotal_cents,discount_cents,total_cents,valid_until,notes")
+        .eq("client_id", clientId)
+        .maybeSingle(),
+      supabase
+        .from("invoices")
+        .select("id,label,due_date,total_cents,status,sequence_order")
+        .eq("client_id", clientId)
+        .order("sequence_order"),
+    ]);
     const quoteRow = (q ?? null) as Quote | null;
     setQuote(quoteRow);
     if (quoteRow) {
@@ -132,6 +149,7 @@ export function QuoteTab({ clientId }: { clientId: string }) {
       setDiscountInput("");
       setNotesInput("");
     }
+    setInvoices((invs ?? []) as Invoice[]);
     const { data: si } = await supabase
       .from("service_items")
       .select("id,name,item_type,price_cents,unit,is_active")
@@ -147,6 +165,17 @@ export function QuoteTab({ clientId }: { clientId: string }) {
   const subtotal = useMemo(() => items.reduce((s, i) => s + i.line_total_cents, 0), [items]);
   const discountCents = Math.max(0, Math.round((Number(discountInput) || 0) * 100));
   const total = Math.max(0, subtotal - discountCents);
+
+  const cancelledStatuses = new Set(["cancelled", "refunded", "kill_fee"]);
+  const scheduledTotal = useMemo(
+    () => invoices.filter((i) => !cancelledStatuses.has(i.status)).reduce((s, i) => s + (i.total_cents ?? 0), 0),
+    [invoices],
+  );
+  const paidTotal = useMemo(
+    () => invoices.filter((i) => i.status === "paid").reduce((s, i) => s + (i.total_cents ?? 0), 0),
+    [invoices],
+  );
+  const remainingTotal = scheduledTotal - paidTotal;
 
   // Persist quote header (subtotal/discount/total/notes) — debounced
   useEffect(() => {
@@ -657,6 +686,117 @@ export function QuoteTab({ clientId }: { clientId: string }) {
           style={{ background: "#F0A5BE", color: "var(--sbv-purple)" }}
           placeholder="Internal or client-facing notes for this quote…"
         />
+      </div>
+
+      {/* Payment schedule */}
+      <div className="space-y-4 pt-4">
+        <h3 className="font-serif italic text-[22px]" style={{ color: "var(--sbv-green)" }}>Payment schedule</h3>
+        {invoices.length === 0 ? (
+          <div
+            className="rounded-sm p-8 text-center"
+            style={{ background: "#F0A5BE" }}
+          >
+            <p className="font-serif text-base" style={{ color: "var(--sbv-green)" }}>No payment schedule yet.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {/* Summary strip */}
+            <div
+              className="rounded-sm px-5 py-4 flex items-center justify-between"
+              style={{ background: "#F0A5BE" }}
+            >
+              <div className="text-center flex-1">
+                <p className="text-[10px] uppercase tracking-wider opacity-70" style={{ color: "var(--sbv-purple)" }}>Total scheduled</p>
+                <p className="font-serif text-xl" style={{ color: "var(--sbv-green)" }}>{fmtMoney(scheduledTotal)}</p>
+              </div>
+              <div className="text-center flex-1 border-l" style={{ borderColor: "rgba(65,25,40,0.15)" }}>
+                <p className="text-[10px] uppercase tracking-wider opacity-70" style={{ color: "var(--sbv-purple)" }}>Total paid</p>
+                <p className="font-serif text-xl" style={{ color: "var(--sbv-green)" }}>{fmtMoney(paidTotal)}</p>
+              </div>
+              <div className="text-center flex-1 border-l" style={{ borderColor: "rgba(65,25,40,0.15)" }}>
+                <p className="text-[10px] uppercase tracking-wider opacity-70" style={{ color: "var(--sbv-purple)" }}>Balance remaining</p>
+                <p className="font-serif text-xl" style={{ color: "var(--sbv-green)" }}>{fmtMoney(remainingTotal)}</p>
+              </div>
+            </div>
+
+            {/* Invoice rows */}
+            <div className="space-y-2">
+              {invoices.map((inv) => {
+                const amount = inv.total_cents ?? 0;
+                const isCancelled = cancelledStatuses.has(inv.status);
+                const isOverdue = inv.status === "overdue";
+                const statusConfig: Record<
+                  Database["public"]["Enums"]["invoice_status"],
+                  { dotColor: string; label: string; extraCls?: string }
+                > = {
+                  draft: { dotColor: "#7A6A6E", label: "Draft" },
+                  scheduled: { dotColor: "#EBDBC8", label: "Scheduled" },
+                  sent: { dotColor: "#C9A24A", label: "Sent" },
+                  viewed: { dotColor: "#411928", label: "Viewed" },
+                  paid: { dotColor: "#103200", label: "Paid" },
+                  overdue: { dotColor: "#103200", label: "Overdue" },
+                  reschedule_requested: { dotColor: "#B41E64", label: "Reschedule requested" },
+                  cancelled: { dotColor: "#7A6A6E", label: "Cancelled" },
+                  refunded: { dotColor: "#7A6A6E", label: "Refunded" },
+                  kill_fee: { dotColor: "#7A6A6E", label: "Kill fee" },
+                };
+                const cfg = statusConfig[inv.status];
+                return (
+                  <div
+                    key={inv.id}
+                    className={`rounded-sm px-4 py-3 flex items-center justify-between ${isCancelled ? "opacity-50" : ""}`}
+                    style={{ background: "#F0A5BE" }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{ background: cfg.dotColor }}
+                      />
+                      <div>
+                        <p className="font-serif text-base" style={{ color: "var(--sbv-green)" }}>
+                          {isCancelled ? <span className="line-through">{inv.label ?? "—"}</span> : (inv.label ?? "—")}
+                        </p>
+                        {inv.due_date && (
+                          <p className="text-[11px] opacity-70" style={{ color: "var(--sbv-purple)" }}>
+                            {new Date(inv.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+                        style={{
+                          background: isOverdue ? "#103200" : "transparent",
+                          color: isOverdue ? "#fff" : cfg.dotColor,
+                        }}
+                      >
+                        {isOverdue ? "overdue" : cfg.label}
+                      </span>
+                      <span className="font-serif text-base" style={{ color: "var(--sbv-green)", minWidth: "80px", textAlign: "right" }}>
+                        {fmtMoney(amount)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Quote vs schedule consistency check */}
+            {quote && (
+              <div className="flex items-center gap-2 text-[12px]" style={{ color: "var(--sbv-purple)" }}>
+                <span>Quote total: {fmtMoney(quote.total_cents)}</span>
+                <span>·</span>
+                <span>Scheduled in payments: {fmtMoney(scheduledTotal)}</span>
+                {quote.total_cents === scheduledTotal ? (
+                  <span className="ml-1" style={{ color: "#103200" }}>✓ matches</span>
+                ) : (
+                  <span className="ml-1 opacity-70">⚠ quote total and payment schedule differ</span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {!isOwner && (
