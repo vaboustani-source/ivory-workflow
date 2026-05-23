@@ -691,7 +691,6 @@ export function QuoteTab({ clientId }: { clientId: string }) {
       {/* Payment schedule */}
       <div className="space-y-4 pt-4">
         <h3 className="font-serif italic text-[22px]" style={{ color: "var(--sbv-green)" }}>Payment schedule</h3>
-        {invoices.length === 1 && invoices[1]}
         {invoices.length === 0 ? (
           <div
             className="rounded-sm p-8 text-center"
