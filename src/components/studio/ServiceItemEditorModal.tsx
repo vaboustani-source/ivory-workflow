@@ -89,10 +89,6 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems,
   const [unit, setUnit] = useState<ServiceItemUnit>("flat");
   const [coverageHoursStr, setCoverageHoursStr] = useState("");
 
-  const [costStr, setCostStr] = useState("");
-  const [costType, setCostType] = useState<ServiceItemUnit>("flat");
-  const [laborHoursStr, setLaborHoursStr] = useState("");
-  const [costNotes, setCostNotes] = useState("");
 
   const [inclusions, setInclusions] = useState<Inclusion[]>([]);
   const [addInclusionId, setAddInclusionId] = useState<string>("");
@@ -132,20 +128,6 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems,
         setUnit(item.unit);
         setCoverageHoursStr(item.coverage_hours != null ? String(item.coverage_hours) : "");
 
-        // cost
-        const { data: cost } = await supabase
-          .from("service_item_costs")
-          .select("cost_cents,cost_type,estimated_labor_hours,cost_notes")
-          .eq("service_item_id", item.id)
-          .maybeSingle();
-        if (cost) {
-          setCostStr(cost.cost_cents != null ? String(cost.cost_cents / 100) : "");
-          setCostType((cost.cost_type ?? "flat") as ServiceItemUnit);
-          setLaborHoursStr(cost.estimated_labor_hours != null ? String(cost.estimated_labor_hours) : "");
-          setCostNotes(cost.cost_notes ?? "");
-        } else {
-          setCostStr(""); setCostType("flat"); setLaborHoursStr(""); setCostNotes("");
-        }
 
         // inclusions
         const { data: incs } = await supabase
@@ -173,7 +155,7 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems,
       } else {
         setName(""); setDescription(""); setItemType("wedding_package"); setIsActive(true);
         setPriceStr(""); setUnit("flat"); setCoverageHoursStr("");
-        setCostStr(""); setCostType("flat"); setLaborHoursStr(""); setCostNotes("");
+        
         setInclusions([]);
         setBullets([]);
       }
