@@ -270,6 +270,61 @@ export function QuoteTab({ clientId }: { clientId: string }) {
     });
   };
 
+  // Per-line inclusion edits (writes to quote_item_inclusions only — never the catalog)
+  const addInclusion = async (quoteItemId: string) => {
+    const list = inclusions[quoteItemId] ?? [];
+    const display_order = list.length;
+    const { data, error } = await (supabase as any)
+      .from("quote_item_inclusions")
+      .insert({ quote_item_id: quoteItemId, text: "", display_order })
+      .select("id,quote_item_id,text,display_order")
+      .single();
+    if (error) { toast.error(error.message); return; }
+    setInclusions((m) => ({ ...m, [quoteItemId]: [...list, data as QuoteInclusion] }));
+  };
+
+  const updateInclusion = async (quoteItemId: string, id: string, text: string) => {
+    setInclusions((m) => ({
+      ...m,
+      [quoteItemId]: (m[quoteItemId] ?? []).map((b) => (b.id === id ? { ...b, text } : b)),
+    }));
+    const { error } = await (supabase as any)
+      .from("quote_item_inclusions")
+      .update({ text })
+      .eq("id", id);
+    if (error) toast.error(error.message);
+  };
+
+  const removeInclusion = async (quoteItemId: string, id: string) => {
+    setInclusions((m) => ({
+      ...m,
+      [quoteItemId]: (m[quoteItemId] ?? []).filter((b) => b.id !== id),
+    }));
+    const { error } = await (supabase as any)
+      .from("quote_item_inclusions")
+      .delete()
+      .eq("id", id);
+    if (error) toast.error(error.message);
+  };
+
+  const moveInclusion = async (quoteItemId: string, id: string, dir: -1 | 1) => {
+    const list = [...(inclusions[quoteItemId] ?? [])];
+    const idx = list.findIndex((b) => b.id === id);
+    const target = idx + dir;
+    if (idx < 0 || target < 0 || target >= list.length) return;
+    [list[idx], list[target]] = [list[target], list[idx]];
+    const updated = list.map((b, i) => ({ ...b, display_order: i }));
+    setInclusions((m) => ({ ...m, [quoteItemId]: updated }));
+    // Persist new orders for the two affected rows
+    await Promise.all(
+      updated.map((b) =>
+        (supabase as any).from("quote_item_inclusions").update({ display_order: b.display_order }).eq("id", b.id),
+      ),
+    );
+  };
+
+
+
   // Picker filtering
   const filteredCatalog = useMemo(() => {
     const q = pickerQuery.trim().toLowerCase();
