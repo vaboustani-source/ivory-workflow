@@ -83,11 +83,27 @@ export function QuoteTab({ clientId }: { clientId: string }) {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [items, setItems] = useState<QuoteItem[]>([]);
   const [catalog, setCatalog] = useState<ServiceItem[]>([]);
+  const [inclusions, setInclusions] = useState<Record<string, QuoteInclusion[]>>({});
+  const [editingInclusionsFor, setEditingInclusionsFor] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerQuery, setPickerQuery] = useState("");
   const [discountInput, setDiscountInput] = useState("");
   const [notesInput, setNotesInput] = useState("");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const loadInclusions = async (itemIds: string[]) => {
+    if (itemIds.length === 0) { setInclusions({}); return; }
+    const { data } = await (supabase as any)
+      .from("quote_item_inclusions")
+      .select("id,quote_item_id,text,display_order")
+      .in("quote_item_id", itemIds)
+      .order("display_order");
+    const map: Record<string, QuoteInclusion[]> = {};
+    for (const row of ((data ?? []) as QuoteInclusion[])) {
+      (map[row.quote_item_id] ||= []).push(row);
+    }
+    setInclusions(map);
+  };
 
   const load = async () => {
     setLoading(true);
