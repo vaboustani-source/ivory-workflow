@@ -28,16 +28,19 @@ export const Route = createFileRoute("/studio/clients/$id")({
   component: ClientDetail,
 });
 
-const TABS = ["Overview", "Quote", "Timeline", "Photography", "Family Portraits", "Messages", "Documents", "Forms", "Activity", "Financials", "Gallery", "Notes"] as const;
+const TABS = ["Overview", "Financials", "Timeline", "Photography", "Family Portraits", "Messages", "Documents", "Forms", "Activity", "P&L", "Gallery", "Notes"] as const;
 type Tab = typeof TABS[number];
 
 const TAB_KEY: Record<Tab, string> = {
-  Overview: "overview", Quote: "quote", Timeline: "timeline", Photography: "photography", "Family Portraits": "portrait-sequence", Messages: "messages",
-  Documents: "documents", Forms: "forms", Activity: "activity", Financials: "financials", Gallery: "gallery", Notes: "notes",
+  Overview: "overview", Financials: "financials", Timeline: "timeline", Photography: "photography", "Family Portraits": "portrait-sequence", Messages: "messages",
+  Documents: "documents", Forms: "forms", Activity: "activity", "P&L": "pnl", Gallery: "gallery", Notes: "notes",
 };
-const KEY_TO_TAB: Record<string, Tab> = Object.fromEntries(
-  Object.entries(TAB_KEY).map(([k, v]) => [v, k as Tab])
-) as Record<string, Tab>;
+// Back-compat for old URLs (?tab=quote → Financials)
+const LEGACY_TAB_ALIASES: Record<string, Tab> = { quote: "Financials" };
+const KEY_TO_TAB: Record<string, Tab> = {
+  ...Object.fromEntries(Object.entries(TAB_KEY).map(([k, v]) => [v, k as Tab])),
+  ...LEGACY_TAB_ALIASES,
+} as Record<string, Tab>;
 
 interface ClientDetailRow {
   id: string;
@@ -152,10 +155,13 @@ function ClientDetail() {
   };
   const [taskCounts, setTaskCounts] = useState({ open: 0, complete: 0 });
   const [loading, setLoading] = useState(true);
+  // NEW source of truth for Investment/Package on overview: client's quote.
+  // TODO: invoicing still reads old package_id/investment — repoint after Financials module complete.
+  const [quoteSummary, setQuoteSummary] = useState<{ total_cents: number; package_label: string | null } | null>(null);
 
   const load = async () => {
     setLoading(true);
-    const [{ data }, openCount, doneCount] = await Promise.all([
+    const [{ data }, openCount, doneCount, quoteRes] = await Promise.all([
       supabase.from("clients").select(`
         id, couple_name_1, couple_name_2, primary_email, secondary_email, phone,
         wedding_date, venue_name, venue_address, venue_street, venue_city, venue_state, venue_postal_code, guest_count, package_price, coverage_hours, status,
@@ -168,9 +174,24 @@ function ClientDetail() {
       `).eq("id", id).maybeSingle(),
       supabase.from("tasks").select("id", { count: "exact", head: true }).eq("client_id", id).eq("status", "pending"),
       supabase.from("tasks").select("id", { count: "exact", head: true }).eq("client_id", id).eq("status", "complete"),
+      supabase.from("quotes")
+        .select("total_cents, items:quote_items(description_snapshot, item_type_snapshot, display_order)")
+        .eq("client_id", id).maybeSingle(),
     ]);
     setClient(data as unknown as ClientDetailRow);
     setTaskCounts({ open: openCount.count ?? 0, complete: doneCount.count ?? 0 });
+    if (quoteRes.data) {
+      const items = (quoteRes.data.items ?? []) as { description_snapshot: string; item_type_snapshot: string | null; display_order: number }[];
+      const pkgItem = items
+        .filter((i) => i.item_type_snapshot === "wedding_package")
+        .sort((a, b) => a.display_order - b.display_order)[0];
+      setQuoteSummary({
+        total_cents: quoteRes.data.total_cents ?? 0,
+        package_label: pkgItem?.description_snapshot ?? null,
+      });
+    } else {
+      setQuoteSummary(null);
+    }
     setLoading(false);
   };
 
@@ -422,8 +443,12 @@ function ClientDetail() {
                     <Row label="Venue" value={client.venue_name ?? "—"} />
                     <AddressRow client={client} />
                     <Row label="Guest count" value={client.guest_count?.toString() ?? "—"} />
-                    <Row label="Package" value={client.package?.name ?? "—"} />
-                    <Row label="Investment" value={client.package_price ? `$${Number(client.package_price).toLocaleString()}` : "—"} />
+                    <Row label="Package" value={quoteSummary?.package_label ?? client.package?.name ?? "—"} />
+                    <Row label="Investment" value={
+                      quoteSummary
+                        ? `$${Math.round(quoteSummary.total_cents / 100).toLocaleString()}`
+                        : client.package_price ? `$${Number(client.package_price).toLocaleString()}` : "—"
+                    } />
                     <CoverageHoursRow clientId={client.id} initial={client.coverage_hours} onSaved={(v: number | null) => setClient((c) => c ? { ...c, coverage_hours: v } : c)} />
                   </>
                 )}
@@ -473,7 +498,7 @@ function ClientDetail() {
               </Card>
             </div>
           </div>
-        ) : tab === "Quote" ? (
+        ) : tab === "Financials" ? (
           <QuoteTab clientId={id} />
         ) : tab === "Timeline" ? (
           <ClientTimelineTab clientId={id} />
@@ -497,7 +522,7 @@ function ClientDetail() {
               <ActivityList clientId={id} mode="studio" />
             </div>
           </div>
-        ) : tab === "Financials" ? (
+        ) : tab === "P&L" ? (
           <ClientFinancialsTab clientId={id} />
         ) : (
           <div className="bg-surface rounded-lg shadow-soft py-20 text-center">
