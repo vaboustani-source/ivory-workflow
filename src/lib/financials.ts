@@ -38,7 +38,7 @@ export async function getClientFinancials(clientId: string): Promise<{
   expenses: { id: string; description: string; category: string; amount: number; expense_date: string | null }[];
   client: { final_image_count: number | null; editing_rate_per_image: number | null; package_price: number | null };
 }> {
-  const [{ data: client }, { data: csr }, { data: exp }] = await Promise.all([
+  const [{ data: client }, { data: csr }, { data: exp }, { data: quote }] = await Promise.all([
     supabase.from("clients").select("package_price, final_image_count, editing_rate_per_image").eq("id", clientId).maybeSingle(),
     supabase
       .from("contractor_service_requests")
@@ -46,9 +46,12 @@ export async function getClientFinancials(clientId: string): Promise<{
       .eq("client_id", clientId)
       .eq("status", "accepted"),
     supabase.from("wedding_expenses").select("id, description, category, amount, expense_date").eq("client_id", clientId).order("expense_date", { ascending: false }),
+    supabase.from("quotes").select("total_cents").eq("client_id", clientId).maybeSingle(),
   ]);
 
-  const revenue = Number(client?.package_price ?? 0);
+  const revenue = quote?.total_cents != null
+    ? Number(quote.total_cents) / 100
+    : Number(client?.package_price ?? 0);
   const contractors: ContractorBreakdownRow[] = (csr ?? []).map((r: any) => ({
     id: r.id,
     contractor_name: r.contractor?.full_name ?? "Contractor",
