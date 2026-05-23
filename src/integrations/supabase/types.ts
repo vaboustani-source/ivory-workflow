@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      _b3_test_results: {
+        Row: {
+          captured_at: string | null
+          result: Json | null
+          scenario: string
+        }
+        Insert: {
+          captured_at?: string | null
+          result?: Json | null
+          scenario: string
+        }
+        Update: {
+          captured_at?: string | null
+          result?: Json | null
+          scenario?: string
+        }
+        Relationships: []
+      }
       activity_log: {
         Row: {
           action_type: string | null
