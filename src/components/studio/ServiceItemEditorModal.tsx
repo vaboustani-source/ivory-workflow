@@ -54,6 +54,12 @@ interface Inclusion {
   quantity: number;
 }
 
+interface Bullet {
+  id?: string; // service_item_inclusions row id (persisted)
+  text: string;
+  display_order: number;
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
