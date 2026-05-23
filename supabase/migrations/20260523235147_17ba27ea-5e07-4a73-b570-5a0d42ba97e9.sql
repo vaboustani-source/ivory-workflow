@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public._b3_test_add(uuid,text,int,uuid) TO service_role;
