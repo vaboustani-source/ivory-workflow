@@ -166,6 +166,17 @@ export function QuoteTab({ clientId }: { clientId: string }) {
   const discountCents = Math.max(0, Math.round((Number(discountInput) || 0) * 100));
   const total = Math.max(0, subtotal - discountCents);
 
+  const cancelledStatuses = new Set(["cancelled", "refunded", "kill_fee"]);
+  const scheduledTotal = useMemo(
+    () => invoices.filter((i) => !cancelledStatuses.has(i.status)).reduce((s, i) => s + (i.total_cents ?? 0), 0),
+    [invoices],
+  );
+  const paidTotal = useMemo(
+    () => invoices.filter((i) => i.status === "paid").reduce((s, i) => s + (i.total_cents ?? 0), 0),
+    [invoices],
+  );
+  const remainingTotal = scheduledTotal - paidTotal;
+
   // Persist quote header (subtotal/discount/total/notes) — debounced
   useEffect(() => {
     if (!quote) return;
