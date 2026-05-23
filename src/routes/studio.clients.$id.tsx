@@ -28,16 +28,19 @@ export const Route = createFileRoute("/studio/clients/$id")({
   component: ClientDetail,
 });
 
-const TABS = ["Overview", "Quote", "Timeline", "Photography", "Family Portraits", "Messages", "Documents", "Forms", "Activity", "Financials", "Gallery", "Notes"] as const;
+const TABS = ["Overview", "Financials", "Timeline", "Photography", "Family Portraits", "Messages", "Documents", "Forms", "Activity", "P&L", "Gallery", "Notes"] as const;
 type Tab = typeof TABS[number];
 
 const TAB_KEY: Record<Tab, string> = {
-  Overview: "overview", Quote: "quote", Timeline: "timeline", Photography: "photography", "Family Portraits": "portrait-sequence", Messages: "messages",
-  Documents: "documents", Forms: "forms", Activity: "activity", Financials: "financials", Gallery: "gallery", Notes: "notes",
+  Overview: "overview", Financials: "financials", Timeline: "timeline", Photography: "photography", "Family Portraits": "portrait-sequence", Messages: "messages",
+  Documents: "documents", Forms: "forms", Activity: "activity", "P&L": "pnl", Gallery: "gallery", Notes: "notes",
 };
-const KEY_TO_TAB: Record<string, Tab> = Object.fromEntries(
-  Object.entries(TAB_KEY).map(([k, v]) => [v, k as Tab])
-) as Record<string, Tab>;
+// Back-compat for old URLs (?tab=quote → Financials)
+const LEGACY_TAB_ALIASES: Record<string, Tab> = { quote: "Financials" };
+const KEY_TO_TAB: Record<string, Tab> = {
+  ...Object.fromEntries(Object.entries(TAB_KEY).map(([k, v]) => [v, k as Tab])),
+  ...LEGACY_TAB_ALIASES,
+} as Record<string, Tab>;
 
 interface ClientDetailRow {
   id: string;
