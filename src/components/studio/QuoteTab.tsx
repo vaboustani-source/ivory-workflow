@@ -43,6 +43,15 @@ type ServiceItem = {
   is_active: boolean;
 };
 
+type Invoice = {
+  id: string;
+  label: string | null;
+  due_date: string | null;
+  total_cents: number | null;
+  status: Database["public"]["Enums"]["invoice_status"];
+  sequence_order: number | null;
+};
+
 const TYPE_LABEL: Record<string, string> = {
   wedding_package: "Wedding Packages",
   engagement_session: "Sessions",
