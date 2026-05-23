@@ -3619,6 +3619,15 @@ export type Database = {
         Args: { p_anchor: string; p_client_id: string; p_step_id?: string }
         Returns: string
       }
+      _b3_test_add: {
+        Args: {
+          p_desc: string
+          p_owner: string
+          p_price_cents: number
+          p_quote_id: string
+        }
+        Returns: Json
+      }
       _branch_passes: {
         Args: {
           p_branch: Database["public"]["Enums"]["workflow_branch"]
