@@ -54,6 +54,12 @@ interface Inclusion {
   quantity: number;
 }
 
+interface Bullet {
+  id?: string; // service_item_inclusions row id (persisted)
+  text: string;
+  display_order: number;
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -90,6 +96,8 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems,
 
   const [inclusions, setInclusions] = useState<Inclusion[]>([]);
   const [addInclusionId, setAddInclusionId] = useState<string>("");
+
+  const [bullets, setBullets] = useState<Bullet[]>([]);
 
   const [hourlyCoverageRateCents, setHourlyCoverageRateCents] = useState<number | null>(propRate ?? null);
 
@@ -152,11 +160,22 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems,
             quantity: r.quantity ?? 1,
           })),
         );
+
+        // bullets ("what's included")
+        const { data: bs } = await (supabase as any)
+          .from("service_item_inclusions")
+          .select("id,text,display_order")
+          .eq("service_item_id", item.id)
+          .order("display_order");
+        setBullets(((bs ?? []) as any[]).map((r) => ({
+          id: r.id, text: r.text, display_order: r.display_order ?? 0,
+        })));
       } else {
         setName(""); setDescription(""); setItemType("wedding_package"); setIsActive(true);
         setPriceStr(""); setUnit("flat"); setCoverageHoursStr("");
         setCostStr(""); setCostType("flat"); setLaborHoursStr(""); setCostNotes("");
         setInclusions([]);
+        setBullets([]);
       }
       setAddInclusionId("");
     })();
@@ -270,6 +289,37 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems,
         // Non-package: ensure no inclusions linger
         await supabase.from("package_default_inclusions").delete().eq("package_item_id", itemId!);
       }
+
+      // Sync "What's included" bullets (all item types)
+      {
+        const cleaned = bullets
+          .map((b, idx) => ({ ...b, text: b.text.trim(), display_order: idx }))
+          .filter((b) => b.text.length > 0);
+        const { data: existingBs } = await (supabase as any)
+          .from("service_item_inclusions")
+          .select("id")
+          .eq("service_item_id", itemId!);
+        const existingIds = new Set(((existingBs ?? []) as { id: string }[]).map((r) => r.id));
+        const keepIds = new Set(cleaned.filter((b) => b.id).map((b) => b.id!));
+        const toDelete = [...existingIds].filter((id) => !keepIds.has(id));
+        if (toDelete.length) {
+          await (supabase as any).from("service_item_inclusions").delete().in("id", toDelete);
+        }
+        for (const b of cleaned) {
+          if (b.id) {
+            await (supabase as any).from("service_item_inclusions")
+              .update({ text: b.text, display_order: b.display_order })
+              .eq("id", b.id);
+          } else {
+            await (supabase as any).from("service_item_inclusions").insert({
+              service_item_id: itemId!,
+              text: b.text,
+              display_order: b.display_order,
+            });
+          }
+        }
+      }
+
 
       toast.success(item ? "Service item updated" : "Service item created");
       onSaved();
@@ -489,7 +539,77 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems,
               </div>
             </section>
           )}
+
+          {/* What's included — all item types */}
+          <section className="pt-5 border-t space-y-3" style={{ borderColor: "rgba(65,25,40,0.18)" }}>
+            <h3 className="font-serif text-lg" style={{ color: "var(--sbv-green)" }}>What's included</h3>
+            <p className="text-xs leading-relaxed" style={{ color: "#6B6B6B" }}>
+              Descriptive bullets shown on the quote (and later the contract). These appear by default when this item is added to a quote — you can customize them per couple.
+            </p>
+
+            {bullets.length > 0 && (
+              <div className="space-y-2">
+                {bullets.map((b, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <div className="flex flex-col">
+                      <button
+                        type="button"
+                        disabled={idx === 0}
+                        onClick={() => setBullets((arr) => {
+                          const copy = [...arr];
+                          [copy[idx - 1], copy[idx]] = [copy[idx], copy[idx - 1]];
+                          return copy;
+                        })}
+                        className="text-[10px] leading-none opacity-60 hover:opacity-100 disabled:opacity-20"
+                        style={{ color: "var(--sbv-purple)" }}
+                        aria-label="Move up"
+                      >▲</button>
+                      <button
+                        type="button"
+                        disabled={idx === bullets.length - 1}
+                        onClick={() => setBullets((arr) => {
+                          const copy = [...arr];
+                          [copy[idx + 1], copy[idx]] = [copy[idx], copy[idx + 1]];
+                          return copy;
+                        })}
+                        className="text-[10px] leading-none opacity-60 hover:opacity-100 disabled:opacity-20"
+                        style={{ color: "var(--sbv-purple)" }}
+                        aria-label="Move down"
+                      >▼</button>
+                    </div>
+                    <input
+                      type="text"
+                      value={b.text}
+                      onChange={(e) => setBullets((arr) => arr.map((x, i) => (i === idx ? { ...x, text: e.target.value } : x)))}
+                      className={inputCls}
+                      style={{ color: "var(--sbv-purple)" }}
+                      placeholder="e.g. 8 hours of coverage"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setBullets((arr) => arr.filter((_, i) => i !== idx))}
+                      aria-label="Remove bullet"
+                      style={{ color: "var(--sbv-purple)" }}
+                      className="opacity-70 hover:opacity-100"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setBullets((arr) => [...arr, { text: "", display_order: arr.length }])}
+              className="px-3 py-2 rounded-sm text-sm inline-flex items-center gap-1 foil-gold border"
+              style={{ borderColor: "var(--sbv-purple)", color: "var(--sbv-purple)", background: "transparent" }}
+            >
+              <Plus size={14} /> Add inclusion
+            </button>
+          </section>
         </div>
+
 
         <div className="px-7 py-5 flex items-center justify-end gap-3">
           <button onClick={onClose} className="text-sm font-medium hover:underline" style={{ color: "var(--sbv-purple)" }}>

@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2, X } from "lucide-react";
+import { Plus, Trash2, X, Pencil, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsOwner } from "@/lib/auth";
 import { logActivity } from "@/lib/activityLog";
 import type { Database } from "@/integrations/supabase/types";
+
+type QuoteInclusion = { id: string; quote_item_id: string; text: string; display_order: number };
 
 type ItemType = Database["public"]["Enums"]["service_item_type"];
 type QuoteStatus = Database["public"]["Enums"]["quote_status"];
@@ -81,11 +83,27 @@ export function QuoteTab({ clientId }: { clientId: string }) {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [items, setItems] = useState<QuoteItem[]>([]);
   const [catalog, setCatalog] = useState<ServiceItem[]>([]);
+  const [inclusions, setInclusions] = useState<Record<string, QuoteInclusion[]>>({});
+  const [editingInclusionsFor, setEditingInclusionsFor] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerQuery, setPickerQuery] = useState("");
   const [discountInput, setDiscountInput] = useState("");
   const [notesInput, setNotesInput] = useState("");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const loadInclusions = async (itemIds: string[]) => {
+    if (itemIds.length === 0) { setInclusions({}); return; }
+    const { data } = await (supabase as any)
+      .from("quote_item_inclusions")
+      .select("id,quote_item_id,text,display_order")
+      .in("quote_item_id", itemIds)
+      .order("display_order");
+    const map: Record<string, QuoteInclusion[]> = {};
+    for (const row of ((data ?? []) as QuoteInclusion[])) {
+      (map[row.quote_item_id] ||= []).push(row);
+    }
+    setInclusions(map);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -103,11 +121,14 @@ export function QuoteTab({ clientId }: { clientId: string }) {
         .eq("quote_id", quoteRow.id)
         .order("display_order")
         .order("created_at");
-      setItems((li ?? []) as QuoteItem[]);
+      const rows = (li ?? []) as QuoteItem[];
+      setItems(rows);
       setDiscountInput(quoteRow.discount_cents ? String(quoteRow.discount_cents / 100) : "");
       setNotesInput(quoteRow.notes ?? "");
+      await loadInclusions(rows.map((r) => r.id));
     } else {
       setItems([]);
+      setInclusions({});
       setDiscountInput("");
       setNotesInput("");
     }
@@ -249,6 +270,61 @@ export function QuoteTab({ clientId }: { clientId: string }) {
     });
   };
 
+  // Per-line inclusion edits (writes to quote_item_inclusions only — never the catalog)
+  const addInclusion = async (quoteItemId: string) => {
+    const list = inclusions[quoteItemId] ?? [];
+    const display_order = list.length;
+    const { data, error } = await (supabase as any)
+      .from("quote_item_inclusions")
+      .insert({ quote_item_id: quoteItemId, text: "", display_order })
+      .select("id,quote_item_id,text,display_order")
+      .single();
+    if (error) { toast.error(error.message); return; }
+    setInclusions((m) => ({ ...m, [quoteItemId]: [...list, data as QuoteInclusion] }));
+  };
+
+  const updateInclusion = async (quoteItemId: string, id: string, text: string) => {
+    setInclusions((m) => ({
+      ...m,
+      [quoteItemId]: (m[quoteItemId] ?? []).map((b) => (b.id === id ? { ...b, text } : b)),
+    }));
+    const { error } = await (supabase as any)
+      .from("quote_item_inclusions")
+      .update({ text })
+      .eq("id", id);
+    if (error) toast.error(error.message);
+  };
+
+  const removeInclusion = async (quoteItemId: string, id: string) => {
+    setInclusions((m) => ({
+      ...m,
+      [quoteItemId]: (m[quoteItemId] ?? []).filter((b) => b.id !== id),
+    }));
+    const { error } = await (supabase as any)
+      .from("quote_item_inclusions")
+      .delete()
+      .eq("id", id);
+    if (error) toast.error(error.message);
+  };
+
+  const moveInclusion = async (quoteItemId: string, id: string, dir: -1 | 1) => {
+    const list = [...(inclusions[quoteItemId] ?? [])];
+    const idx = list.findIndex((b) => b.id === id);
+    const target = idx + dir;
+    if (idx < 0 || target < 0 || target >= list.length) return;
+    [list[idx], list[target]] = [list[target], list[idx]];
+    const updated = list.map((b, i) => ({ ...b, display_order: i }));
+    setInclusions((m) => ({ ...m, [quoteItemId]: updated }));
+    // Persist new orders for the two affected rows
+    await Promise.all(
+      updated.map((b) =>
+        (supabase as any).from("quote_item_inclusions").update({ display_order: b.display_order }).eq("id", b.id),
+      ),
+    );
+  };
+
+
+
   // Picker filtering
   const filteredCatalog = useMemo(() => {
     const q = pickerQuery.trim().toLowerCase();
@@ -316,62 +392,164 @@ export function QuoteTab({ clientId }: { clientId: string }) {
           return (
             <div
               key={it.id}
-              className="rounded-sm px-4 py-3 grid grid-cols-12 gap-3 items-center"
+              className="rounded-sm px-4 py-3"
               style={{ background: "#F0A5BE" }}
             >
-              <div className="col-span-5">
-                <input
-                  type="text"
-                  value={it.description_snapshot}
-                  onChange={(e) => updateItem(it.id, { description_snapshot: e.target.value })}
-                  className="w-full bg-transparent font-serif text-base outline-none"
-                  style={{ color: "var(--sbv-green)" }}
-                />
-                {it.item_type_snapshot && (
-                  <div className="text-[10px] uppercase tracking-wider mt-0.5 opacity-60" style={{ color: "var(--sbv-purple)" }}>
-                    {TYPE_LABEL[it.item_type_snapshot] ?? it.item_type_snapshot}
+              <div className="grid grid-cols-12 gap-3 items-center">
+                <div className="col-span-5">
+                  <input
+                    type="text"
+                    value={it.description_snapshot}
+                    onChange={(e) => updateItem(it.id, { description_snapshot: e.target.value })}
+                    className="w-full bg-transparent font-serif text-base outline-none"
+                    style={{ color: "var(--sbv-green)" }}
+                  />
+                  {it.item_type_snapshot && (
+                    <div className="text-[10px] uppercase tracking-wider mt-0.5 opacity-60" style={{ color: "var(--sbv-purple)" }}>
+                      {TYPE_LABEL[it.item_type_snapshot] ?? it.item_type_snapshot}
+                    </div>
+                  )}
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] uppercase tracking-wider opacity-60" style={{ color: "var(--sbv-purple)" }}>Unit price</label>
+                  <div className="flex items-center gap-1">
+                    <span style={{ color: "var(--sbv-purple)" }}>$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={(it.unit_price_cents / 100).toString()}
+                      onChange={(e) => updateItem(it.id, { unit_price_cents: Math.round((Number(e.target.value) || 0) * 100) })}
+                      className="w-full bg-white/70 rounded-sm px-2 py-1 text-sm outline-none"
+                      style={{ color: "var(--sbv-purple)" }}
+                    />
                   </div>
-                )}
-              </div>
-              <div className="col-span-2">
-                <label className="block text-[10px] uppercase tracking-wider opacity-60" style={{ color: "var(--sbv-purple)" }}>Unit price</label>
-                <div className="flex items-center gap-1">
-                  <span style={{ color: "var(--sbv-purple)" }}>$</span>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] uppercase tracking-wider opacity-60" style={{ color: "var(--sbv-purple)" }}>Qty</label>
                   <input
                     type="number"
-                    step="0.01"
-                    value={(it.unit_price_cents / 100).toString()}
-                    onChange={(e) => updateItem(it.id, { unit_price_cents: Math.round((Number(e.target.value) || 0) * 100) })}
+                    step={isPerUnit ? "0.5" : "1"}
+                    min="0"
+                    value={it.quantity}
+                    onChange={(e) => updateItem(it.id, { quantity: Number(e.target.value) || 0 })}
                     className="w-full bg-white/70 rounded-sm px-2 py-1 text-sm outline-none"
                     style={{ color: "var(--sbv-purple)" }}
                   />
                 </div>
+                <div className="col-span-2 text-right font-serif" style={{ color: "var(--sbv-green)" }}>
+                  {fmtMoney(it.line_total_cents)}
+                </div>
+                <div className="col-span-1 text-right">
+                  <button
+                    onClick={() => removeItem(it.id)}
+                    aria-label="Remove"
+                    className="p-1 opacity-60 hover:opacity-100"
+                    style={{ color: "var(--sbv-purple)" }}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
-              <div className="col-span-2">
-                <label className="block text-[10px] uppercase tracking-wider opacity-60" style={{ color: "var(--sbv-purple)" }}>Qty</label>
-                <input
-                  type="number"
-                  step={isPerUnit ? "0.5" : "1"}
-                  min="0"
-                  value={it.quantity}
-                  onChange={(e) => updateItem(it.id, { quantity: Number(e.target.value) || 0 })}
-                  className="w-full bg-white/70 rounded-sm px-2 py-1 text-sm outline-none"
-                  style={{ color: "var(--sbv-purple)" }}
-                />
-              </div>
-              <div className="col-span-2 text-right font-serif" style={{ color: "var(--sbv-green)" }}>
-                {fmtMoney(it.line_total_cents)}
-              </div>
-              <div className="col-span-1 text-right">
-                <button
-                  onClick={() => removeItem(it.id)}
-                  aria-label="Remove"
-                  className="p-1 opacity-60 hover:opacity-100"
-                  style={{ color: "var(--sbv-purple)" }}
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
+
+              {/* Inclusion bullets */}
+              {(() => {
+                const list = inclusions[it.id] ?? [];
+                const editing = editingInclusionsFor === it.id;
+                if (list.length === 0 && !editing) {
+                  return (
+                    <div className="pl-1 mt-2">
+                      <button
+                        onClick={() => setEditingInclusionsFor(it.id)}
+                        className="text-[11px] underline opacity-70 hover:opacity-100"
+                        style={{ color: "var(--sbv-purple)" }}
+                      >
+                        + Add inclusions
+                      </button>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="mt-2 pl-5">
+                    {!editing && (
+                      <>
+                        <ul className="space-y-0.5 list-disc pl-4" style={{ color: "#6B6B6B" }}>
+                          {list.map((b) => (
+                            <li key={b.id} className="text-[12px] font-sans">{b.text}</li>
+                          ))}
+                        </ul>
+                        <button
+                          onClick={() => setEditingInclusionsFor(it.id)}
+                          className="mt-1 inline-flex items-center gap-1 text-[11px] underline opacity-70 hover:opacity-100"
+                          style={{ color: "var(--sbv-purple)" }}
+                        >
+                          <Pencil size={11} /> Edit inclusions
+                        </button>
+                      </>
+                    )}
+                    {editing && (
+                      <div className="space-y-1.5">
+                        {list.map((b, idx) => (
+                          <div key={b.id} className="flex items-center gap-1.5">
+                            <div className="flex flex-col">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => moveInclusion(it.id, b.id, -1)}
+                                className="text-[10px] leading-none opacity-60 hover:opacity-100 disabled:opacity-20"
+                                style={{ color: "var(--sbv-purple)" }}
+                                aria-label="Move up"
+                              >▲</button>
+                              <button
+                                type="button"
+                                disabled={idx === list.length - 1}
+                                onClick={() => moveInclusion(it.id, b.id, 1)}
+                                className="text-[10px] leading-none opacity-60 hover:opacity-100 disabled:opacity-20"
+                                style={{ color: "var(--sbv-purple)" }}
+                                aria-label="Move down"
+                              >▼</button>
+                            </div>
+                            <input
+                              type="text"
+                              value={b.text}
+                              onChange={(e) => updateInclusion(it.id, b.id, e.target.value)}
+                              placeholder="e.g. 8 hours of coverage"
+                              className="flex-1 bg-white/85 rounded-sm px-2 py-1 text-[12px] outline-none"
+                              style={{ color: "var(--sbv-purple)" }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeInclusion(it.id, b.id)}
+                              aria-label="Remove bullet"
+                              className="p-1 opacity-60 hover:opacity-100"
+                              style={{ color: "var(--sbv-purple)" }}
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))}
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => addInclusion(it.id)}
+                            className="inline-flex items-center gap-1 text-[11px] underline opacity-80 hover:opacity-100"
+                            style={{ color: "var(--sbv-purple)" }}
+                          >
+                            <Plus size={11} /> Add bullet
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingInclusionsFor(null)}
+                            className="inline-flex items-center gap-1 text-[11px] underline opacity-80 hover:opacity-100"
+                            style={{ color: "var(--sbv-green)" }}
+                          >
+                            <Check size={11} /> Done
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           );
         })}

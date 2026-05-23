@@ -2496,6 +2496,38 @@ export type Database = {
           },
         ]
       }
+      quote_item_inclusions: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          quote_item_id: string
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          quote_item_id: string
+          text: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          quote_item_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_item_inclusions_quote_item_id_fkey"
+            columns: ["quote_item_id"]
+            isOneToOne: false
+            referencedRelation: "quote_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_items: {
         Row: {
           created_at: string
@@ -2849,6 +2881,38 @@ export type Database = {
             foreignKeyName: "service_item_costs_service_item_id_fkey"
             columns: ["service_item_id"]
             isOneToOne: true
+            referencedRelation: "service_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_item_inclusions: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          service_item_id: string
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          service_item_id: string
+          text: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          service_item_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_item_inclusions_service_item_id_fkey"
+            columns: ["service_item_id"]
+            isOneToOne: false
             referencedRelation: "service_items"
             referencedColumns: ["id"]
           },

@@ -10,21 +10,32 @@ interface Props {
 }
 
 interface Inclusion { name: string; quantity: number }
+interface Bullet { text: string }
 
 export function ServiceItemReadOnlyModal({ open, onClose, item }: Props) {
   const [inclusions, setInclusions] = useState<Inclusion[]>([]);
+  const [bullets, setBullets] = useState<Bullet[]>([]);
   useEffect(() => {
-    if (!open || !item) { setInclusions([]); return; }
-    if (item.item_type !== "wedding_package") { setInclusions([]); return; }
+    if (!open || !item) { setInclusions([]); setBullets([]); return; }
     (async () => {
-      const { data } = await supabase
-        .from("package_default_inclusions")
-        .select("quantity,service_items!package_default_inclusions_included_item_id_fkey(name)")
-        .eq("package_item_id", item.id);
-      setInclusions(((data ?? []) as any[]).map((r) => ({
-        name: r.service_items?.name ?? "(item)",
-        quantity: r.quantity ?? 1,
-      })));
+      if (item.item_type === "wedding_package") {
+        const { data } = await supabase
+          .from("package_default_inclusions")
+          .select("quantity,service_items!package_default_inclusions_included_item_id_fkey(name)")
+          .eq("package_item_id", item.id);
+        setInclusions(((data ?? []) as any[]).map((r) => ({
+          name: r.service_items?.name ?? "(item)",
+          quantity: r.quantity ?? 1,
+        })));
+      } else {
+        setInclusions([]);
+      }
+      const { data: bs } = await (supabase as any)
+        .from("service_item_inclusions")
+        .select("text,display_order")
+        .eq("service_item_id", item.id)
+        .order("display_order");
+      setBullets(((bs ?? []) as any[]).map((r) => ({ text: r.text })));
     })();
   }, [open, item]);
 
@@ -72,7 +83,20 @@ export function ServiceItemReadOnlyModal({ open, onClose, item }: Props) {
               )}
             </div>
           )}
+          <div className="pt-3 border-t" style={{ borderColor: "rgba(65,25,40,0.18)" }}>
+            <h3 className="font-serif text-base mb-2" style={{ color: "var(--sbv-green)" }}>What's included</h3>
+            {bullets.length === 0 ? (
+              <p className="italic opacity-70">No inclusions listed.</p>
+            ) : (
+              <ul className="space-y-1 list-disc pl-5">
+                {bullets.map((b, idx) => (
+                  <li key={idx}>{b.text}</li>
+                ))}
+              </ul>
+            )}
+          </div>
           <p className="text-xs italic opacity-70 pt-2">Read-only — only owners can edit service items.</p>
+
         </div>
         <div className="px-7 py-5 flex items-center justify-end">
           <button onClick={onClose} className="text-sm font-medium hover:underline" style={{ color: "var(--sbv-purple)" }}>
