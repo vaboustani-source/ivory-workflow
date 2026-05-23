@@ -10,21 +10,32 @@ interface Props {
 }
 
 interface Inclusion { name: string; quantity: number }
+interface Bullet { text: string }
 
 export function ServiceItemReadOnlyModal({ open, onClose, item }: Props) {
   const [inclusions, setInclusions] = useState<Inclusion[]>([]);
+  const [bullets, setBullets] = useState<Bullet[]>([]);
   useEffect(() => {
-    if (!open || !item) { setInclusions([]); return; }
-    if (item.item_type !== "wedding_package") { setInclusions([]); return; }
+    if (!open || !item) { setInclusions([]); setBullets([]); return; }
     (async () => {
-      const { data } = await supabase
-        .from("package_default_inclusions")
-        .select("quantity,service_items!package_default_inclusions_included_item_id_fkey(name)")
-        .eq("package_item_id", item.id);
-      setInclusions(((data ?? []) as any[]).map((r) => ({
-        name: r.service_items?.name ?? "(item)",
-        quantity: r.quantity ?? 1,
-      })));
+      if (item.item_type === "wedding_package") {
+        const { data } = await supabase
+          .from("package_default_inclusions")
+          .select("quantity,service_items!package_default_inclusions_included_item_id_fkey(name)")
+          .eq("package_item_id", item.id);
+        setInclusions(((data ?? []) as any[]).map((r) => ({
+          name: r.service_items?.name ?? "(item)",
+          quantity: r.quantity ?? 1,
+        })));
+      } else {
+        setInclusions([]);
+      }
+      const { data: bs } = await (supabase as any)
+        .from("service_item_inclusions")
+        .select("text,display_order")
+        .eq("service_item_id", item.id)
+        .order("display_order");
+      setBullets(((bs ?? []) as any[]).map((r) => ({ text: r.text })));
     })();
   }, [open, item]);
 
