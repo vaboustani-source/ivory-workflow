@@ -14,6 +14,7 @@ import { StudioFormsTab } from "@/components/studio/FormsTab";
 import { ActivityList } from "@/components/ActivityList";
 import { ServicesAndTeamCard } from "@/components/studio/ServicesAndTeamCard";
 import { ClientFinancialsTab } from "@/components/studio/ClientFinancialsTab";
+import { QuoteTab } from "@/components/studio/QuoteTab";
 import { fullName, coupleFullNames } from "@/lib/coupleNames";
 
 type SearchSchema = { tab?: string; contract_id?: string; questionnaire_id?: string };
@@ -27,11 +28,11 @@ export const Route = createFileRoute("/studio/clients/$id")({
   component: ClientDetail,
 });
 
-const TABS = ["Overview", "Timeline", "Photography", "Family Portraits", "Messages", "Documents", "Forms", "Activity", "Financials", "Gallery", "Notes"] as const;
+const TABS = ["Overview", "Quote", "Timeline", "Photography", "Family Portraits", "Messages", "Documents", "Forms", "Activity", "Financials", "Gallery", "Notes"] as const;
 type Tab = typeof TABS[number];
 
 const TAB_KEY: Record<Tab, string> = {
-  Overview: "overview", Timeline: "timeline", Photography: "photography", "Family Portraits": "portrait-sequence", Messages: "messages",
+  Overview: "overview", Quote: "quote", Timeline: "timeline", Photography: "photography", "Family Portraits": "portrait-sequence", Messages: "messages",
   Documents: "documents", Forms: "forms", Activity: "activity", Financials: "financials", Gallery: "gallery", Notes: "notes",
 };
 const KEY_TO_TAB: Record<string, Tab> = Object.fromEntries(
@@ -472,6 +473,8 @@ function ClientDetail() {
               </Card>
             </div>
           </div>
+        ) : tab === "Quote" ? (
+          <QuoteTab clientId={id} />
         ) : tab === "Timeline" ? (
           <ClientTimelineTab clientId={id} />
         ) : tab === "Photography" ? (
