@@ -83,7 +83,20 @@ export function ServiceItemReadOnlyModal({ open, onClose, item }: Props) {
               )}
             </div>
           )}
+          <div className="pt-3 border-t" style={{ borderColor: "rgba(65,25,40,0.18)" }}>
+            <h3 className="font-serif text-base mb-2" style={{ color: "var(--sbv-green)" }}>What's included</h3>
+            {bullets.length === 0 ? (
+              <p className="italic opacity-70">No inclusions listed.</p>
+            ) : (
+              <ul className="space-y-1 list-disc pl-5">
+                {bullets.map((b, idx) => (
+                  <li key={idx}>{b.text}</li>
+                ))}
+              </ul>
+            )}
+          </div>
           <p className="text-xs italic opacity-70 pt-2">Read-only — only owners can edit service items.</p>
+
         </div>
         <div className="px-7 py-5 flex items-center justify-end">
           <button onClick={onClose} className="text-sm font-medium hover:underline" style={{ color: "var(--sbv-purple)" }}>
