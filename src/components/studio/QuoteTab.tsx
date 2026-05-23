@@ -121,11 +121,14 @@ export function QuoteTab({ clientId }: { clientId: string }) {
         .eq("quote_id", quoteRow.id)
         .order("display_order")
         .order("created_at");
-      setItems((li ?? []) as QuoteItem[]);
+      const rows = (li ?? []) as QuoteItem[];
+      setItems(rows);
       setDiscountInput(quoteRow.discount_cents ? String(quoteRow.discount_cents / 100) : "");
       setNotesInput(quoteRow.notes ?? "");
+      await loadInclusions(rows.map((r) => r.id));
     } else {
       setItems([]);
+      setInclusions({});
       setDiscountInput("");
       setNotesInput("");
     }
