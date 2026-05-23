@@ -117,11 +117,18 @@ export function QuoteTab({ clientId }: { clientId: string }) {
 
   const load = async () => {
     setLoading(true);
-    const { data: q } = await supabase
-      .from("quotes")
-      .select("id,client_id,status,subtotal_cents,discount_cents,total_cents,valid_until,notes")
-      .eq("client_id", clientId)
-      .maybeSingle();
+    const [{ data: q }, { data: invs }] = await Promise.all([
+      supabase
+        .from("quotes")
+        .select("id,client_id,status,subtotal_cents,discount_cents,total_cents,valid_until,notes")
+        .eq("client_id", clientId)
+        .maybeSingle(),
+      supabase
+        .from("invoices")
+        .select("id,label,due_date,total_cents,status,sequence_order")
+        .eq("client_id", clientId)
+        .order("sequence_order"),
+    ]);
     const quoteRow = (q ?? null) as Quote | null;
     setQuote(quoteRow);
     if (quoteRow) {
@@ -142,6 +149,7 @@ export function QuoteTab({ clientId }: { clientId: string }) {
       setDiscountInput("");
       setNotesInput("");
     }
+    setInvoices((invs ?? []) as Invoice[]);
     const { data: si } = await supabase
       .from("service_items")
       .select("id,name,item_type,price_cents,unit,is_active")
