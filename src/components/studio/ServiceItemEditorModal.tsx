@@ -164,11 +164,6 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems,
   }, [open, item]);
 
   const priceCents = priceStr ? Math.round(Number(priceStr) * 100) : 0;
-  const costCents = costStr ? Math.round(Number(costStr) * 100) : 0;
-  const hasMargin = priceStr !== "" && costStr !== "";
-  const marginCents = priceCents - costCents;
-  const marginPct = priceCents > 0 ? (marginCents / priceCents) * 100 : 0;
-  const marginPositive = marginCents >= 0;
 
   const isPackage = itemType === "wedding_package";
 
@@ -222,22 +217,6 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems,
         itemId = data!.id;
       }
 
-      // Upsert cost row
-      try {
-        const costPayload = {
-          service_item_id: itemId!,
-          cost_cents: costStr ? costCents : 0,
-          cost_type: costType,
-          estimated_labor_hours: laborHoursStr ? Number(laborHoursStr) : null,
-          cost_notes: costNotes.trim() || null,
-        };
-        const { error: costErr } = await supabase
-          .from("service_item_costs")
-          .upsert(costPayload, { onConflict: "service_item_id" });
-        if (costErr) throw costErr;
-      } catch (e: any) {
-        toast.error(`Item saved, but cost did not save: ${e.message ?? e}`);
-      }
 
       // Sync inclusions (only meaningful for packages)
       if (isPackage) {
@@ -405,46 +384,6 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems,
             )}
           </section>
 
-          {/* Cost & margin (owner-only section; modal itself is owner-only) */}
-          <section className="pt-5 border-t space-y-4" style={{ borderColor: "rgba(65,25,40,0.18)" }}>
-            <h3 className="font-serif text-lg" style={{ color: "var(--sbv-green)" }}>Cost &amp; margin</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelCls} style={{ color: "var(--sbv-green)" }}>Cost ($)</label>
-                <input type="number" min={0} step="0.01" value={costStr}
-                  onChange={(e) => setCostStr(e.target.value)}
-                  className={inputCls} style={{ color: "var(--sbv-purple)" }} />
-              </div>
-              <div>
-                <label className={labelCls} style={{ color: "var(--sbv-green)" }}>Cost type</label>
-                <select value={costType} onChange={(e) => setCostType(e.target.value as ServiceItemUnit)}
-                  className={inputCls} style={{ color: "var(--sbv-purple)" }}>
-                  {UNITS.map((u) => <option key={u} value={u}>{UNIT_LABELS[u]}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelCls} style={{ color: "var(--sbv-green)" }}>Estimated labor hours</label>
-                <input type="number" min={0} step="0.25" value={laborHoursStr}
-                  onChange={(e) => setLaborHoursStr(e.target.value)}
-                  className={inputCls} style={{ color: "var(--sbv-purple)" }} />
-              </div>
-            </div>
-            <div>
-              <label className={labelCls} style={{ color: "var(--sbv-green)" }}>Cost notes</label>
-              <textarea value={costNotes} onChange={(e) => setCostNotes(e.target.value)} rows={2}
-                className={inputCls} style={{ color: "var(--sbv-purple)" }} />
-            </div>
-            {hasMargin && (
-              <div
-                className="font-serif text-base"
-                style={{ color: marginPositive ? "var(--sbv-green)" : "var(--sbv-fuchsia)" }}
-              >
-                Margin: {fmtMoney(marginCents)} ({marginPct.toFixed(0)}%)
-              </div>
-            )}
-          </section>
 
           {/* Default inclusions — packages only */}
           {isPackage && (
@@ -522,74 +461,6 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems,
             </section>
           )}
 
-          {/* What's included — all item types */}
-          <section className="pt-5 border-t space-y-3" style={{ borderColor: "rgba(65,25,40,0.18)" }}>
-            <h3 className="font-serif text-lg" style={{ color: "var(--sbv-green)" }}>What's included</h3>
-            <p className="text-xs leading-relaxed" style={{ color: "#6B6B6B" }}>
-              Descriptive bullets shown on the quote (and later the contract). These appear by default when this item is added to a quote — you can customize them per couple.
-            </p>
-
-            {bullets.length > 0 && (
-              <div className="space-y-2">
-                {bullets.map((b, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <div className="flex flex-col">
-                      <button
-                        type="button"
-                        disabled={idx === 0}
-                        onClick={() => setBullets((arr) => {
-                          const copy = [...arr];
-                          [copy[idx - 1], copy[idx]] = [copy[idx], copy[idx - 1]];
-                          return copy;
-                        })}
-                        className="text-[10px] leading-none opacity-60 hover:opacity-100 disabled:opacity-20"
-                        style={{ color: "var(--sbv-purple)" }}
-                        aria-label="Move up"
-                      >▲</button>
-                      <button
-                        type="button"
-                        disabled={idx === bullets.length - 1}
-                        onClick={() => setBullets((arr) => {
-                          const copy = [...arr];
-                          [copy[idx + 1], copy[idx]] = [copy[idx], copy[idx + 1]];
-                          return copy;
-                        })}
-                        className="text-[10px] leading-none opacity-60 hover:opacity-100 disabled:opacity-20"
-                        style={{ color: "var(--sbv-purple)" }}
-                        aria-label="Move down"
-                      >▼</button>
-                    </div>
-                    <input
-                      type="text"
-                      value={b.text}
-                      onChange={(e) => setBullets((arr) => arr.map((x, i) => (i === idx ? { ...x, text: e.target.value } : x)))}
-                      className={inputCls}
-                      style={{ color: "var(--sbv-purple)" }}
-                      placeholder="e.g. 8 hours of coverage"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setBullets((arr) => arr.filter((_, i) => i !== idx))}
-                      aria-label="Remove bullet"
-                      style={{ color: "var(--sbv-purple)" }}
-                      className="opacity-70 hover:opacity-100"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setBullets((arr) => [...arr, { text: "", display_order: arr.length }])}
-              className="px-3 py-2 rounded-sm text-sm inline-flex items-center gap-1 foil-gold border"
-              style={{ borderColor: "var(--sbv-purple)", color: "var(--sbv-purple)", background: "transparent" }}
-            >
-              <Plus size={14} /> Add inclusion
-            </button>
-          </section>
         </div>
 
 
