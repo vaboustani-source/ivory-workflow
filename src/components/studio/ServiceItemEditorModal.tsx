@@ -290,6 +290,37 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems,
         await supabase.from("package_default_inclusions").delete().eq("package_item_id", itemId!);
       }
 
+      // Sync "What's included" bullets (all item types)
+      {
+        const cleaned = bullets
+          .map((b, idx) => ({ ...b, text: b.text.trim(), display_order: idx }))
+          .filter((b) => b.text.length > 0);
+        const { data: existingBs } = await (supabase as any)
+          .from("service_item_inclusions")
+          .select("id")
+          .eq("service_item_id", itemId!);
+        const existingIds = new Set(((existingBs ?? []) as { id: string }[]).map((r) => r.id));
+        const keepIds = new Set(cleaned.filter((b) => b.id).map((b) => b.id!));
+        const toDelete = [...existingIds].filter((id) => !keepIds.has(id));
+        if (toDelete.length) {
+          await (supabase as any).from("service_item_inclusions").delete().in("id", toDelete);
+        }
+        for (const b of cleaned) {
+          if (b.id) {
+            await (supabase as any).from("service_item_inclusions")
+              .update({ text: b.text, display_order: b.display_order })
+              .eq("id", b.id);
+          } else {
+            await (supabase as any).from("service_item_inclusions").insert({
+              service_item_id: itemId!,
+              text: b.text,
+              display_order: b.display_order,
+            });
+          }
+        }
+      }
+
+
       toast.success(item ? "Service item updated" : "Service item created");
       onSaved();
       onClose();
