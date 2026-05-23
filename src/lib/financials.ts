@@ -95,18 +95,21 @@ export async function getStudioFinancials(year: number, statusFilter?: string[])
     return { snapshots: [], totals: compute({ revenue: 0, contractor_costs: 0, editing_cost: 0, other_expenses: 0 }) };
   }
 
-  const [{ data: csrs }, { data: exps }] = await Promise.all([
+  const [{ data: csrs }, { data: exps }, { data: quotes }] = await Promise.all([
     supabase.from("contractor_service_requests").select("client_id, agreed_total").in("client_id", ids).eq("status", "accepted"),
     supabase.from("wedding_expenses").select("client_id, amount").in("client_id", ids),
+    supabase.from("quotes").select("client_id, total_cents").in("client_id", ids),
   ]);
 
   const csrMap = new Map<string, number>();
   (csrs ?? []).forEach((r: any) => csrMap.set(r.client_id, (csrMap.get(r.client_id) ?? 0) + Number(r.agreed_total ?? 0)));
   const expMap = new Map<string, number>();
   (exps ?? []).forEach((r: any) => expMap.set(r.client_id, (expMap.get(r.client_id) ?? 0) + Number(r.amount ?? 0)));
+  const quoteMap = new Map<string, number>();
+  (quotes ?? []).forEach((r: any) => quoteMap.set(r.client_id, Number(r.total_cents ?? 0) / 100));
 
   const snapshots = (clients ?? []).map((c: any) => {
-    const revenue = Number(c.package_price ?? 0);
+    const revenue = quoteMap.has(c.id) ? quoteMap.get(c.id)! : Number(c.package_price ?? 0);
     const contractor_costs = csrMap.get(c.id) ?? 0;
     const editing_cost = Number(c.final_image_count ?? 0) * Number(c.editing_rate_per_image ?? 0);
     const other_expenses = expMap.get(c.id) ?? 0;
