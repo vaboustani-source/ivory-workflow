@@ -2467,6 +2467,148 @@ export type Database = {
           },
         ]
       }
+      quote_item_cost_snapshots: {
+        Row: {
+          cost_cents_snapshot: number
+          created_at: string
+          id: string
+          quote_item_id: string
+        }
+        Insert: {
+          cost_cents_snapshot?: number
+          created_at?: string
+          id?: string
+          quote_item_id: string
+        }
+        Update: {
+          cost_cents_snapshot?: number
+          created_at?: string
+          id?: string
+          quote_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_item_cost_snapshots_quote_item_id_fkey"
+            columns: ["quote_item_id"]
+            isOneToOne: true
+            referencedRelation: "quote_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_items: {
+        Row: {
+          created_at: string
+          description_snapshot: string
+          display_order: number
+          id: string
+          item_type_snapshot:
+            | Database["public"]["Enums"]["service_item_type"]
+            | null
+          line_total_cents: number
+          quantity: number
+          quote_id: string
+          service_item_id: string | null
+          unit_price_cents: number
+        }
+        Insert: {
+          created_at?: string
+          description_snapshot: string
+          display_order?: number
+          id?: string
+          item_type_snapshot?:
+            | Database["public"]["Enums"]["service_item_type"]
+            | null
+          line_total_cents: number
+          quantity?: number
+          quote_id: string
+          service_item_id?: string | null
+          unit_price_cents: number
+        }
+        Update: {
+          created_at?: string
+          description_snapshot?: string
+          display_order?: number
+          id?: string
+          item_type_snapshot?:
+            | Database["public"]["Enums"]["service_item_type"]
+            | null
+          line_total_cents?: number
+          quantity?: number
+          quote_id?: string
+          service_item_id?: string | null
+          unit_price_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_items_service_item_id_fkey"
+            columns: ["service_item_id"]
+            isOneToOne: false
+            referencedRelation: "service_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          accepted_at: string | null
+          client_id: string
+          created_at: string
+          discount_cents: number
+          escalation_pct_applied: number
+          id: string
+          notes: string | null
+          status: Database["public"]["Enums"]["quote_status"]
+          subtotal_cents: number
+          total_cents: number
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          client_id: string
+          created_at?: string
+          discount_cents?: number
+          escalation_pct_applied?: number
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["quote_status"]
+          subtotal_cents?: number
+          total_cents?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          client_id?: string
+          created_at?: string
+          discount_cents?: number
+          escalation_pct_applied?: number
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["quote_status"]
+          subtotal_cents?: number
+          total_cents?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reschedule_requests: {
         Row: {
           conversation_message_id: string | null
@@ -3600,6 +3742,7 @@ export type Database = {
       payment_attempt_status: "succeeded" | "failed" | "refunded" | "disputed"
       proposal_status: "draft" | "sent" | "accepted" | "expired" | "revised"
       questionnaire_status: "not_started" | "in_progress" | "complete"
+      quote_status: "draft" | "sent" | "accepted" | "expired"
       reschedule_requested_by: "client" | "studio"
       reschedule_status: "pending" | "approved" | "denied" | "cancelled"
       resource_category:
@@ -3900,6 +4043,7 @@ export const Constants = {
       payment_attempt_status: ["succeeded", "failed", "refunded", "disputed"],
       proposal_status: ["draft", "sent", "accepted", "expired", "revised"],
       questionnaire_status: ["not_started", "in_progress", "complete"],
+      quote_status: ["draft", "sent", "accepted", "expired"],
       reschedule_requested_by: ["client", "studio"],
       reschedule_status: ["pending", "approved", "denied", "cancelled"],
       resource_category: [
