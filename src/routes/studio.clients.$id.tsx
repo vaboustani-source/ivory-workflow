@@ -476,7 +476,7 @@ function ClientDetail() {
               </Card>
             </div>
           </div>
-        ) : tab === "Quote" ? (
+        ) : tab === "Financials" ? (
           <QuoteTab clientId={id} />
         ) : tab === "Timeline" ? (
           <ClientTimelineTab clientId={id} />
@@ -500,7 +500,7 @@ function ClientDetail() {
               <ActivityList clientId={id} mode="studio" />
             </div>
           </div>
-        ) : tab === "Financials" ? (
+        ) : tab === "P&L" ? (
           <ClientFinancialsTab clientId={id} />
         ) : (
           <div className="bg-surface rounded-lg shadow-soft py-20 text-center">
