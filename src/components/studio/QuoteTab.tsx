@@ -722,7 +722,7 @@ export function QuoteTab({ clientId }: { clientId: string }) {
             {/* Invoice rows */}
             <div className="space-y-2">
               {invoices.map((inv) => {
-                const amount = inv.total_cents ?? 1;
+                const amount = inv.total_cents ?? 0;
                 const isCancelled = cancelledStatuses.has(inv.status);
                 const isOverdue = inv.status === "overdue";
                 const statusConfig: Record<
