@@ -97,6 +97,8 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems,
   const [inclusions, setInclusions] = useState<Inclusion[]>([]);
   const [addInclusionId, setAddInclusionId] = useState<string>("");
 
+  const [bullets, setBullets] = useState<Bullet[]>([]);
+
   const [hourlyCoverageRateCents, setHourlyCoverageRateCents] = useState<number | null>(propRate ?? null);
 
   // Sync when parent passes an updated rate while modal is open
