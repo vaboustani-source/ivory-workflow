@@ -392,62 +392,164 @@ export function QuoteTab({ clientId }: { clientId: string }) {
           return (
             <div
               key={it.id}
-              className="rounded-sm px-4 py-3 grid grid-cols-12 gap-3 items-center"
+              className="rounded-sm px-4 py-3"
               style={{ background: "#F0A5BE" }}
             >
-              <div className="col-span-5">
-                <input
-                  type="text"
-                  value={it.description_snapshot}
-                  onChange={(e) => updateItem(it.id, { description_snapshot: e.target.value })}
-                  className="w-full bg-transparent font-serif text-base outline-none"
-                  style={{ color: "var(--sbv-green)" }}
-                />
-                {it.item_type_snapshot && (
-                  <div className="text-[10px] uppercase tracking-wider mt-0.5 opacity-60" style={{ color: "var(--sbv-purple)" }}>
-                    {TYPE_LABEL[it.item_type_snapshot] ?? it.item_type_snapshot}
+              <div className="grid grid-cols-12 gap-3 items-center">
+                <div className="col-span-5">
+                  <input
+                    type="text"
+                    value={it.description_snapshot}
+                    onChange={(e) => updateItem(it.id, { description_snapshot: e.target.value })}
+                    className="w-full bg-transparent font-serif text-base outline-none"
+                    style={{ color: "var(--sbv-green)" }}
+                  />
+                  {it.item_type_snapshot && (
+                    <div className="text-[10px] uppercase tracking-wider mt-0.5 opacity-60" style={{ color: "var(--sbv-purple)" }}>
+                      {TYPE_LABEL[it.item_type_snapshot] ?? it.item_type_snapshot}
+                    </div>
+                  )}
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] uppercase tracking-wider opacity-60" style={{ color: "var(--sbv-purple)" }}>Unit price</label>
+                  <div className="flex items-center gap-1">
+                    <span style={{ color: "var(--sbv-purple)" }}>$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={(it.unit_price_cents / 100).toString()}
+                      onChange={(e) => updateItem(it.id, { unit_price_cents: Math.round((Number(e.target.value) || 0) * 100) })}
+                      className="w-full bg-white/70 rounded-sm px-2 py-1 text-sm outline-none"
+                      style={{ color: "var(--sbv-purple)" }}
+                    />
                   </div>
-                )}
-              </div>
-              <div className="col-span-2">
-                <label className="block text-[10px] uppercase tracking-wider opacity-60" style={{ color: "var(--sbv-purple)" }}>Unit price</label>
-                <div className="flex items-center gap-1">
-                  <span style={{ color: "var(--sbv-purple)" }}>$</span>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-[10px] uppercase tracking-wider opacity-60" style={{ color: "var(--sbv-purple)" }}>Qty</label>
                   <input
                     type="number"
-                    step="0.01"
-                    value={(it.unit_price_cents / 100).toString()}
-                    onChange={(e) => updateItem(it.id, { unit_price_cents: Math.round((Number(e.target.value) || 0) * 100) })}
+                    step={isPerUnit ? "0.5" : "1"}
+                    min="0"
+                    value={it.quantity}
+                    onChange={(e) => updateItem(it.id, { quantity: Number(e.target.value) || 0 })}
                     className="w-full bg-white/70 rounded-sm px-2 py-1 text-sm outline-none"
                     style={{ color: "var(--sbv-purple)" }}
                   />
                 </div>
+                <div className="col-span-2 text-right font-serif" style={{ color: "var(--sbv-green)" }}>
+                  {fmtMoney(it.line_total_cents)}
+                </div>
+                <div className="col-span-1 text-right">
+                  <button
+                    onClick={() => removeItem(it.id)}
+                    aria-label="Remove"
+                    className="p-1 opacity-60 hover:opacity-100"
+                    style={{ color: "var(--sbv-purple)" }}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
-              <div className="col-span-2">
-                <label className="block text-[10px] uppercase tracking-wider opacity-60" style={{ color: "var(--sbv-purple)" }}>Qty</label>
-                <input
-                  type="number"
-                  step={isPerUnit ? "0.5" : "1"}
-                  min="0"
-                  value={it.quantity}
-                  onChange={(e) => updateItem(it.id, { quantity: Number(e.target.value) || 0 })}
-                  className="w-full bg-white/70 rounded-sm px-2 py-1 text-sm outline-none"
-                  style={{ color: "var(--sbv-purple)" }}
-                />
-              </div>
-              <div className="col-span-2 text-right font-serif" style={{ color: "var(--sbv-green)" }}>
-                {fmtMoney(it.line_total_cents)}
-              </div>
-              <div className="col-span-1 text-right">
-                <button
-                  onClick={() => removeItem(it.id)}
-                  aria-label="Remove"
-                  className="p-1 opacity-60 hover:opacity-100"
-                  style={{ color: "var(--sbv-purple)" }}
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
+
+              {/* Inclusion bullets */}
+              {(() => {
+                const list = inclusions[it.id] ?? [];
+                const editing = editingInclusionsFor === it.id;
+                if (list.length === 0 && !editing) {
+                  return (
+                    <div className="pl-1 mt-2">
+                      <button
+                        onClick={() => setEditingInclusionsFor(it.id)}
+                        className="text-[11px] underline opacity-70 hover:opacity-100"
+                        style={{ color: "var(--sbv-purple)" }}
+                      >
+                        + Add inclusions
+                      </button>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="mt-2 pl-5">
+                    {!editing && (
+                      <>
+                        <ul className="space-y-0.5 list-disc pl-4" style={{ color: "#6B6B6B" }}>
+                          {list.map((b) => (
+                            <li key={b.id} className="text-[12px] font-sans">{b.text}</li>
+                          ))}
+                        </ul>
+                        <button
+                          onClick={() => setEditingInclusionsFor(it.id)}
+                          className="mt-1 inline-flex items-center gap-1 text-[11px] underline opacity-70 hover:opacity-100"
+                          style={{ color: "var(--sbv-purple)" }}
+                        >
+                          <Pencil size={11} /> Edit inclusions
+                        </button>
+                      </>
+                    )}
+                    {editing && (
+                      <div className="space-y-1.5">
+                        {list.map((b, idx) => (
+                          <div key={b.id} className="flex items-center gap-1.5">
+                            <div className="flex flex-col">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => moveInclusion(it.id, b.id, -1)}
+                                className="text-[10px] leading-none opacity-60 hover:opacity-100 disabled:opacity-20"
+                                style={{ color: "var(--sbv-purple)" }}
+                                aria-label="Move up"
+                              >▲</button>
+                              <button
+                                type="button"
+                                disabled={idx === list.length - 1}
+                                onClick={() => moveInclusion(it.id, b.id, 1)}
+                                className="text-[10px] leading-none opacity-60 hover:opacity-100 disabled:opacity-20"
+                                style={{ color: "var(--sbv-purple)" }}
+                                aria-label="Move down"
+                              >▼</button>
+                            </div>
+                            <input
+                              type="text"
+                              value={b.text}
+                              onChange={(e) => updateInclusion(it.id, b.id, e.target.value)}
+                              placeholder="e.g. 8 hours of coverage"
+                              className="flex-1 bg-white/85 rounded-sm px-2 py-1 text-[12px] outline-none"
+                              style={{ color: "var(--sbv-purple)" }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeInclusion(it.id, b.id)}
+                              aria-label="Remove bullet"
+                              className="p-1 opacity-60 hover:opacity-100"
+                              style={{ color: "var(--sbv-purple)" }}
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))}
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => addInclusion(it.id)}
+                            className="inline-flex items-center gap-1 text-[11px] underline opacity-80 hover:opacity-100"
+                            style={{ color: "var(--sbv-purple)" }}
+                          >
+                            <Plus size={11} /> Add bullet
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingInclusionsFor(null)}
+                            className="inline-flex items-center gap-1 text-[11px] underline opacity-80 hover:opacity-100"
+                            style={{ color: "var(--sbv-green)" }}
+                          >
+                            <Check size={11} /> Done
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           );
         })}
