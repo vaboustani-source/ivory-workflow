@@ -473,6 +473,8 @@ function ClientDetail() {
               </Card>
             </div>
           </div>
+        ) : tab === "Quote" ? (
+          <QuoteTab clientId={id} />
         ) : tab === "Timeline" ? (
           <ClientTimelineTab clientId={id} />
         ) : tab === "Photography" ? (
