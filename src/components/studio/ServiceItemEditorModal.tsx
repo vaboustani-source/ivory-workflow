@@ -160,11 +160,22 @@ export function ServiceItemEditorModal({ open, onClose, onSaved, item, allItems,
             quantity: r.quantity ?? 1,
           })),
         );
+
+        // bullets ("what's included")
+        const { data: bs } = await (supabase as any)
+          .from("service_item_inclusions")
+          .select("id,text,display_order")
+          .eq("service_item_id", item.id)
+          .order("display_order");
+        setBullets(((bs ?? []) as any[]).map((r) => ({
+          id: r.id, text: r.text, display_order: r.display_order ?? 0,
+        })));
       } else {
         setName(""); setDescription(""); setItemType("wedding_package"); setIsActive(true);
         setPriceStr(""); setUnit("flat"); setCoverageHoursStr("");
         setCostStr(""); setCostType("flat"); setLaborHoursStr(""); setCostNotes("");
         setInclusions([]);
+        setBullets([]);
       }
       setAddInclusionId("");
     })();
