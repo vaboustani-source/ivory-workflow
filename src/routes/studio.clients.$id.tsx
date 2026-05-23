@@ -155,10 +155,13 @@ function ClientDetail() {
   };
   const [taskCounts, setTaskCounts] = useState({ open: 0, complete: 0 });
   const [loading, setLoading] = useState(true);
+  // NEW source of truth for Investment/Package on overview: client's quote.
+  // TODO: invoicing still reads old package_id/investment — repoint after Financials module complete.
+  const [quoteSummary, setQuoteSummary] = useState<{ total_cents: number; package_label: string | null } | null>(null);
 
   const load = async () => {
     setLoading(true);
-    const [{ data }, openCount, doneCount] = await Promise.all([
+    const [{ data }, openCount, doneCount, quoteRes] = await Promise.all([
       supabase.from("clients").select(`
         id, couple_name_1, couple_name_2, primary_email, secondary_email, phone,
         wedding_date, venue_name, venue_address, venue_street, venue_city, venue_state, venue_postal_code, guest_count, package_price, coverage_hours, status,
@@ -171,9 +174,24 @@ function ClientDetail() {
       `).eq("id", id).maybeSingle(),
       supabase.from("tasks").select("id", { count: "exact", head: true }).eq("client_id", id).eq("status", "pending"),
       supabase.from("tasks").select("id", { count: "exact", head: true }).eq("client_id", id).eq("status", "complete"),
+      supabase.from("quotes")
+        .select("total_cents, items:quote_items(description_snapshot, item_type_snapshot, display_order)")
+        .eq("client_id", id).maybeSingle(),
     ]);
     setClient(data as unknown as ClientDetailRow);
     setTaskCounts({ open: openCount.count ?? 0, complete: doneCount.count ?? 0 });
+    if (quoteRes.data) {
+      const items = (quoteRes.data.items ?? []) as { description_snapshot: string; item_type_snapshot: string | null; display_order: number }[];
+      const pkgItem = items
+        .filter((i) => i.item_type_snapshot === "wedding_package")
+        .sort((a, b) => a.display_order - b.display_order)[0];
+      setQuoteSummary({
+        total_cents: quoteRes.data.total_cents ?? 0,
+        package_label: pkgItem?.description_snapshot ?? null,
+      });
+    } else {
+      setQuoteSummary(null);
+    }
     setLoading(false);
   };
 
