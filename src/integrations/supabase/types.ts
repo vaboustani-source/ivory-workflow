@@ -14,24 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      _b3_test_results: {
-        Row: {
-          captured_at: string | null
-          result: Json | null
-          scenario: string
-        }
-        Insert: {
-          captured_at?: string | null
-          result?: Json | null
-          scenario: string
-        }
-        Update: {
-          captured_at?: string | null
-          result?: Json | null
-          scenario?: string
-        }
-        Relationships: []
-      }
       activity_log: {
         Row: {
           action_type: string | null
@@ -3636,15 +3618,6 @@ export type Database = {
       _anchor_date: {
         Args: { p_anchor: string; p_client_id: string; p_step_id?: string }
         Returns: string
-      }
-      _b3_test_add: {
-        Args: {
-          p_desc: string
-          p_owner: string
-          p_price_cents: number
-          p_quote_id: string
-        }
-        Returns: Json
       }
       _branch_passes: {
         Args: {
