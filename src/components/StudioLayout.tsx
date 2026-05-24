@@ -62,7 +62,9 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Books",
     items: [
       { label: "Financials", to: "/studio/financials", icon: DollarSign },
+      { label: "Revenue", to: "/studio/revenue", icon: DollarSign },
       { label: "Invoicing", to: "/studio/invoices", icon: Receipt },
+
     ],
   },
   {
