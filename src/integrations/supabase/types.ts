@@ -3088,18 +3088,21 @@ export type Database = {
       }
       studio_cost_settings: {
         Row: {
+          expected_weddings_per_year: number | null
           id: string
           labor_cost_per_hour_cents: number | null
           travel_cost_per_mile_cents: number | null
           updated_at: string
         }
         Insert: {
+          expected_weddings_per_year?: number | null
           id?: string
           labor_cost_per_hour_cents?: number | null
           travel_cost_per_mile_cents?: number | null
           updated_at?: string
         }
         Update: {
+          expected_weddings_per_year?: number | null
           id?: string
           labor_cost_per_hour_cents?: number | null
           travel_cost_per_mile_cents?: number | null
@@ -3133,6 +3136,42 @@ export type Database = {
           proposal_validity_days?: number
           tbd_deposit_amount_cents?: number
           tbd_finalize_window_days?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      studio_overhead_items: {
+        Row: {
+          amount_cents: number
+          cadence: Database["public"]["Enums"]["studio_overhead_cadence"]
+          category: string | null
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          cadence: Database["public"]["Enums"]["studio_overhead_cadence"]
+          category?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          cadence?: Database["public"]["Enums"]["studio_overhead_cadence"]
+          category?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label?: string
           updated_at?: string
         }
         Relationships: []
@@ -3999,6 +4038,7 @@ export type Database = {
         | "no_response"
         | "cancelled"
         | "booked"
+      studio_overhead_cadence: "monthly" | "annual"
       task_priority: "low" | "normal" | "high"
       task_status: "pending" | "complete" | "skipped"
       workflow_action_type:
@@ -4311,6 +4351,7 @@ export const Constants = {
         "cancelled",
         "booked",
       ],
+      studio_overhead_cadence: ["monthly", "annual"],
       task_priority: ["low", "normal", "high"],
       task_status: ["pending", "complete", "skipped"],
       workflow_action_type: [
