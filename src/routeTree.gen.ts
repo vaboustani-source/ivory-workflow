@@ -74,6 +74,7 @@ import { Route as StudioSettingsEmailsIndexRouteImport } from './routes/studio.s
 import { Route as StudioSettingsEmailsEmailTypeRouteImport } from './routes/studio.settings.emails.$emailType'
 import { Route as StudioContractsTemplatesIdRouteImport } from './routes/studio.contracts.templates.$id'
 import { Route as StudioClientsIdSourcingRouteImport } from './routes/studio.clients.$id_.sourcing'
+import { Route as ApiPublicCoupleInvoicesTokenRouteImport } from './routes/api/public/couple-invoices.$token'
 
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
@@ -413,6 +414,12 @@ const StudioClientsIdSourcingRoute = StudioClientsIdSourcingRouteImport.update({
   path: '/clients/$id/sourcing',
   getParentRoute: () => StudioRoute,
 } as any)
+const ApiPublicCoupleInvoicesTokenRoute =
+  ApiPublicCoupleInvoicesTokenRouteImport.update({
+    id: '/api/public/couple-invoices/$token',
+    path: '/api/public/couple-invoices/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -476,6 +483,7 @@ export interface FileRoutesByFullPath {
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
   '/portal/account/': typeof PortalAccountIndexRoute
   '/studio/clients/': typeof StudioClientsIndexRoute
+  '/api/public/couple-invoices/$token': typeof ApiPublicCoupleInvoicesTokenRoute
   '/studio/clients/$id/sourcing': typeof StudioClientsIdSourcingRoute
   '/studio/contracts/templates/$id': typeof StudioContractsTemplatesIdRoute
   '/studio/settings/emails/$emailType': typeof StudioSettingsEmailsEmailTypeRoute
@@ -540,6 +548,7 @@ export interface FileRoutesByTo {
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
   '/portal/account': typeof PortalAccountIndexRoute
   '/studio/clients': typeof StudioClientsIndexRoute
+  '/api/public/couple-invoices/$token': typeof ApiPublicCoupleInvoicesTokenRoute
   '/studio/clients/$id/sourcing': typeof StudioClientsIdSourcingRoute
   '/studio/contracts/templates/$id': typeof StudioContractsTemplatesIdRoute
   '/studio/settings/emails/$emailType': typeof StudioSettingsEmailsEmailTypeRoute
@@ -608,6 +617,7 @@ export interface FileRoutesById {
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
   '/portal/account/': typeof PortalAccountIndexRoute
   '/studio/clients/': typeof StudioClientsIndexRoute
+  '/api/public/couple-invoices/$token': typeof ApiPublicCoupleInvoicesTokenRoute
   '/studio/clients/$id_/sourcing': typeof StudioClientsIdSourcingRoute
   '/studio/contracts/templates/$id': typeof StudioContractsTemplatesIdRoute
   '/studio/settings/emails/$emailType': typeof StudioSettingsEmailsEmailTypeRoute
@@ -677,6 +687,7 @@ export interface FileRouteTypes {
     | '/studio/settings/workflow'
     | '/portal/account/'
     | '/studio/clients/'
+    | '/api/public/couple-invoices/$token'
     | '/studio/clients/$id/sourcing'
     | '/studio/contracts/templates/$id'
     | '/studio/settings/emails/$emailType'
@@ -741,6 +752,7 @@ export interface FileRouteTypes {
     | '/studio/settings/workflow'
     | '/portal/account'
     | '/studio/clients'
+    | '/api/public/couple-invoices/$token'
     | '/studio/clients/$id/sourcing'
     | '/studio/contracts/templates/$id'
     | '/studio/settings/emails/$emailType'
@@ -808,6 +820,7 @@ export interface FileRouteTypes {
     | '/studio/settings/workflow'
     | '/portal/account/'
     | '/studio/clients/'
+    | '/api/public/couple-invoices/$token'
     | '/studio/clients/$id_/sourcing'
     | '/studio/contracts/templates/$id'
     | '/studio/settings/emails/$emailType'
@@ -820,6 +833,7 @@ export interface RootRouteChildren {
   PortalRoute: typeof PortalRouteWithChildren
   StudioRoute: typeof StudioRouteWithChildren
   SignContractContractIdRoute: typeof SignContractContractIdRoute
+  ApiPublicCoupleInvoicesTokenRoute: typeof ApiPublicCoupleInvoicesTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1279,6 +1293,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioClientsIdSourcingRouteImport
       parentRoute: typeof StudioRoute
     }
+    '/api/public/couple-invoices/$token': {
+      id: '/api/public/couple-invoices/$token'
+      path: '/api/public/couple-invoices/$token'
+      fullPath: '/api/public/couple-invoices/$token'
+      preLoaderRoute: typeof ApiPublicCoupleInvoicesTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1488,16 +1509,8 @@ const rootRouteChildren: RootRouteChildren = {
   PortalRoute: PortalRouteWithChildren,
   StudioRoute: StudioRouteWithChildren,
   SignContractContractIdRoute: SignContractContractIdRoute,
+  ApiPublicCoupleInvoicesTokenRoute: ApiPublicCoupleInvoicesTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
