@@ -81,7 +81,7 @@ function PayPage() {
   const { couple, invoices, has_pending_change } = data;
   const coupleName = [couple.name_1, couple.name_2].filter(Boolean).join(" & ") || "Welcome";
 
-  const total = invoices.filter(i => !DEAD_STATES.has(i.status) || i.status === "refunded" ? false : false ? 0 : true).reduce((a,b)=>a+(b.total_cents??0),0);
+  void DEAD_STATES;
   const allLive = invoices.filter(i => !["cancelled","kill_fee"].includes(i.status));
   const sumTotal = allLive.reduce((a,b) => a + (b.total_cents ?? 0), 0);
   const sumPaid = allLive.filter(i => PAID_STATES.has(i.status)).reduce((a,b) => a + (b.total_cents ?? 0), 0);
