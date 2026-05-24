@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { shortDate } from "@/lib/dates";
@@ -6,6 +6,9 @@ import { Check, Clock, AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/pay/$token")({
   component: PayPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    paid: search.paid === "1" || search.paid === 1 ? true : false,
+  }),
   head: () => ({
     meta: [
       { title: "Pay — Stories by Victoria" },
