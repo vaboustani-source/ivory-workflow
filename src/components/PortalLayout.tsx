@@ -303,7 +303,11 @@ export function PortalGate({
   const [state, setState] = useState<{ status: "loading" | "ready" | "no-client"; clientId?: string; client?: any }>({ status: "loading" });
 
   useEffect(() => {
-    if (loading || !profile) return;
+    if (loading) return;
+    if (!profile) {
+      setState({ status: "no-client" });
+      return;
+    }
     if (profile.role !== "client") {
       navigate({ to: "/studio" });
       return;
