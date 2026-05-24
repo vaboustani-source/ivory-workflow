@@ -1763,6 +1763,39 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          kind: string
+          link_to: string | null
+          read_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          link_to?: string | null
+          read_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          link_to?: string | null
+          read_at?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       package_default_inclusions: {
         Row: {
           created_at: string
@@ -1980,6 +2013,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pending_changes: {
+        Row: {
+          before_snapshot: Json
+          change_type: Database["public"]["Enums"]["pending_change_type"]
+          client_id: string
+          created_at: string
+          id: string
+          owner_response_note: string | null
+          payload: Json
+          projected_after: Json
+          proposed_by: string
+          proposed_by_role: string
+          quote_id: string
+          reason: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["pending_change_status"]
+        }
+        Insert: {
+          before_snapshot?: Json
+          change_type: Database["public"]["Enums"]["pending_change_type"]
+          client_id: string
+          created_at?: string
+          id?: string
+          owner_response_note?: string | null
+          payload?: Json
+          projected_after?: Json
+          proposed_by: string
+          proposed_by_role: string
+          quote_id: string
+          reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["pending_change_status"]
+        }
+        Update: {
+          before_snapshot?: Json
+          change_type?: Database["public"]["Enums"]["pending_change_type"]
+          client_id?: string
+          created_at?: string
+          id?: string
+          owner_response_note?: string | null
+          payload?: Json
+          projected_after?: Json
+          proposed_by?: string
+          proposed_by_role?: string
+          quote_id?: string
+          reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["pending_change_status"]
+        }
+        Relationships: []
       }
       photography_timelines: {
         Row: {
@@ -3619,6 +3706,18 @@ export type Database = {
         Args: { p_anchor: string; p_client_id: string; p_step_id?: string }
         Returns: string
       }
+      _apply_post_booking_add: {
+        Args: {
+          p_actor: string
+          p_custom_description: string
+          p_custom_price_cents: number
+          p_display_order: number
+          p_quantity: number
+          p_quote_id: string
+          p_service_item_id: string
+        }
+        Returns: Json
+      }
       _branch_passes: {
         Args: {
           p_branch: Database["public"]["Enums"]["workflow_branch"]
@@ -3641,6 +3740,39 @@ export type Database = {
         }
         Returns: undefined
       }
+      _notify: {
+        Args: {
+          p_body?: string
+          p_kind: string
+          p_link_to?: string
+          p_title: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      _notify_all_owners: {
+        Args: {
+          p_body?: string
+          p_kind: string
+          p_link_to?: string
+          p_title: string
+        }
+        Returns: number
+      }
+      _preview_post_booking_add: {
+        Args: {
+          p_custom_description: string
+          p_custom_price_cents: number
+          p_quantity: number
+          p_quote_id: string
+          p_service_item_id: string
+        }
+        Returns: Json
+      }
+      _snapshot_quote_financials: {
+        Args: { p_quote_id: string }
+        Returns: Json
+      }
       _substitute_merge_fields: {
         Args: { _client_id: string; _text: string }
         Returns: string
@@ -3658,7 +3790,11 @@ export type Database = {
           p_quote_id: string
           p_service_item_id: string
         }
-        Returns: string
+        Returns: Json
+      }
+      approve_pending_change: {
+        Args: { p_force?: boolean; p_id: string }
+        Returns: Json
       }
       calculate_production_stage: {
         Args: { _client_id: string }
@@ -3716,6 +3852,10 @@ export type Database = {
       recalculate_milestones_for_client: {
         Args: { p_client_id: string }
         Returns: undefined
+      }
+      reject_pending_change: {
+        Args: { p_id: string; p_note?: string }
+        Returns: Json
       }
       trigger_event_handler: {
         Args: {
@@ -3815,6 +3955,12 @@ export type Database = {
         | "kill_fee"
       milestone_status: "upcoming" | "in_progress" | "complete" | "skipped"
       payment_attempt_status: "succeeded" | "failed" | "refunded" | "disputed"
+      pending_change_status: "pending" | "approved" | "rejected" | "cancelled"
+      pending_change_type:
+        | "post_booking_add"
+        | "post_booking_edit"
+        | "post_booking_remove"
+        | "post_booking_discount"
       proposal_status: "draft" | "sent" | "accepted" | "expired" | "revised"
       questionnaire_status: "not_started" | "in_progress" | "complete"
       quote_status: "draft" | "sent" | "accepted" | "expired"
@@ -4116,6 +4262,13 @@ export const Constants = {
       ],
       milestone_status: ["upcoming", "in_progress", "complete", "skipped"],
       payment_attempt_status: ["succeeded", "failed", "refunded", "disputed"],
+      pending_change_status: ["pending", "approved", "rejected", "cancelled"],
+      pending_change_type: [
+        "post_booking_add",
+        "post_booking_edit",
+        "post_booking_remove",
+        "post_booking_discount",
+      ],
       proposal_status: ["draft", "sent", "accepted", "expired", "revised"],
       questionnaire_status: ["not_started", "in_progress", "complete"],
       quote_status: ["draft", "sent", "accepted", "expired"],
