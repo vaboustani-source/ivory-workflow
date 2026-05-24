@@ -77,40 +77,9 @@ function PortalInvoices({ clientId, client }: { clientId: string; client: any })
     if (checkoutLoadingId) return;
     setCheckoutLoadingId(invoiceId);
     try {
-      // Look up a view_token for this invoice (RLS lets the client read their own recipients)
-      const { data: recipient } = await supabase
-        .from("invoice_recipients")
-        .select("view_token")
-        .eq("invoice_id", invoiceId)
-        .limit(1)
-        .maybeSingle();
-
-      const token = recipient?.view_token;
-      if (!token) {
-        toast.error("This invoice isn't ready for online payment yet. Please contact your photographer.");
-        setCheckoutLoadingId(null);
+        const payUrl = `/pay/${encodeURIComponent(invoiceId)}`;
+        window.location.href = payUrl;
         return;
-      }
-
-      const res = await fetch(`/api/public/create-checkout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ view_token: token, invoice_id: invoiceId }),
-      });
-      const json = await res.json().catch(() => ({} as any));
-      if (!res.ok || !json.url) {
-        const messages: Record<string, string> = {
-          already_paid: "This invoice is already paid.",
-          cancelled: "This invoice has been cancelled.",
-          pending_change: "Payments are paused while a pending change is finalized.",
-          forbidden: "This invoice doesn't belong to you.",
-          stripe_not_configured: "Payments aren't set up yet. Please contact your photographer.",
-        };
-        toast.error(messages[json?.error] ?? "Couldn't start checkout. Please try again.");
-        setCheckoutLoadingId(null);
-        return;
-      }
-      window.location.href = json.url as string;
     } catch {
       toast.error("Couldn't start checkout. Please try again.");
       setCheckoutLoadingId(null);
