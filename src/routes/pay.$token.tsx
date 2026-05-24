@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { shortDate } from "@/lib/dates";
@@ -6,6 +6,9 @@ import { Check, Clock, AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/pay/$token")({
   component: PayPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    paid: search.paid === "1" || search.paid === 1 ? true : false,
+  }),
   head: () => ({
     meta: [
       { title: "Pay — Stories by Victoria" },
@@ -39,8 +42,40 @@ function dollars(cents: number | null | undefined) {
 
 function PayPage() {
   const { token } = Route.useParams();
+  const { paid: paidReturn } = useSearch({ from: "/pay/$token" });
   const [data, setData] = useState<PayData | null>(null);
   const [state, setState] = useState<"loading" | "ok" | "invalid">("loading");
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  async function startCheckout(invoiceId: string) {
+    if (checkoutLoading) return;
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch(`/api/public/create-checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ view_token: token, invoice_id: invoiceId }),
+      });
+      const json = await res.json().catch(() => ({} as any));
+      if (!res.ok || !json.url) {
+        const messages: Record<string, string> = {
+          already_paid: "This invoice is already paid.",
+          cancelled: "This invoice has been cancelled.",
+          pending_change: "Payments are paused while a pending change is finalized.",
+          forbidden: "This invoice doesn't belong to this link.",
+          stripe_not_configured: "Payments aren't set up yet. Please contact your photographer.",
+        };
+        toast.error(messages[json?.error] ?? "Couldn't start checkout. Please try again.");
+        setCheckoutLoading(false);
+        return;
+      }
+      window.location.href = json.url as string;
+    } catch {
+      toast.error("Couldn't start checkout. Please try again.");
+      setCheckoutLoading(false);
+    }
+  }
+
 
   useEffect(() => {
     let cancelled = false;
@@ -107,6 +142,17 @@ function PayPage() {
           <p className="text-sm" style={{ color: "var(--sbv-purple)" }}>{shortDate(couple.wedding_date)}</p>
         )}
       </header>
+
+      {paidReturn && (
+        <div className="mb-8 rounded-lg p-5 text-center" style={{ background: "rgba(16,50,0,0.08)", border: "1px solid var(--sbv-green)" }}>
+          <p className="font-serif italic text-xl mb-1" style={{ color: "var(--sbv-green)" }}>
+            Thank you — confirming your payment.
+          </p>
+          <p className="text-xs" style={{ color: "var(--sbv-purple)" }}>
+            Your card was processed. We're verifying with our payment provider; your schedule will update once confirmed.
+          </p>
+        </div>
+      )}
 
       {isEmpty ? (
         <Card>
@@ -187,11 +233,12 @@ function PayPage() {
                     </p>
                     {isNext && (
                       <button
-                        onClick={() => toast.info("Payment coming soon", { description: "Card payments will be enabled shortly." })}
-                        className="mt-2 px-5 py-2 rounded-md text-sm font-medium"
+                        onClick={() => startCheckout(inv.id)}
+                        disabled={checkoutLoading}
+                        className="mt-2 px-5 py-2 rounded-md text-sm font-medium disabled:opacity-60"
                         style={{ background: "var(--sbv-green)", color: "var(--sbv-ivory)" }}
                       >
-                        Pay {dollars(inv.total_cents)}
+                        {checkoutLoading ? "Opening checkout…" : `Pay ${dollars(inv.total_cents)}`}
                       </button>
                     )}
                     {paid && (
