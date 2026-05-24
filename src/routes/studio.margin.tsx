@@ -320,7 +320,6 @@ function MarginInner() {
         Direct cost = crew (wedding team) + line-item cost (album, prints) + editing + other expenses.
         Overhead is allocated as annual overhead ÷ expected weddings per year (stable, not affected by booking pace).
       </p>
-      {void [ArrowUpDown]}
     </div>
   );
 }
