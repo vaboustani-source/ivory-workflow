@@ -71,7 +71,7 @@ export function PendingPricingChangesBanner({ clientId }: { clientId: string }) 
                 </span>
               )}
               <span className="text-muted-foreground ml-2">
-                — proposed by {p.proposer?.full_name ?? "manager"} {relativeTime(p.created_at)}
+                — proposed by {proposers[p.proposed_by] ?? "manager"} {relativeTime(p.created_at)}
               </span>
             </li>
           ))}
