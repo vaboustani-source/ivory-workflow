@@ -52,23 +52,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       if (newSession?.user) {
-        // Defer to avoid deadlock
-        setTimeout(() => loadProfile(newSession.user.id), 0);
+        setTimeout(() => {
+          loadProfile(newSession.user.id)
+            .catch(() => {
+              setProfile(null);
+              setRoles([]);
+            })
+            .finally(() => setLoading(false));
+        }, 0);
       } else {
         setProfile(null);
         setRoles([]);
+        setLoading(false);
       }
     });
 
     // Then check existing session
-    supabase.auth.getSession().then(({ data: { session: existing } }) => {
-      setSession(existing);
-      if (existing?.user) {
-        loadProfile(existing.user.id).finally(() => setLoading(false));
-      } else {
-        setLoading(false);
-      }
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session: existing } }) => {
+        setSession(existing);
+        if (existing?.user) {
+          return loadProfile(existing.user.id).catch(() => {
+            setProfile(null);
+            setRoles([]);
+          });
+        }
+      })
+      .finally(() => setLoading(false));
 
     return () => sub.subscription.unsubscribe();
   }, []);
