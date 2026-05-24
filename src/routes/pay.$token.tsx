@@ -143,6 +143,17 @@ function PayPage() {
         )}
       </header>
 
+      {paidReturn && (
+        <div className="mb-8 rounded-lg p-5 text-center" style={{ background: "rgba(16,50,0,0.08)", border: "1px solid var(--sbv-green)" }}>
+          <p className="font-serif italic text-xl mb-1" style={{ color: "var(--sbv-green)" }}>
+            Thank you — confirming your payment.
+          </p>
+          <p className="text-xs" style={{ color: "var(--sbv-purple)" }}>
+            Your card was processed. We're verifying with our payment provider; your schedule will update once confirmed.
+          </p>
+        </div>
+      )}
+
       {isEmpty ? (
         <Card>
           <p className="font-serif italic text-xl text-center" style={{ color: "var(--sbv-green)" }}>
