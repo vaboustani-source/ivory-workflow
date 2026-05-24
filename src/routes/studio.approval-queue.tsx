@@ -474,7 +474,7 @@ function PricingCard({ pending, coupleName, proposerName, expanded, onToggle, on
     setBusy(true);
     const { error } = await supabase.rpc("reject_pending_change", {
       p_id: pending.id,
-      p_note: rejectNote.trim() || null,
+      p_note: rejectNote.trim() || undefined,
     });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
