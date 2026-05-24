@@ -71,6 +71,7 @@ import { Route as SignContractContractIdRouteImport } from './routes/sign.contra
 import { Route as PortalAccountSecurityRouteImport } from './routes/portal.account.security'
 import { Route as PortalAccountPartnerRouteImport } from './routes/portal.account.partner'
 import { Route as PortalAccountNotificationsRouteImport } from './routes/portal.account.notifications'
+import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
 import { Route as StudioSettingsEmailsIndexRouteImport } from './routes/studio.settings.emails.index'
 import { Route as StudioSettingsEmailsEmailTypeRouteImport } from './routes/studio.settings.emails.$emailType'
 import { Route as StudioContractsTemplatesIdRouteImport } from './routes/studio.contracts.templates.$id'
@@ -397,6 +398,11 @@ const PortalAccountNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => PortalAccountRoute,
   } as any)
+const ApiPublicCreateCheckoutRoute = ApiPublicCreateCheckoutRouteImport.update({
+  id: '/api/public/create-checkout',
+  path: '/api/public/create-checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StudioSettingsEmailsIndexRoute =
   StudioSettingsEmailsIndexRouteImport.update({
     id: '/emails/',
@@ -463,6 +469,7 @@ export interface FileRoutesByFullPath {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
+  '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -529,6 +536,7 @@ export interface FileRoutesByTo {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal': typeof PortalIndexRoute
   '/studio': typeof StudioIndexRoute
+  '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -599,6 +607,7 @@ export interface FileRoutesById {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
+  '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -670,6 +679,7 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal/'
     | '/studio/'
+    | '/api/public/create-checkout'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -736,6 +746,7 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal'
     | '/studio'
+    | '/api/public/create-checkout'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -805,6 +816,7 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal/'
     | '/studio/'
+    | '/api/public/create-checkout'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -845,6 +857,7 @@ export interface RootRouteChildren {
   PortalRoute: typeof PortalRouteWithChildren
   StudioRoute: typeof StudioRouteWithChildren
   PayTokenRoute: typeof PayTokenRoute
+  ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
   SignContractContractIdRoute: typeof SignContractContractIdRoute
   ApiPublicCoupleInvoicesTokenRoute: typeof ApiPublicCoupleInvoicesTokenRoute
 }
@@ -1285,6 +1298,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalAccountNotificationsRouteImport
       parentRoute: typeof PortalAccountRoute
     }
+    '/api/public/create-checkout': {
+      id: '/api/public/create-checkout'
+      path: '/api/public/create-checkout'
+      fullPath: '/api/public/create-checkout'
+      preLoaderRoute: typeof ApiPublicCreateCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/studio/settings/emails/': {
       id: '/studio/settings/emails/'
       path: '/emails'
@@ -1529,6 +1549,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortalRoute: PortalRouteWithChildren,
   StudioRoute: StudioRouteWithChildren,
   PayTokenRoute: PayTokenRoute,
+  ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
   SignContractContractIdRoute: SignContractContractIdRoute,
   ApiPublicCoupleInvoicesTokenRoute: ApiPublicCoupleInvoicesTokenRoute,
 }

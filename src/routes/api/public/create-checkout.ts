@@ -140,8 +140,8 @@ export const Route = createFileRoute("/api/public/create-checkout")({
                 },
               },
             ],
-            // Let Stripe show all payment methods enabled on the account
-            automatic_payment_methods: { enabled: true },
+            // Omit payment_method_types so Stripe Checkout uses every method
+            // enabled in the Dashboard (cards, ACH, Apple/Google Pay, etc.)
             success_url: successUrl,
             cancel_url: cancelUrl,
           });
