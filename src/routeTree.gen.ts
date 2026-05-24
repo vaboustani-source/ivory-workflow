@@ -43,6 +43,7 @@ import { Route as PortalEngagementRouteImport } from './routes/portal.engagement
 import { Route as PortalDocumentsRouteImport } from './routes/portal.documents'
 import { Route as PortalActivityRouteImport } from './routes/portal.activity'
 import { Route as PortalAccountRouteImport } from './routes/portal.account'
+import { Route as PayTokenRouteImport } from './routes/pay.$token'
 import { Route as StudioClientsIndexRouteImport } from './routes/studio.clients.index'
 import { Route as PortalAccountIndexRouteImport } from './routes/portal.account.index'
 import { Route as StudioSettingsWorkflowRouteImport } from './routes/studio.settings.workflow'
@@ -74,6 +75,7 @@ import { Route as StudioSettingsEmailsIndexRouteImport } from './routes/studio.s
 import { Route as StudioSettingsEmailsEmailTypeRouteImport } from './routes/studio.settings.emails.$emailType'
 import { Route as StudioContractsTemplatesIdRouteImport } from './routes/studio.contracts.templates.$id'
 import { Route as StudioClientsIdSourcingRouteImport } from './routes/studio.clients.$id_.sourcing'
+import { Route as ApiPublicCoupleInvoicesTokenRouteImport } from './routes/api/public/couple-invoices.$token'
 
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
@@ -245,6 +247,11 @@ const PortalAccountRoute = PortalAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => PortalRoute,
 } as any)
+const PayTokenRoute = PayTokenRouteImport.update({
+  id: '/pay/$token',
+  path: '/pay/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StudioClientsIndexRoute = StudioClientsIndexRouteImport.update({
   id: '/clients/',
   path: '/clients/',
@@ -413,12 +420,19 @@ const StudioClientsIdSourcingRoute = StudioClientsIdSourcingRouteImport.update({
   path: '/clients/$id/sourcing',
   getParentRoute: () => StudioRoute,
 } as any)
+const ApiPublicCoupleInvoicesTokenRoute =
+  ApiPublicCoupleInvoicesTokenRouteImport.update({
+    id: '/api/public/couple-invoices/$token',
+    path: '/api/public/couple-invoices/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
   '/studio': typeof StudioRouteWithChildren
+  '/pay/$token': typeof PayTokenRoute
   '/portal/account': typeof PortalAccountRouteWithChildren
   '/portal/activity': typeof PortalActivityRoute
   '/portal/documents': typeof PortalDocumentsRoute
@@ -476,6 +490,7 @@ export interface FileRoutesByFullPath {
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
   '/portal/account/': typeof PortalAccountIndexRoute
   '/studio/clients/': typeof StudioClientsIndexRoute
+  '/api/public/couple-invoices/$token': typeof ApiPublicCoupleInvoicesTokenRoute
   '/studio/clients/$id/sourcing': typeof StudioClientsIdSourcingRoute
   '/studio/contracts/templates/$id': typeof StudioContractsTemplatesIdRoute
   '/studio/settings/emails/$emailType': typeof StudioSettingsEmailsEmailTypeRoute
@@ -484,6 +499,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/pay/$token': typeof PayTokenRoute
   '/portal/activity': typeof PortalActivityRoute
   '/portal/documents': typeof PortalDocumentsRoute
   '/portal/engagement': typeof PortalEngagementRoute
@@ -540,6 +556,7 @@ export interface FileRoutesByTo {
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
   '/portal/account': typeof PortalAccountIndexRoute
   '/studio/clients': typeof StudioClientsIndexRoute
+  '/api/public/couple-invoices/$token': typeof ApiPublicCoupleInvoicesTokenRoute
   '/studio/clients/$id/sourcing': typeof StudioClientsIdSourcingRoute
   '/studio/contracts/templates/$id': typeof StudioContractsTemplatesIdRoute
   '/studio/settings/emails/$emailType': typeof StudioSettingsEmailsEmailTypeRoute
@@ -551,6 +568,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
   '/studio': typeof StudioRouteWithChildren
+  '/pay/$token': typeof PayTokenRoute
   '/portal/account': typeof PortalAccountRouteWithChildren
   '/portal/activity': typeof PortalActivityRoute
   '/portal/documents': typeof PortalDocumentsRoute
@@ -608,6 +626,7 @@ export interface FileRoutesById {
   '/studio/settings/workflow': typeof StudioSettingsWorkflowRoute
   '/portal/account/': typeof PortalAccountIndexRoute
   '/studio/clients/': typeof StudioClientsIndexRoute
+  '/api/public/couple-invoices/$token': typeof ApiPublicCoupleInvoicesTokenRoute
   '/studio/clients/$id_/sourcing': typeof StudioClientsIdSourcingRoute
   '/studio/contracts/templates/$id': typeof StudioContractsTemplatesIdRoute
   '/studio/settings/emails/$emailType': typeof StudioSettingsEmailsEmailTypeRoute
@@ -620,6 +639,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/studio'
+    | '/pay/$token'
     | '/portal/account'
     | '/portal/activity'
     | '/portal/documents'
@@ -677,6 +697,7 @@ export interface FileRouteTypes {
     | '/studio/settings/workflow'
     | '/portal/account/'
     | '/studio/clients/'
+    | '/api/public/couple-invoices/$token'
     | '/studio/clients/$id/sourcing'
     | '/studio/contracts/templates/$id'
     | '/studio/settings/emails/$emailType'
@@ -685,6 +706,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/pay/$token'
     | '/portal/activity'
     | '/portal/documents'
     | '/portal/engagement'
@@ -741,6 +763,7 @@ export interface FileRouteTypes {
     | '/studio/settings/workflow'
     | '/portal/account'
     | '/studio/clients'
+    | '/api/public/couple-invoices/$token'
     | '/studio/clients/$id/sourcing'
     | '/studio/contracts/templates/$id'
     | '/studio/settings/emails/$emailType'
@@ -751,6 +774,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/studio'
+    | '/pay/$token'
     | '/portal/account'
     | '/portal/activity'
     | '/portal/documents'
@@ -808,6 +832,7 @@ export interface FileRouteTypes {
     | '/studio/settings/workflow'
     | '/portal/account/'
     | '/studio/clients/'
+    | '/api/public/couple-invoices/$token'
     | '/studio/clients/$id_/sourcing'
     | '/studio/contracts/templates/$id'
     | '/studio/settings/emails/$emailType'
@@ -819,7 +844,9 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PortalRoute: typeof PortalRouteWithChildren
   StudioRoute: typeof StudioRouteWithChildren
+  PayTokenRoute: typeof PayTokenRoute
   SignContractContractIdRoute: typeof SignContractContractIdRoute
+  ApiPublicCoupleInvoicesTokenRoute: typeof ApiPublicCoupleInvoicesTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1062,6 +1089,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalAccountRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/pay/$token': {
+      id: '/pay/$token'
+      path: '/pay/$token'
+      fullPath: '/pay/$token'
+      preLoaderRoute: typeof PayTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/studio/clients/': {
       id: '/studio/clients/'
       path: '/clients'
@@ -1279,6 +1313,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioClientsIdSourcingRouteImport
       parentRoute: typeof StudioRoute
     }
+    '/api/public/couple-invoices/$token': {
+      id: '/api/public/couple-invoices/$token'
+      path: '/api/public/couple-invoices/$token'
+      fullPath: '/api/public/couple-invoices/$token'
+      preLoaderRoute: typeof ApiPublicCoupleInvoicesTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1487,7 +1528,9 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PortalRoute: PortalRouteWithChildren,
   StudioRoute: StudioRouteWithChildren,
+  PayTokenRoute: PayTokenRoute,
   SignContractContractIdRoute: SignContractContractIdRoute,
+  ApiPublicCoupleInvoicesTokenRoute: ApiPublicCoupleInvoicesTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
