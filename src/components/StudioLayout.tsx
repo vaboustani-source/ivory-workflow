@@ -22,6 +22,7 @@ type NavItem = {
   matchPrefix?: string;
   badgeKey?: "approval" | "tasks" | "sales" | "production" | "messages" | "contracts" | "forms" | "queue" | "inbox";
   badgeStyle?: "count" | "dot";
+  ownerOnly?: boolean;
 };
 
 type NavGroup = { label: string | null; items: NavItem[] };
