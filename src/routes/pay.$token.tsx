@@ -42,8 +42,40 @@ function dollars(cents: number | null | undefined) {
 
 function PayPage() {
   const { token } = Route.useParams();
+  const { paid: paidReturn } = useSearch({ from: "/pay/$token" });
   const [data, setData] = useState<PayData | null>(null);
   const [state, setState] = useState<"loading" | "ok" | "invalid">("loading");
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  async function startCheckout(invoiceId: string) {
+    if (checkoutLoading) return;
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch(`/api/public/create-checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ view_token: token, invoice_id: invoiceId }),
+      });
+      const json = await res.json().catch(() => ({} as any));
+      if (!res.ok || !json.url) {
+        const messages: Record<string, string> = {
+          already_paid: "This invoice is already paid.",
+          cancelled: "This invoice has been cancelled.",
+          pending_change: "Payments are paused while a pending change is finalized.",
+          forbidden: "This invoice doesn't belong to this link.",
+          stripe_not_configured: "Payments aren't set up yet. Please contact your photographer.",
+        };
+        toast.error(messages[json?.error] ?? "Couldn't start checkout. Please try again.");
+        setCheckoutLoading(false);
+        return;
+      }
+      window.location.href = json.url as string;
+    } catch {
+      toast.error("Couldn't start checkout. Please try again.");
+      setCheckoutLoading(false);
+    }
+  }
+
 
   useEffect(() => {
     let cancelled = false;
