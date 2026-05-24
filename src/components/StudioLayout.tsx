@@ -2,7 +2,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   Home, Users, Inbox, KanbanSquare, Workflow, MessageCircle, Calendar,
-  CheckSquare, Image, Receipt, BookOpen, Settings, Bell, Search,
+  CheckSquare, Image, Receipt, BookOpen, Settings, Search,
   LogOut, Menu, X, ChevronDown, Eye, FileText, ClipboardList, ClipboardCheck, DollarSign, Newspaper,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
