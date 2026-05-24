@@ -53,8 +53,7 @@ function PayPage() {
         setData(json);
         setState("ok");
       })
-      .catch(() => { if (!cancled()) setState("invalid"); });
-    function cancled() { return cancelled; }
+      .catch(() => { if (!cancelled) setState("invalid"); });
     return () => { cancelled = true; };
   }, [token]);
 
