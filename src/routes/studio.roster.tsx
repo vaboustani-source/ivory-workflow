@@ -309,6 +309,10 @@ function CrewCell({
       </span>
     );
   }
+  if (!included) {
+    return <span className="text-sm text-muted-foreground">N/A</span>;
+  }
+
   return (
     <div className="relative inline-block">
       <button
