@@ -17,6 +17,7 @@ import { Route as StudioIndexRouteImport } from './routes/studio.index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as StudioTasksRouteImport } from './routes/studio.tasks'
 import { Route as StudioSettingsRouteImport } from './routes/studio.settings'
+import { Route as StudioRosterRouteImport } from './routes/studio.roster'
 import { Route as StudioResourcesRouteImport } from './routes/studio.resources'
 import { Route as StudioQueueRouteImport } from './routes/studio.queue'
 import { Route as StudioMessagesRouteImport } from './routes/studio.messages'
@@ -110,6 +111,11 @@ const StudioTasksRoute = StudioTasksRouteImport.update({
 const StudioSettingsRoute = StudioSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioRosterRoute = StudioRosterRouteImport.update({
+  id: '/roster',
+  path: '/roster',
   getParentRoute: () => StudioRoute,
 } as any)
 const StudioResourcesRoute = StudioResourcesRouteImport.update({
@@ -424,6 +430,7 @@ export interface FileRoutesByFullPath {
   '/studio/messages': typeof StudioMessagesRoute
   '/studio/queue': typeof StudioQueueRouteWithChildren
   '/studio/resources': typeof StudioResourcesRoute
+  '/studio/roster': typeof StudioRosterRoute
   '/studio/settings': typeof StudioSettingsRouteWithChildren
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
@@ -485,6 +492,7 @@ export interface FileRoutesByTo {
   '/studio/messages': typeof StudioMessagesRoute
   '/studio/queue': typeof StudioQueueRouteWithChildren
   '/studio/resources': typeof StudioResourcesRoute
+  '/studio/roster': typeof StudioRosterRoute
   '/studio/settings': typeof StudioSettingsRouteWithChildren
   '/studio/tasks': typeof StudioTasksRoute
   '/portal': typeof PortalIndexRoute
@@ -550,6 +558,7 @@ export interface FileRoutesById {
   '/studio/messages': typeof StudioMessagesRoute
   '/studio/queue': typeof StudioQueueRouteWithChildren
   '/studio/resources': typeof StudioResourcesRoute
+  '/studio/roster': typeof StudioRosterRoute
   '/studio/settings': typeof StudioSettingsRouteWithChildren
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
@@ -616,6 +625,7 @@ export interface FileRouteTypes {
     | '/studio/messages'
     | '/studio/queue'
     | '/studio/resources'
+    | '/studio/roster'
     | '/studio/settings'
     | '/studio/tasks'
     | '/portal/'
@@ -677,6 +687,7 @@ export interface FileRouteTypes {
     | '/studio/messages'
     | '/studio/queue'
     | '/studio/resources'
+    | '/studio/roster'
     | '/studio/settings'
     | '/studio/tasks'
     | '/portal'
@@ -741,6 +752,7 @@ export interface FileRouteTypes {
     | '/studio/messages'
     | '/studio/queue'
     | '/studio/resources'
+    | '/studio/roster'
     | '/studio/settings'
     | '/studio/tasks'
     | '/portal/'
@@ -842,6 +854,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/studio/settings'
       preLoaderRoute: typeof StudioSettingsRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/roster': {
+      id: '/studio/roster'
+      path: '/roster'
+      fullPath: '/studio/roster'
+      preLoaderRoute: typeof StudioRosterRouteImport
       parentRoute: typeof StudioRoute
     }
     '/studio/resources': {
@@ -1384,6 +1403,7 @@ interface StudioRouteChildren {
   StudioMessagesRoute: typeof StudioMessagesRoute
   StudioQueueRoute: typeof StudioQueueRouteWithChildren
   StudioResourcesRoute: typeof StudioResourcesRoute
+  StudioRosterRoute: typeof StudioRosterRoute
   StudioSettingsRoute: typeof StudioSettingsRouteWithChildren
   StudioTasksRoute: typeof StudioTasksRoute
   StudioIndexRoute: typeof StudioIndexRoute
@@ -1406,6 +1426,7 @@ const StudioRouteChildren: StudioRouteChildren = {
   StudioMessagesRoute: StudioMessagesRoute,
   StudioQueueRoute: StudioQueueRouteWithChildren,
   StudioResourcesRoute: StudioResourcesRoute,
+  StudioRosterRoute: StudioRosterRoute,
   StudioSettingsRoute: StudioSettingsRouteWithChildren,
   StudioTasksRoute: StudioTasksRoute,
   StudioIndexRoute: StudioIndexRoute,
