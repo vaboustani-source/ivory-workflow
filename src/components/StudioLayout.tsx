@@ -10,6 +10,7 @@ import { useViewAs } from "@/lib/view-as";
 import { firstName } from "@/lib/dates";
 import { supabase } from "@/integrations/supabase/client";
 import { ViewAsModal } from "@/components/ViewAsModal";
+import { NotificationsBell } from "@/components/NotificationsBell";
 import logoFull from "@/assets/logo-full.png";
 import logoMark from "@/assets/logo-mark.png";
 
