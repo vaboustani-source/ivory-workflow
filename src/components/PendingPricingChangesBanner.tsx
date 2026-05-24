@@ -5,24 +5,35 @@ import { relativeTime } from "@/lib/dates";
 
 interface PendingChange {
   id: string;
+  proposed_by: string;
   proposed_by_role: string;
   change_type: string;
   payload: { resolved_description?: string; resolved_line_total_cents?: number };
   created_at: string;
-  proposer?: { full_name: string | null } | null;
 }
 
 export function PendingPricingChangesBanner({ clientId }: { clientId: string }) {
   const [items, setItems] = useState<PendingChange[]>([]);
+  const [proposers, setProposers] = useState<Record<string, string>>({});
 
   const load = async () => {
     const { data } = await supabase
       .from("pending_changes")
-      .select("id,proposed_by_role,change_type,payload,created_at,proposer:profiles!pending_changes_proposed_by_fkey(full_name)")
+      .select("id,proposed_by,proposed_by_role,change_type,payload,created_at")
       .eq("client_id", clientId)
       .eq("status", "pending")
       .order("created_at", { ascending: false });
-    setItems((data ?? []) as unknown as PendingChange[]);
+    const rows = (data ?? []) as unknown as PendingChange[];
+    setItems(rows);
+    const ids = Array.from(new Set(rows.map((r) => r.proposed_by)));
+    if (ids.length > 0) {
+      const { data: profs } = await supabase.from("profiles").select("id,full_name").in("id", ids);
+      const map: Record<string, string> = {};
+      (profs ?? []).forEach((p: any) => { map[p.id] = p.full_name ?? "manager"; });
+      setProposers(map);
+    } else {
+      setProposers({});
+    }
   };
 
   useEffect(() => {
