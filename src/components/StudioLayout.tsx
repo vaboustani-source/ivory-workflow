@@ -44,6 +44,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Clients",
     items: [
       { label: "All clients", to: "/studio/clients", icon: Users },
+      { label: "Roster", to: "/studio/roster", icon: ClipboardList },
       { label: "Pipeline", to: "/studio/pipeline/sales", icon: KanbanSquare, matchPrefix: "/studio/pipeline", badgeKey: "sales" },
       { label: "Approvals", to: "/studio/approval-queue", icon: ClipboardCheck, badgeKey: "approval" },
     ],
