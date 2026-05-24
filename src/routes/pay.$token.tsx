@@ -31,7 +31,6 @@ type PayData = {
 };
 
 const PAID_STATES = new Set(["paid", "refunded"]);
-const DEAD_STATES = new Set(["cancelled", "kill_fee", "refunded"]);
 
 function dollars(cents: number | null | undefined) {
   const n = ((cents ?? 0) / 100);
