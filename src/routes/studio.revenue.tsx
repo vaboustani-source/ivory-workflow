@@ -61,7 +61,8 @@ function RevenuePage() {
   function attribute(r: InvRow): { year: number; month: number } | null {
     let date: string | null = null;
     if (basis === "wedding") {
-      date = r.wedding_date;
+      date = r.wedding_date ?? null;
+
     } else {
       // payment-date / cash basis: paid -> paid_at, otherwise due_date
       const isPaid = PAID_STATUSES.has(r.status);
