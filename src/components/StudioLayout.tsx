@@ -74,7 +74,7 @@ const NAV_GROUPS: NavGroup[] = [
 ];
 
 // Reference unused icons so imports stay valid for future PRs.
-void [Home, MessageCircle, Workflow, CheckSquare, ClipboardList];
+void [Home, MessageCircle, Workflow, CheckSquare];
 
 export function StudioLayout({ children }: { children: ReactNode }) {
   const { profile, signOut } = useAuth();
