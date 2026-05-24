@@ -222,11 +222,12 @@ function PayPage() {
                     </p>
                     {isNext && (
                       <button
-                        onClick={() => toast.info("Payment coming soon", { description: "Card payments will be enabled shortly." })}
-                        className="mt-2 px-5 py-2 rounded-md text-sm font-medium"
+                        onClick={() => startCheckout(inv.id)}
+                        disabled={checkoutLoading}
+                        className="mt-2 px-5 py-2 rounded-md text-sm font-medium disabled:opacity-60"
                         style={{ background: "var(--sbv-green)", color: "var(--sbv-ivory)" }}
                       >
-                        Pay {dollars(inv.total_cents)}
+                        {checkoutLoading ? "Opening checkout…" : `Pay ${dollars(inv.total_cents)}`}
                       </button>
                     )}
                     {paid && (
