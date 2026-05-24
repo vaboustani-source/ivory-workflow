@@ -339,9 +339,7 @@ export function StudioLayout({ children }: { children: ReactNode }) {
             </div>
           )}
 
-          <button className="text-primary/70 hover:text-primary" aria-label="Notifications">
-            <Bell size={18} />
-          </button>
+          <NotificationsBell userId={profile?.id ?? null} />
 
           <div className="relative">
             <button
