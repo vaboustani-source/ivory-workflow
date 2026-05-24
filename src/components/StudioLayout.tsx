@@ -2,7 +2,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   Home, Users, Inbox, KanbanSquare, Workflow, MessageCircle, Calendar,
-  CheckSquare, Image, Receipt, BookOpen, Settings, Bell, Search,
+  CheckSquare, Image, Receipt, BookOpen, Settings, Search,
   LogOut, Menu, X, ChevronDown, Eye, FileText, ClipboardList, ClipboardCheck, DollarSign, Newspaper,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -10,6 +10,7 @@ import { useViewAs } from "@/lib/view-as";
 import { firstName } from "@/lib/dates";
 import { supabase } from "@/integrations/supabase/client";
 import { ViewAsModal } from "@/components/ViewAsModal";
+import { NotificationsBell } from "@/components/NotificationsBell";
 import logoFull from "@/assets/logo-full.png";
 import logoMark from "@/assets/logo-mark.png";
 
@@ -339,9 +340,7 @@ export function StudioLayout({ children }: { children: ReactNode }) {
             </div>
           )}
 
-          <button className="text-primary/70 hover:text-primary" aria-label="Notifications">
-            <Bell size={18} />
-          </button>
+          <NotificationsBell userId={profile?.id ?? null} />
 
           <div className="relative">
             <button

@@ -12,6 +12,7 @@ import {
   type FinancialSnapshot,
   type ContractorBreakdownRow,
 } from "@/lib/financials";
+import { PendingPricingChangesBanner } from "@/components/PendingPricingChangesBanner";
 
 interface Expense { id: string; description: string; category: string; amount: number; expense_date: string | null }
 
@@ -80,6 +81,7 @@ export function ClientFinancialsTab({ clientId }: { clientId: string }) {
 
   return (
     <div className="max-w-[640px] space-y-5">
+      <PendingPricingChangesBanner clientId={clientId} />
       <div>
         <h2 className="font-serif italic text-[28px] text-primary">Financial summary</h2>
         <p className="text-sm text-muted-foreground mt-1">Live calculation based on contractor fees and recorded expenses.</p>

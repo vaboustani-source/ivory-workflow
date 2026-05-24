@@ -232,16 +232,23 @@ export function QuoteTab({ clientId }: { clientId: string }) {
       p_display_order: displayOrder,
     });
     if (error) { toast.error(error.message); return null; }
-    const newId = data as unknown as string;
-    await logActivity({
-      client_id: clientId,
-      action_type: "quote.item_added",
-      description: parentName
-        ? `Added "${customDesc ?? ""}" (included with ${parentName})`
-        : `Added "${customDesc ?? catalog.find((c) => c.id === serviceItemId)?.name ?? "custom line"}"`,
-      target_type: "quote_item",
-      target_id: newId,
-    });
+    const payload = data as unknown as { quote_item_id: string | null; proposed?: boolean; pending_change_id?: string; message?: string };
+    if (payload?.proposed) {
+      toast.success(payload.message ?? "Change proposed — awaiting owner approval.");
+      return null;
+    }
+    const newId = payload?.quote_item_id ?? null;
+    if (newId) {
+      await logActivity({
+        client_id: clientId,
+        action_type: "quote.item_added",
+        description: parentName
+          ? `Added "${customDesc ?? ""}" (included with ${parentName})`
+          : `Added "${customDesc ?? catalog.find((c) => c.id === serviceItemId)?.name ?? "custom line"}"`,
+        target_type: "quote_item",
+        target_id: newId,
+      });
+    }
     return newId;
   };
 
