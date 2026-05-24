@@ -278,7 +278,7 @@ export function StudioLayout({ children }: { children: ReactNode }) {
                 <div className="mx-3 my-2 border-t border-sidebar-border/40" />
               )}
               <div className="space-y-0.5">
-                {group.items.map((item) => {
+                {group.items.filter((item) => !item.ownerOnly || (effectiveRole === "owner")).map((item) => {
                   const Icon = item.icon;
                   const active = isActive(item);
                   const badgeCount = item.badgeKey ? badges[item.badgeKey] : 0;
