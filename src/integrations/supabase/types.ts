@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      _b4_test_results: {
+        Row: {
+          created_at: string
+          id: number
+          result: Json
+          scenario: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          result: Json
+          scenario: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          result?: Json
+          scenario?: string
+        }
+        Relationships: []
+      }
       activity_log: {
         Row: {
           action_type: string | null
@@ -3716,6 +3737,25 @@ export type Database = {
           p_quote_id: string
           p_service_item_id: string
         }
+        Returns: Json
+      }
+      _b4_test_add_as: {
+        Args: {
+          p_actor: string
+          p_custom_description: string
+          p_custom_price_cents: number
+          p_quantity: number
+          p_quote_id: string
+          p_service_item_id: string
+        }
+        Returns: Json
+      }
+      _b4_test_approve_as: {
+        Args: { p_actor: string; p_force?: boolean; p_pending_id: string }
+        Returns: Json
+      }
+      _b4_test_reject_as: {
+        Args: { p_actor: string; p_note: string; p_pending_id: string }
         Returns: Json
       }
       _branch_passes: {
