@@ -12,6 +12,7 @@ import {
   type FinancialSnapshot,
   type ContractorBreakdownRow,
 } from "@/lib/financials";
+import { PendingPricingChangesBanner } from "@/components/PendingPricingChangesBanner";
 
 interface Expense { id: string; description: string; category: string; amount: number; expense_date: string | null }
 
