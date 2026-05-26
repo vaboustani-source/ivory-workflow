@@ -112,7 +112,7 @@ export const Route = createFileRoute("/api/public/create-checkout")({
 
         // 6. Create the Checkout Session
         const stripe = new Stripe(stripeKey, {
-          apiVersion: "2024-06-20",
+          apiVersion: "2026-04-22.dahlia",
           httpClient: Stripe.createFetchHttpClient(),
         });
         let session: Stripe.Checkout.Session;
