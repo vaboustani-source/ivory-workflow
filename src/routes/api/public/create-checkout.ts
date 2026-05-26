@@ -111,7 +111,10 @@ export const Route = createFileRoute("/api/public/create-checkout")({
         const cancelUrl = `${origin}/pay/${encodeURIComponent(token)}`;
 
         // 6. Create the Checkout Session
-        const stripe = new Stripe(stripeKey);
+        const stripe = new Stripe(stripeKey, {
+          apiVersion: "2026-04-22.dahlia",
+          httpClient: Stripe.createFetchHttpClient(),
+        });
         let session: Stripe.Checkout.Session;
         try {
           session = await stripe.checkout.sessions.create({
