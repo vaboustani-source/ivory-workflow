@@ -9,8 +9,14 @@ export const Route = createFileRoute("/api/public/create-checkout")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        console.log("[create-checkout] env presence:", {
+          SB_URL: !!process.env.SB_URL,
+          SERVICE_ROLE_KEY: !!process.env.SERVICE_ROLE_KEY,
+          STRIPE_SECRET_KEY: !!process.env.STRIPE_SECRET_KEY,
+        });
         const stripeKey = process.env.STRIPE_SECRET_KEY;
         if (!stripeKey) {
+          console.error("[create-checkout] STRIPE_SECRET_KEY missing");
           return Response.json({ error: "stripe_not_configured" }, { status: 500 });
         }
 
