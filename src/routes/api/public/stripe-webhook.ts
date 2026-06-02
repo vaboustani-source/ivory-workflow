@@ -236,17 +236,21 @@ async function handleDisputeCreated(event: Stripe.Event) {
     status: "disputed",
     stripe_event_id: event.id,
     stripe_event_type: event.type,
-    raw_event: event as unknown as Record<string, unknown>,
-  });
+    raw_event: event as never,
+  } as never);
   if (error) {
     console.error("[stripe-webhook] dispute.created insert failed", { message: error.message });
     return new Response(`db_error: ${error.message}`, { status: 500 });
   }
-  await supabaseAdmin.rpc("_notify_all_owners" as never, {
-    p_kind: "payment_disputed",
-    p_title: "Chargeback opened — urgent",
-    p_body: "A customer has disputed a charge in Stripe. Respond from the Stripe dashboard ASAP.",
-    p_link_to: null,
-  } as never).catch(() => {});
+  try {
+    await supabaseAdmin.rpc("_notify_all_owners" as never, {
+      p_kind: "payment_disputed",
+      p_title: "Chargeback opened — urgent",
+      p_body: "A customer has disputed a charge in Stripe. Respond from the Stripe dashboard ASAP.",
+      p_link_to: null,
+    } as never);
+  } catch (e: any) {
+    console.warn("[stripe-webhook] notify failed", { message: e?.message });
+  }
   return new Response("ok", { status: 200 });
 }
