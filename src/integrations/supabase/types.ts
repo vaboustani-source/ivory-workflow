@@ -1234,6 +1234,74 @@ export type Database = {
           },
         ]
       }
+      email_sends: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          error_code: string | null
+          error_message: string | null
+          from_address: string
+          id: string
+          invoice_id: string | null
+          metadata: Json | null
+          postmark_message_id: string | null
+          raw_response: Json | null
+          reply_to: string | null
+          sent_at: string
+          status: string
+          subject: string
+          tag: string | null
+          template_key: string | null
+          to_address: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          from_address: string
+          id?: string
+          invoice_id?: string | null
+          metadata?: Json | null
+          postmark_message_id?: string | null
+          raw_response?: Json | null
+          reply_to?: string | null
+          sent_at?: string
+          status: string
+          subject: string
+          tag?: string | null
+          template_key?: string | null
+          to_address: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          from_address?: string
+          id?: string
+          invoice_id?: string | null
+          metadata?: Json | null
+          postmark_message_id?: string | null
+          raw_response?: Json | null
+          reply_to?: string | null
+          sent_at?: string
+          status?: string
+          subject?: string
+          tag?: string | null
+          template_key?: string | null
+          to_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_sends_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_template_copy: {
         Row: {
           copy: Json
