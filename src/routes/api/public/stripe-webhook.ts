@@ -140,15 +140,18 @@ async function handleCheckoutCompleted(stripe: Stripe, event: Stripe.Event) {
     }
   }
 
-  const { data, error } = await supabaseAdmin.rpc("process_stripe_payment_succeeded", {
-    p_event_id: event.id,
-    p_event_type: event.type,
-    p_invoice_id: invoiceId,
-    p_amount_total: session.amount_total ?? 0,
-    p_stripe_payment_intent_id: paymentIntentId,
-    p_payment_method_last4: last4,
-    p_raw_event: event as unknown as Record<string, unknown>,
-  });
+  const { data, error } = await supabaseAdmin.rpc(
+    "process_stripe_payment_succeeded",
+    {
+      p_event_id: event.id,
+      p_event_type: event.type,
+      p_invoice_id: invoiceId,
+      p_amount_total: session.amount_total ?? 0,
+      p_stripe_payment_intent_id: paymentIntentId,
+      p_payment_method_last4: last4,
+      p_raw_event: event,
+    } as never,
+  );
 
   if (error) {
     console.error("[stripe-webhook] process_stripe_payment_succeeded FAILED", {
