@@ -80,22 +80,23 @@ export const Route = createFileRoute("/api/admin/send-test-email")({
             ? "test_mode_blocked"
             : "failed";
 
+        const insertPayload: TablesInsert<"email_sends"> = {
+          to_address: to,
+          from_address: POSTMARK_DEFAULTS.from,
+          reply_to: POSTMARK_DEFAULTS.replyTo,
+          subject,
+          template_key: "diagnostic_test",
+          postmark_message_id: result.messageId ?? null,
+          status,
+          error_message: result.error ?? null,
+          error_code: result.errorCode ?? null,
+          tag: "diagnostic-test",
+          metadata: { triggered_by: userId } as Json,
+          raw_response: (result.rawResponse ?? null) as Json | null,
+        };
         const { data: logRow, error: logErr } = await supabaseAdmin
           .from("email_sends")
-          .insert({
-            to_address: to,
-            from_address: POSTMARK_DEFAULTS.from,
-            reply_to: POSTMARK_DEFAULTS.replyTo,
-            subject,
-            template_key: "diagnostic_test",
-            postmark_message_id: result.messageId ?? null,
-            status,
-            error_message: result.error ?? null,
-            error_code: result.errorCode ?? null,
-            tag: "diagnostic-test",
-            metadata: { triggered_by: userId } as Record<string, unknown>,
-            raw_response: (result.rawResponse ?? null) as Record<string, unknown> | null,
-          } as never)
+          .insert(insertPayload)
           .select("id")
           .single();
         if (logErr) {
