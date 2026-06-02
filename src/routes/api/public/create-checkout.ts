@@ -26,6 +26,11 @@ export const Route = createFileRoute("/api/public/create-checkout")({
         } catch {
           return Response.json({ error: "invalid_body" }, { status: 400 });
         }
+        console.log("[create-checkout] body:", {
+          has_view_token: !!body.view_token,
+          view_token_len: body.view_token?.length,
+          invoice_id: body.invoice_id,
+        });
 
         const token = body.view_token;
         const invoiceId = body.invoice_id;
@@ -35,19 +40,30 @@ export const Route = createFileRoute("/api/public/create-checkout")({
           token.length < 16 || token.length > 256 ||
           !/^[a-zA-Z0-9_-]+$/.test(token)
         ) {
+          console.warn("[create-checkout] reject invalid_token at validation");
           return Response.json({ error: "invalid_token" }, { status: 404 });
         }
         if (!invoiceId || typeof invoiceId !== "string" ||
             !/^[0-9a-f-]{36}$/i.test(invoiceId)) {
+          console.warn("[create-checkout] reject invalid_invoice_id");
           return Response.json({ error: "invalid_invoice_id" }, { status: 400 });
         }
 
         // 1. Resolve token → client_id (server-side, never trust client)
-        const { data: recipient } = await supabaseAdmin
-          .from("invoice_recipients")
-          .select("invoice_id")
-          .eq("view_token", token)
-          .maybeSingle();
+        let recipient: { invoice_id: string } | null = null;
+        try {
+          const res = await supabaseAdmin
+            .from("invoice_recipients")
+            .select("invoice_id")
+            .eq("view_token", token)
+            .maybeSingle();
+          console.log("[create-checkout] step1 recipient lookup:", { error: res.error?.message, found: !!res.data });
+          recipient = res.data;
+          if (res.error) throw res.error;
+        } catch (e: any) {
+          console.error("[create-checkout] step1 EXCEPTION", { name: e?.name, message: e?.message, code: e?.code, stack: e?.stack });
+          return Response.json({ error: "step1_failed", detail: e?.message }, { status: 500 });
+        }
         if (!recipient) {
           return Response.json({ error: "invalid_token" }, { status: 404 });
         }
