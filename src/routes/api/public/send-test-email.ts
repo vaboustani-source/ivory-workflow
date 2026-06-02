@@ -10,7 +10,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sendEmail, POSTMARK_DEFAULTS } from "@/integrations/postmark/client.server";
 import type { Database, Json, TablesInsert } from "@/integrations/supabase/types";
 
-export const Route = createFileRoute("/api/admin/send-test-email")({
+export const Route = createFileRoute("/api/public/send-test-email")({
   server: {
     handlers: {
       POST: async ({ request }) => {

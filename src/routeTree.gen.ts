@@ -72,8 +72,8 @@ import { Route as PortalAccountSecurityRouteImport } from './routes/portal.accou
 import { Route as PortalAccountPartnerRouteImport } from './routes/portal.account.partner'
 import { Route as PortalAccountNotificationsRouteImport } from './routes/portal.account.notifications'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
+import { Route as ApiPublicSendTestEmailRouteImport } from './routes/api/public/send-test-email'
 import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
-import { Route as ApiAdminSendTestEmailRouteImport } from './routes/api/admin/send-test-email'
 import { Route as StudioSettingsEmailsIndexRouteImport } from './routes/studio.settings.emails.index'
 import { Route as StudioSettingsEmailsEmailTypeRouteImport } from './routes/studio.settings.emails.$emailType'
 import { Route as StudioContractsTemplatesIdRouteImport } from './routes/studio.contracts.templates.$id'
@@ -405,14 +405,14 @@ const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   path: '/api/public/stripe-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSendTestEmailRoute = ApiPublicSendTestEmailRouteImport.update({
+  id: '/api/public/send-test-email',
+  path: '/api/public/send-test-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCreateCheckoutRoute = ApiPublicCreateCheckoutRouteImport.update({
   id: '/api/public/create-checkout',
   path: '/api/public/create-checkout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAdminSendTestEmailRoute = ApiAdminSendTestEmailRouteImport.update({
-  id: '/api/admin/send-test-email',
-  path: '/api/admin/send-test-email',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StudioSettingsEmailsIndexRoute =
@@ -481,8 +481,8 @@ export interface FileRoutesByFullPath {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
-  '/api/admin/send-test-email': typeof ApiAdminSendTestEmailRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
+  '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
@@ -550,8 +550,8 @@ export interface FileRoutesByTo {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal': typeof PortalIndexRoute
   '/studio': typeof StudioIndexRoute
-  '/api/admin/send-test-email': typeof ApiAdminSendTestEmailRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
+  '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
@@ -623,8 +623,8 @@ export interface FileRoutesById {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
-  '/api/admin/send-test-email': typeof ApiAdminSendTestEmailRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
+  '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
@@ -697,8 +697,8 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal/'
     | '/studio/'
-    | '/api/admin/send-test-email'
     | '/api/public/create-checkout'
+    | '/api/public/send-test-email'
     | '/api/public/stripe-webhook'
     | '/portal/account/notifications'
     | '/portal/account/partner'
@@ -766,8 +766,8 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal'
     | '/studio'
-    | '/api/admin/send-test-email'
     | '/api/public/create-checkout'
+    | '/api/public/send-test-email'
     | '/api/public/stripe-webhook'
     | '/portal/account/notifications'
     | '/portal/account/partner'
@@ -838,8 +838,8 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal/'
     | '/studio/'
-    | '/api/admin/send-test-email'
     | '/api/public/create-checkout'
+    | '/api/public/send-test-email'
     | '/api/public/stripe-webhook'
     | '/portal/account/notifications'
     | '/portal/account/partner'
@@ -881,8 +881,8 @@ export interface RootRouteChildren {
   PortalRoute: typeof PortalRouteWithChildren
   StudioRoute: typeof StudioRouteWithChildren
   PayTokenRoute: typeof PayTokenRoute
-  ApiAdminSendTestEmailRoute: typeof ApiAdminSendTestEmailRoute
   ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
+  ApiPublicSendTestEmailRoute: typeof ApiPublicSendTestEmailRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   SignContractContractIdRoute: typeof SignContractContractIdRoute
   ApiPublicCoupleInvoicesTokenRoute: typeof ApiPublicCoupleInvoicesTokenRoute
@@ -1331,18 +1331,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/send-test-email': {
+      id: '/api/public/send-test-email'
+      path: '/api/public/send-test-email'
+      fullPath: '/api/public/send-test-email'
+      preLoaderRoute: typeof ApiPublicSendTestEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/create-checkout': {
       id: '/api/public/create-checkout'
       path: '/api/public/create-checkout'
       fullPath: '/api/public/create-checkout'
       preLoaderRoute: typeof ApiPublicCreateCheckoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/admin/send-test-email': {
-      id: '/api/admin/send-test-email'
-      path: '/api/admin/send-test-email'
-      fullPath: '/api/admin/send-test-email'
-      preLoaderRoute: typeof ApiAdminSendTestEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/studio/settings/emails/': {
@@ -1589,8 +1589,8 @@ const rootRouteChildren: RootRouteChildren = {
   PortalRoute: PortalRouteWithChildren,
   StudioRoute: StudioRouteWithChildren,
   PayTokenRoute: PayTokenRoute,
-  ApiAdminSendTestEmailRoute: ApiAdminSendTestEmailRoute,
   ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
+  ApiPublicSendTestEmailRoute: ApiPublicSendTestEmailRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   SignContractContractIdRoute: SignContractContractIdRoute,
   ApiPublicCoupleInvoicesTokenRoute: ApiPublicCoupleInvoicesTokenRoute,
@@ -1598,3 +1598,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
