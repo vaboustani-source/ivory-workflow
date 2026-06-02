@@ -93,9 +93,9 @@ export const Route = createFileRoute("/api/admin/send-test-email")({
             error_message: result.error ?? null,
             error_code: result.errorCode ?? null,
             tag: "diagnostic-test",
-            metadata: { triggered_by: userId },
-            raw_response: (result.rawResponse as object | undefined) ?? null,
-          })
+            metadata: { triggered_by: userId } as Record<string, unknown>,
+            raw_response: (result.rawResponse ?? null) as Record<string, unknown> | null,
+          } as never)
           .select("id")
           .single();
         if (logErr) {
