@@ -170,9 +170,18 @@ export const Route = createFileRoute("/api/public/create-checkout")({
             success_url: successUrl,
             cancel_url: cancelUrl,
           });
-        } catch (err) {
-          console.error("Stripe checkout creation failed:", err);
-          return Response.json({ error: "stripe_error" }, { status: 502 });
+        } catch (err: any) {
+          console.error("[create-checkout] STRIPE ERROR FULL", {
+            name: err?.name,
+            message: err?.message,
+            type: err?.type,
+            code: err?.code,
+            statusCode: err?.statusCode,
+            requestId: err?.requestId,
+            raw: err?.raw,
+            stack: err?.stack,
+          });
+          return Response.json({ error: "stripe_error", detail: err?.message }, { status: 502 });
         }
 
         if (!session.url) {
