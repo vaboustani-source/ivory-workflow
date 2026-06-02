@@ -3884,6 +3884,18 @@ export type Database = {
         Returns: undefined
       }
       preview_publish_impact: { Args: { _draft_id: string }; Returns: Json }
+      process_stripe_payment_succeeded: {
+        Args: {
+          p_amount_total: number
+          p_event_id: string
+          p_event_type: string
+          p_invoice_id: string
+          p_payment_method_last4: string
+          p_raw_event: Json
+          p_stripe_payment_intent_id: string
+        }
+        Returns: Json
+      }
       publish_draft: {
         Args: { _draft_id: string; _migrate_couples?: boolean }
         Returns: Json
@@ -3993,7 +4005,12 @@ export type Database = {
         | "date_hold_deposit"
         | "kill_fee"
       milestone_status: "upcoming" | "in_progress" | "complete" | "skipped"
-      payment_attempt_status: "succeeded" | "failed" | "refunded" | "disputed"
+      payment_attempt_status:
+        | "succeeded"
+        | "failed"
+        | "refunded"
+        | "disputed"
+        | "mismatch"
       pending_change_status: "pending" | "approved" | "rejected" | "cancelled"
       pending_change_type:
         | "post_booking_add"
@@ -4301,7 +4318,13 @@ export const Constants = {
         "kill_fee",
       ],
       milestone_status: ["upcoming", "in_progress", "complete", "skipped"],
-      payment_attempt_status: ["succeeded", "failed", "refunded", "disputed"],
+      payment_attempt_status: [
+        "succeeded",
+        "failed",
+        "refunded",
+        "disputed",
+        "mismatch",
+      ],
       pending_change_status: ["pending", "approved", "rejected", "cancelled"],
       pending_change_type: [
         "post_booking_add",
