@@ -201,19 +201,23 @@ async function handleChargeRefunded(event: Stripe.Event) {
     status: "refunded",
     stripe_event_id: event.id,
     stripe_event_type: event.type,
-    raw_event: event as unknown as Record<string, unknown>,
-  });
+    raw_event: event as never,
+  } as never);
   if (error) {
     console.error("[stripe-webhook] charge.refunded insert failed", { message: error.message });
     return new Response(`db_error: ${error.message}`, { status: 500 });
   }
   // Notify owners — refund needs human review
-  await supabaseAdmin.rpc("_notify_all_owners" as never, {
-    p_kind: "payment_refunded",
-    p_title: "Refund issued in Stripe",
-    p_body: "A refund was recorded in Stripe. Invoice was NOT auto-flipped — please review.",
-    p_link_to: null,
-  } as never).catch(() => {});
+  try {
+    await supabaseAdmin.rpc("_notify_all_owners" as never, {
+      p_kind: "payment_refunded",
+      p_title: "Refund issued in Stripe",
+      p_body: "A refund was recorded in Stripe. Invoice was NOT auto-flipped — please review.",
+      p_link_to: null,
+    } as never);
+  } catch (e: any) {
+    console.warn("[stripe-webhook] notify failed", { message: e?.message });
+  }
   return new Response("ok", { status: 200 });
 }
 
