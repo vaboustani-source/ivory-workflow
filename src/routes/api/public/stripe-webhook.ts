@@ -178,8 +178,8 @@ async function handlePaymentFailed(event: Stripe.Event) {
     status: "failed",
     stripe_event_id: event.id,
     stripe_event_type: event.type,
-    raw_event: event as unknown as Record<string, unknown>,
-  });
+    raw_event: event as never,
+  } as never);
   if (error) {
     console.error("[stripe-webhook] payment_failed insert failed", { message: error.message });
     return new Response(`db_error: ${error.message}`, { status: 500 });
