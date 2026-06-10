@@ -71,8 +71,10 @@ import { Route as SignContractContractIdRouteImport } from './routes/sign.contra
 import { Route as PortalAccountSecurityRouteImport } from './routes/portal.account.security'
 import { Route as PortalAccountPartnerRouteImport } from './routes/portal.account.partner'
 import { Route as PortalAccountNotificationsRouteImport } from './routes/portal.account.notifications'
+import { Route as ApiPublicZoomOauthCallbackRouteImport } from './routes/api/public/zoom-oauth-callback'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as ApiPublicSendTestEmailRouteImport } from './routes/api/public/send-test-email'
+import { Route as ApiPublicGoogleOauthCallbackRouteImport } from './routes/api/public/google-oauth-callback'
 import { Route as ApiPublicEnvCheckRouteImport } from './routes/api/public/env-check'
 import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
 import { Route as StudioSettingsEmailsIndexRouteImport } from './routes/studio.settings.emails.index'
@@ -401,6 +403,12 @@ const PortalAccountNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => PortalAccountRoute,
   } as any)
+const ApiPublicZoomOauthCallbackRoute =
+  ApiPublicZoomOauthCallbackRouteImport.update({
+    id: '/api/public/zoom-oauth-callback',
+    path: '/api/public/zoom-oauth-callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   id: '/api/public/stripe-webhook',
   path: '/api/public/stripe-webhook',
@@ -411,6 +419,12 @@ const ApiPublicSendTestEmailRoute = ApiPublicSendTestEmailRouteImport.update({
   path: '/api/public/send-test-email',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicGoogleOauthCallbackRoute =
+  ApiPublicGoogleOauthCallbackRouteImport.update({
+    id: '/api/public/google-oauth-callback',
+    path: '/api/public/google-oauth-callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicEnvCheckRoute = ApiPublicEnvCheckRouteImport.update({
   id: '/api/public/env-check',
   path: '/api/public/env-check',
@@ -489,8 +503,10 @@ export interface FileRoutesByFullPath {
   '/studio/': typeof StudioIndexRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/env-check': typeof ApiPublicEnvCheckRoute
+  '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/api/public/zoom-oauth-callback': typeof ApiPublicZoomOauthCallbackRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -559,8 +575,10 @@ export interface FileRoutesByTo {
   '/studio': typeof StudioIndexRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/env-check': typeof ApiPublicEnvCheckRoute
+  '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/api/public/zoom-oauth-callback': typeof ApiPublicZoomOauthCallbackRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -633,8 +651,10 @@ export interface FileRoutesById {
   '/studio/': typeof StudioIndexRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/env-check': typeof ApiPublicEnvCheckRoute
+  '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/api/public/zoom-oauth-callback': typeof ApiPublicZoomOauthCallbackRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -708,8 +728,10 @@ export interface FileRouteTypes {
     | '/studio/'
     | '/api/public/create-checkout'
     | '/api/public/env-check'
+    | '/api/public/google-oauth-callback'
     | '/api/public/send-test-email'
     | '/api/public/stripe-webhook'
+    | '/api/public/zoom-oauth-callback'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -778,8 +800,10 @@ export interface FileRouteTypes {
     | '/studio'
     | '/api/public/create-checkout'
     | '/api/public/env-check'
+    | '/api/public/google-oauth-callback'
     | '/api/public/send-test-email'
     | '/api/public/stripe-webhook'
+    | '/api/public/zoom-oauth-callback'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -851,8 +875,10 @@ export interface FileRouteTypes {
     | '/studio/'
     | '/api/public/create-checkout'
     | '/api/public/env-check'
+    | '/api/public/google-oauth-callback'
     | '/api/public/send-test-email'
     | '/api/public/stripe-webhook'
+    | '/api/public/zoom-oauth-callback'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -895,8 +921,10 @@ export interface RootRouteChildren {
   PayTokenRoute: typeof PayTokenRoute
   ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
   ApiPublicEnvCheckRoute: typeof ApiPublicEnvCheckRoute
+  ApiPublicGoogleOauthCallbackRoute: typeof ApiPublicGoogleOauthCallbackRoute
   ApiPublicSendTestEmailRoute: typeof ApiPublicSendTestEmailRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
+  ApiPublicZoomOauthCallbackRoute: typeof ApiPublicZoomOauthCallbackRoute
   SignContractContractIdRoute: typeof SignContractContractIdRoute
   ApiPublicCoupleInvoicesTokenRoute: typeof ApiPublicCoupleInvoicesTokenRoute
 }
@@ -1337,6 +1365,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalAccountNotificationsRouteImport
       parentRoute: typeof PortalAccountRoute
     }
+    '/api/public/zoom-oauth-callback': {
+      id: '/api/public/zoom-oauth-callback'
+      path: '/api/public/zoom-oauth-callback'
+      fullPath: '/api/public/zoom-oauth-callback'
+      preLoaderRoute: typeof ApiPublicZoomOauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/stripe-webhook': {
       id: '/api/public/stripe-webhook'
       path: '/api/public/stripe-webhook'
@@ -1349,6 +1384,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/send-test-email'
       fullPath: '/api/public/send-test-email'
       preLoaderRoute: typeof ApiPublicSendTestEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/google-oauth-callback': {
+      id: '/api/public/google-oauth-callback'
+      path: '/api/public/google-oauth-callback'
+      fullPath: '/api/public/google-oauth-callback'
+      preLoaderRoute: typeof ApiPublicGoogleOauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/env-check': {
@@ -1611,20 +1653,13 @@ const rootRouteChildren: RootRouteChildren = {
   PayTokenRoute: PayTokenRoute,
   ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
   ApiPublicEnvCheckRoute: ApiPublicEnvCheckRoute,
+  ApiPublicGoogleOauthCallbackRoute: ApiPublicGoogleOauthCallbackRoute,
   ApiPublicSendTestEmailRoute: ApiPublicSendTestEmailRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
+  ApiPublicZoomOauthCallbackRoute: ApiPublicZoomOauthCallbackRoute,
   SignContractContractIdRoute: SignContractContractIdRoute,
   ApiPublicCoupleInvoicesTokenRoute: ApiPublicCoupleInvoicesTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

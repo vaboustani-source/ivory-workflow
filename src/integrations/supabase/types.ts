@@ -297,6 +297,7 @@ export type Database = {
       calendar_connections: {
         Row: {
           access_token: string | null
+          account_email: string | null
           calendar_id: string | null
           created_at: string
           id: string
@@ -304,10 +305,14 @@ export type Database = {
           last_synced_at: string | null
           provider: Database["public"]["Enums"]["calendar_provider"] | null
           refresh_token: string | null
+          scopes: string[] | null
+          token_expires_at: string | null
+          updated_at: string
           user_id: string | null
         }
         Insert: {
           access_token?: string | null
+          account_email?: string | null
           calendar_id?: string | null
           created_at?: string
           id?: string
@@ -315,10 +320,14 @@ export type Database = {
           last_synced_at?: string | null
           provider?: Database["public"]["Enums"]["calendar_provider"] | null
           refresh_token?: string | null
+          scopes?: string[] | null
+          token_expires_at?: string | null
+          updated_at?: string
           user_id?: string | null
         }
         Update: {
           access_token?: string | null
+          account_email?: string | null
           calendar_id?: string | null
           created_at?: string
           id?: string
@@ -326,6 +335,9 @@ export type Database = {
           last_synced_at?: string | null
           provider?: Database["public"]["Enums"]["calendar_provider"] | null
           refresh_token?: string | null
+          scopes?: string[] | null
+          token_expires_at?: string | null
+          updated_at?: string
           user_id?: string | null
         }
         Relationships: [
@@ -4005,7 +4017,7 @@ export type Database = {
         | "timeline_review"
         | "engagement_consultation"
       booking_status: "confirmed" | "cancelled" | "completed" | "no_show"
-      calendar_provider: "google"
+      calendar_provider: "google" | "zoom"
       client_status:
         | "lead"
         | "booked"
@@ -4306,7 +4318,7 @@ export const Constants = {
         "engagement_consultation",
       ],
       booking_status: ["confirmed", "cancelled", "completed", "no_show"],
-      calendar_provider: ["google"],
+      calendar_provider: ["google", "zoom"],
       client_status: [
         "lead",
         "booked",
