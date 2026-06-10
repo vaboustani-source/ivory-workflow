@@ -37,18 +37,43 @@ export async function getProviderClient(
       !expiresAt ||
       expiresAt - Date.now() < REFRESH_SAFETY_WINDOW_MS;
     if (!needs) return;
-    const tok = await refreshAccessToken(provider, refreshToken);
-    accessToken = tok.access_token;
-    if (tok.refresh_token) refreshToken = tok.refresh_token;
-    expiresAt = Date.now() + tok.expires_in * 1000;
-    await supabaseAdmin
-      .from("calendar_connections")
-      .update({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-        token_expires_at: new Date(expiresAt).toISOString(),
-      })
-      .eq("id", row!.id);
+    try {
+      const tok = await refreshAccessToken(provider, refreshToken);
+      accessToken = tok.access_token;
+      if (tok.refresh_token) refreshToken = tok.refresh_token;
+      expiresAt = Date.now() + tok.expires_in * 1000;
+      await supabaseAdmin
+        .from("calendar_connections")
+        .update({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          token_expires_at: new Date(expiresAt).toISOString(),
+        })
+        .eq("id", row!.id);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (/invalid_grant/i.test(msg)) {
+        await supabaseAdmin
+          .from("calendar_connections")
+          .update({
+            is_active: false,
+            access_token: "",
+            refresh_token: null,
+            scopes: null,
+            token_expires_at: null,
+          })
+          .eq("id", row!.id);
+        await supabaseAdmin.from("activity_log").insert({
+          user_id: userId,
+          action_type: "integration.revoked",
+          target_type: "calendar_connection",
+          description: `${provider} connection revoked at provider; reconnect required`,
+          metadata: { provider },
+        });
+        throw new Error(`${provider}_reconnect_required`);
+      }
+      throw e;
+    }
   }
 
   await ensureFresh();

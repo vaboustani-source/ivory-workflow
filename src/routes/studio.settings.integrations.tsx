@@ -135,6 +135,14 @@ function IntegrationsPage() {
         </p>
       </header>
 
+      {(data ?? []).some((r) => r.needs_reconnect) && (
+        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
+          One or more connections were revoked at the provider. Click <strong>Connect</strong> below
+          to reauthorize so scheduling keeps working.
+        </div>
+      )}
+
+
       <div className="space-y-4">
         {PROVIDERS.map((p) => {
           const row = byProvider.get(p.id);

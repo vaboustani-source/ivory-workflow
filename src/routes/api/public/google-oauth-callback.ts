@@ -68,6 +68,14 @@ async function handleCallback(provider: "google" | "zoom", request: Request) {
       });
     if (insertErr) return back("error", insertErr.message);
 
+    await supabaseAdmin.from("activity_log").insert({
+      user_id: verified.u,
+      action_type: "integration.connect",
+      target_type: "calendar_connection",
+      description: `Connected ${provider}${accountEmail ? ` (${accountEmail})` : ""}`,
+      metadata: { provider, account_email: accountEmail },
+    });
+
     return back("ok");
   } catch (e) {
     const msg = e instanceof Error ? e.message : "unknown";

@@ -54,23 +54,57 @@ export const disconnectProvider = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { revokeTokens } = await import("./oauth-config.server");
+
+    const { data: row } = await supabaseAdmin
+      .from("calendar_connections")
+      .select("id, access_token, refresh_token")
+      .eq("user_id", context.userId)
+      .eq("provider", data.provider)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (row) {
+      const token =
+        ((row.refresh_token as string | null) ?? null) ||
+        ((row.access_token as string | null) ?? null);
+      if (token) {
+        try {
+          await revokeTokens(data.provider, token);
+        } catch {
+          // best-effort revoke
+        }
+      }
+    }
+
     await supabaseAdmin
       .from("calendar_connections")
       .update({
         is_active: false,
         access_token: "",
         refresh_token: null,
+        scopes: null,
         token_expires_at: null,
       })
       .eq("user_id", context.userId)
       .eq("provider", data.provider)
       .eq("is_active", true);
+
+    await supabaseAdmin.from("activity_log").insert({
+      user_id: context.userId,
+      action_type: "integration.disconnect",
+      target_type: "calendar_connection",
+      description: `Disconnected ${data.provider}`,
+      metadata: { provider: data.provider },
+    });
+
     return { ok: true };
   });
 
 export type IntegrationStatus = {
   provider: "google" | "zoom";
   connected: boolean;
+  needs_reconnect: boolean;
   account_email: string | null;
   scopes: string[] | null;
   updated_at: string | null;
@@ -83,9 +117,9 @@ export const listIntegrations = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin
       .from("calendar_connections")
-      .select("provider, account_email, scopes, updated_at, token_expires_at, is_active")
+      .select("provider, account_email, scopes, updated_at, token_expires_at, is_active, refresh_token")
       .eq("user_id", context.userId)
-      .eq("is_active", true);
+      .order("updated_at", { ascending: false });
 
     const rows = (data ?? []) as Array<{
       provider: "google" | "zoom";
@@ -94,13 +128,20 @@ export const listIntegrations = createServerFn({ method: "GET" })
       updated_at: string | null;
       token_expires_at: string | null;
       is_active: boolean;
+      refresh_token: string | null;
     }>;
-    const byProvider = new Map(rows.map((r) => [r.provider, r]));
+
     return (["google", "zoom"] as const).map((p) => {
-      const r = byProvider.get(p);
+      const providerRows = rows.filter((r) => r.provider === p);
+      const active = providerRows.find((r) => r.is_active);
+      const mostRecent = providerRows[0];
+      const needsReconnect =
+        !active && !!mostRecent && !mostRecent.is_active && !mostRecent.refresh_token;
+      const r = active ?? null;
       return {
         provider: p,
-        connected: !!r,
+        connected: !!active,
+        needs_reconnect: needsReconnect,
         account_email: r?.account_email ?? null,
         scopes: r?.scopes ?? null,
         updated_at: r?.updated_at ?? null,
