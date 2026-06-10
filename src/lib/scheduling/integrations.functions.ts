@@ -104,6 +104,7 @@ export const disconnectProvider = createServerFn({ method: "POST" })
 export type IntegrationStatus = {
   provider: "google" | "zoom";
   connected: boolean;
+  needs_reconnect: boolean;
   account_email: string | null;
   scopes: string[] | null;
   updated_at: string | null;
@@ -116,9 +117,9 @@ export const listIntegrations = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin
       .from("calendar_connections")
-      .select("provider, account_email, scopes, updated_at, token_expires_at, is_active")
+      .select("provider, account_email, scopes, updated_at, token_expires_at, is_active, refresh_token")
       .eq("user_id", context.userId)
-      .eq("is_active", true);
+      .order("updated_at", { ascending: false });
 
     const rows = (data ?? []) as Array<{
       provider: "google" | "zoom";
@@ -127,13 +128,20 @@ export const listIntegrations = createServerFn({ method: "GET" })
       updated_at: string | null;
       token_expires_at: string | null;
       is_active: boolean;
+      refresh_token: string | null;
     }>;
-    const byProvider = new Map(rows.map((r) => [r.provider, r]));
+
     return (["google", "zoom"] as const).map((p) => {
-      const r = byProvider.get(p);
+      const providerRows = rows.filter((r) => r.provider === p);
+      const active = providerRows.find((r) => r.is_active);
+      const mostRecent = providerRows[0];
+      const needsReconnect =
+        !active && !!mostRecent && !mostRecent.is_active && !mostRecent.refresh_token;
+      const r = active ?? null;
       return {
         provider: p,
-        connected: !!r,
+        connected: !!active,
+        needs_reconnect: needsReconnect,
         account_email: r?.account_email ?? null,
         scopes: r?.scopes ?? null,
         updated_at: r?.updated_at ?? null,
