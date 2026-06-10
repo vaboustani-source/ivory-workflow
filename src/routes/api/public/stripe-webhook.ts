@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import Stripe from "stripe";
+import { renderPaymentReceived } from "@/lib/emails/payment-received.server";
+import { sendEmail, POSTMARK_DEFAULTS } from "@/integrations/postmark/client.server";
+import type { Json, TablesInsert } from "@/integrations/supabase/types";
 
 // Stripe webhook handler.
 // - Public (Stripe POSTs from the outside) but authenticated by the Stripe
@@ -162,7 +165,201 @@ async function handleCheckoutCompleted(stripe: Stripe, event: Stripe.Event) {
   }
 
   console.log("[stripe-webhook] checkout.session.completed processed", { id: event.id, result: data });
+
+  // ── Stage 6: payment confirmation email (feature-flagged) ────────────
+  const result = (data ?? {}) as { status?: string };
+  if (
+    process.env.EMAIL_PAYMENT_CONFIRMATION_ENABLED === "true" &&
+    result.status === "succeeded"
+  ) {
+    try {
+      await sendPaymentConfirmationEmail({
+        invoiceId,
+        clientId,
+        amountCents: session.amount_total ?? 0,
+        stripeEventId: event.id,
+      });
+    } catch (e: any) {
+      // Never fail the webhook because of an email — payment is recorded.
+      console.error("[stripe-webhook] payment confirmation email threw", {
+        message: e?.message,
+        stack: e?.stack,
+      });
+    }
+  } else {
+    console.log("[stripe-webhook] payment confirmation email skipped", {
+      enabled: process.env.EMAIL_PAYMENT_CONFIRMATION_ENABLED === "true",
+      status: result.status,
+    });
+  }
+
   return new Response("ok", { status: 200 });
+}
+
+interface SendConfirmationArgs {
+  invoiceId: string;
+  clientId: string;
+  amountCents: number;
+  stripeEventId: string;
+}
+
+async function sendPaymentConfirmationEmail(args: SendConfirmationArgs): Promise<void> {
+  // Idempotency: if we've already sent a payment_received email for this
+  // invoice, log a skipped_duplicate row and bail. Prevents double-send on
+  // webhook retries / manual replay.
+  const { data: existing } = await supabaseAdmin
+    .from("email_sends")
+    .select("id")
+    .eq("template_key", "payment_received")
+    .eq("invoice_id", args.invoiceId)
+    .eq("status", "sent")
+    .maybeSingle();
+
+  if (existing) {
+    console.log("[stripe-webhook] payment_received email already sent — skipping", {
+      invoice_id: args.invoiceId,
+      existing_id: existing.id,
+    });
+    const skipPayload: TablesInsert<"email_sends"> = {
+      to_address: "(skipped)",
+      from_address: POSTMARK_DEFAULTS.from,
+      reply_to: POSTMARK_DEFAULTS.replyTo,
+      subject: "(skipped: already sent)",
+      template_key: "payment_received",
+      client_id: args.clientId,
+      invoice_id: args.invoiceId,
+      status: "skipped_duplicate",
+      tag: "payment_received",
+      metadata: {
+        stripe_event_id: args.stripeEventId,
+        prior_send_id: existing.id,
+      } as Json,
+    };
+    await supabaseAdmin.from("email_sends").insert(skipPayload);
+    return;
+  }
+
+  // Gather data for personalization
+  const [{ data: client, error: clientErr }, { data: invoice, error: invErr }, { count: totalCount }] =
+    await Promise.all([
+      supabaseAdmin
+        .from("clients")
+        .select("couple_name_1, couple_name_2, primary_email, secondary_email, wedding_date")
+        .eq("id", args.clientId)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("invoices")
+        .select("label, sequence_order")
+        .eq("id", args.invoiceId)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("invoices")
+        .select("id", { count: "exact", head: true })
+        .eq("client_id", args.clientId),
+    ]);
+
+  if (clientErr || invErr || !client || !invoice) {
+    console.error("[stripe-webhook] failed to load client/invoice for email", {
+      clientErr: clientErr?.message,
+      invErr: invErr?.message,
+    });
+    return;
+  }
+  if (!client.primary_email) {
+    console.warn("[stripe-webhook] client has no primary_email — skipping email", {
+      client_id: args.clientId,
+    });
+    return;
+  }
+
+  // Remaining balance (after this payment — the RPC just marked this invoice paid).
+  const { data: unpaid } = await supabaseAdmin
+    .from("invoices")
+    .select("total_cents")
+    .eq("client_id", args.clientId)
+    .not("status", "in", "(paid,cancelled,refunded,kill_fee)");
+  const remainingCents =
+    (unpaid ?? []).reduce((sum, r: any) => sum + (r.total_cents ?? 0), 0);
+
+  const rendered = renderPaymentReceived({
+    coupleName1: client.couple_name_1 ?? "",
+    coupleName2: client.couple_name_2 ?? null,
+    amountCents: args.amountCents,
+    invoiceLabel: invoice.label ?? "Invoice",
+    sequenceOrder: invoice.sequence_order ?? null,
+    totalInvoiceCount: totalCount ?? 0,
+    dateReceived: new Date(),
+    remainingBalanceCents: remainingCents,
+    weddingDate: client.wedding_date ?? null,
+  });
+
+  // Build recipient list — CC secondary if present & distinct
+  const to = client.primary_email;
+  const cc =
+    client.secondary_email &&
+    client.secondary_email.toLowerCase() !== client.primary_email.toLowerCase()
+      ? client.secondary_email
+      : undefined;
+  // Postmark "To" supports comma-separated; we put CC there too since our
+  // sendEmail helper exposes To only. They'll all see each other.
+  const recipients = cc ? [to, cc] : to;
+
+  const sendResult = await sendEmail({
+    to: recipients,
+    subject: rendered.subject,
+    htmlBody: rendered.htmlBody,
+    textBody: rendered.textBody,
+    tag: "payment_received",
+    metadata: {
+      client_id: args.clientId,
+      invoice_id: args.invoiceId,
+      stripe_event_id: args.stripeEventId,
+    },
+  });
+
+  const status = sendResult.success
+    ? "sent"
+    : sendResult.errorCode === "405" ||
+        /test mode|approved sender/i.test(sendResult.error ?? "")
+      ? "test_mode_blocked"
+      : "failed";
+
+  const logPayload: TablesInsert<"email_sends"> = {
+    to_address: Array.isArray(recipients) ? recipients.join(", ") : recipients,
+    from_address: POSTMARK_DEFAULTS.from,
+    reply_to: POSTMARK_DEFAULTS.replyTo,
+    subject: rendered.subject,
+    template_key: "payment_received",
+    client_id: args.clientId,
+    invoice_id: args.invoiceId,
+    postmark_message_id: sendResult.messageId ?? null,
+    status,
+    error_message: sendResult.error ?? null,
+    error_code: sendResult.errorCode ?? null,
+    tag: "payment_received",
+    metadata: {
+      stripe_event_id: args.stripeEventId,
+    } as Json,
+    raw_response: (sendResult.rawResponse ?? null) as Json | null,
+  };
+  await supabaseAdmin.from("email_sends").insert(logPayload);
+
+  if (!sendResult.success) {
+    // Don't throw — webhook stays 200. Notify owners so they can follow up manually.
+    const coupleDisplay =
+      `${client.couple_name_1 ?? ""}${client.couple_name_2 ? " & " + client.couple_name_2 : ""}`.trim() ||
+      "the couple";
+    try {
+      await supabaseAdmin.rpc("_notify_all_owners" as never, {
+        p_kind: "email_failed",
+        p_title: "Payment confirmation email failed to send",
+        p_body: `Payment was recorded but the confirmation email to ${coupleDisplay} failed (${sendResult.error ?? "unknown"}). Please contact them manually.`,
+        p_link_to: `/studio/clients/${args.clientId}`,
+      } as never);
+    } catch (e: any) {
+      console.warn("[stripe-webhook] notify owners (email_failed) failed", { message: e?.message });
+    }
+  }
 }
 
 async function handlePaymentFailed(event: Stripe.Event) {
