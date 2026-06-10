@@ -54,17 +54,50 @@ export const disconnectProvider = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { revokeTokens } = await import("./oauth-config.server");
+
+    const { data: row } = await supabaseAdmin
+      .from("calendar_connections")
+      .select("id, access_token, refresh_token")
+      .eq("user_id", context.userId)
+      .eq("provider", data.provider)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (row) {
+      const token =
+        ((row.refresh_token as string | null) ?? null) ||
+        ((row.access_token as string | null) ?? null);
+      if (token) {
+        try {
+          await revokeTokens(data.provider, token);
+        } catch {
+          // best-effort revoke
+        }
+      }
+    }
+
     await supabaseAdmin
       .from("calendar_connections")
       .update({
         is_active: false,
         access_token: "",
         refresh_token: null,
+        scopes: null,
         token_expires_at: null,
       })
       .eq("user_id", context.userId)
       .eq("provider", data.provider)
       .eq("is_active", true);
+
+    await supabaseAdmin.from("activity_log").insert({
+      user_id: context.userId,
+      action_type: "integration.disconnect",
+      target_type: "calendar_connection",
+      description: `Disconnected ${data.provider}`,
+      metadata: { provider: data.provider },
+    });
+
     return { ok: true };
   });
 
