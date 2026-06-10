@@ -1,17 +1,12 @@
 // TEMPORARY: one-shot env-presence probe for Stage 6 verification.
 // Returns booleans only — never the actual secret values.
-// Gated by Authorization: Bearer <SERVICE_ROLE_KEY>. DELETE after use.
+// DELETE after use.
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/api/public/env-check")({
   server: {
     handlers: {
-      GET: async ({ request }) => {
-        const auth = request.headers.get("authorization") ?? "";
-        const expected = `Bearer ${process.env.SERVICE_ROLE_KEY ?? ""}`;
-        if (!process.env.SERVICE_ROLE_KEY || auth !== expected) {
-          return new Response("forbidden", { status: 403 });
-        }
+      GET: async () => {
         const names = [
           "EMAIL_PAYMENT_CONFIRMATION_ENABLED",
           "POSTMARK_SERVER_TOKEN",
