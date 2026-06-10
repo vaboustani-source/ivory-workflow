@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import Stripe from "stripe";
+import { renderPaymentReceived } from "@/lib/emails/payment-received.server";
+import { sendEmail, POSTMARK_DEFAULTS } from "@/integrations/postmark/client.server";
+import type { Json, TablesInsert } from "@/integrations/supabase/types";
 
 // Stripe webhook handler.
 // - Public (Stripe POSTs from the outside) but authenticated by the Stripe
