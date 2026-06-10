@@ -197,3 +197,27 @@ export async function fetchAccountEmail(
   const email = data.email;
   return typeof email === "string" ? email : null;
 }
+
+// ---------- Revoke ----------
+export async function revokeTokens(
+  provider: Provider,
+  token: string,
+): Promise<void> {
+  if (provider === "google") {
+    await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(token)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    });
+    return;
+  }
+  const cfg = getProviderConfig(provider);
+  await fetch("https://zoom.us/oauth/revoke", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization:
+        "Basic " + Buffer.from(`${cfg.clientId}:${cfg.clientSecret}`).toString("base64"),
+    },
+    body: new URLSearchParams({ token }),
+  });
+}
