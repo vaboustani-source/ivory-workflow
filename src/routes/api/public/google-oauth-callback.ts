@@ -53,22 +53,19 @@ async function handleCallback(provider: "google" | "zoom", request: Request) {
       .eq("provider", provider)
       .eq("is_active", true);
 
-    const insert: Record<string, unknown> = {
-      user_id: verified.u,
-      provider,
-      access_token: tok.access_token,
-      refresh_token: tok.refresh_token ?? null,
-      token_expires_at: expiresAt,
-      scopes,
-      account_email: accountEmail,
-      is_active: true,
-    };
-    if (provider === "google") {
-      insert.calendar_id = "primary";
-    }
     const { error: insertErr } = await supabaseAdmin
       .from("calendar_connections")
-      .insert(insert);
+      .insert({
+        user_id: verified.u,
+        provider,
+        access_token: tok.access_token,
+        refresh_token: tok.refresh_token ?? null,
+        token_expires_at: expiresAt,
+        scopes,
+        account_email: accountEmail,
+        is_active: true,
+        calendar_id: provider === "google" ? "primary" : null,
+      });
     if (insertErr) return back("error", insertErr.message);
 
     return back("ok");
