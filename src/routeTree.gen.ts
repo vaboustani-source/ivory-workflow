@@ -73,6 +73,7 @@ import { Route as PortalAccountPartnerRouteImport } from './routes/portal.accoun
 import { Route as PortalAccountNotificationsRouteImport } from './routes/portal.account.notifications'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as ApiPublicSendTestEmailRouteImport } from './routes/api/public/send-test-email'
+import { Route as ApiPublicEnvCheckRouteImport } from './routes/api/public/env-check'
 import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
 import { Route as StudioSettingsEmailsIndexRouteImport } from './routes/studio.settings.emails.index'
 import { Route as StudioSettingsEmailsEmailTypeRouteImport } from './routes/studio.settings.emails.$emailType'
@@ -410,6 +411,11 @@ const ApiPublicSendTestEmailRoute = ApiPublicSendTestEmailRouteImport.update({
   path: '/api/public/send-test-email',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicEnvCheckRoute = ApiPublicEnvCheckRouteImport.update({
+  id: '/api/public/env-check',
+  path: '/api/public/env-check',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCreateCheckoutRoute = ApiPublicCreateCheckoutRouteImport.update({
   id: '/api/public/create-checkout',
   path: '/api/public/create-checkout',
@@ -482,6 +488,7 @@ export interface FileRoutesByFullPath {
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
+  '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
@@ -551,6 +558,7 @@ export interface FileRoutesByTo {
   '/portal': typeof PortalIndexRoute
   '/studio': typeof StudioIndexRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
+  '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
@@ -624,6 +632,7 @@ export interface FileRoutesById {
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
+  '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
@@ -698,6 +707,7 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/studio/'
     | '/api/public/create-checkout'
+    | '/api/public/env-check'
     | '/api/public/send-test-email'
     | '/api/public/stripe-webhook'
     | '/portal/account/notifications'
@@ -767,6 +777,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/studio'
     | '/api/public/create-checkout'
+    | '/api/public/env-check'
     | '/api/public/send-test-email'
     | '/api/public/stripe-webhook'
     | '/portal/account/notifications'
@@ -839,6 +850,7 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/studio/'
     | '/api/public/create-checkout'
+    | '/api/public/env-check'
     | '/api/public/send-test-email'
     | '/api/public/stripe-webhook'
     | '/portal/account/notifications'
@@ -882,6 +894,7 @@ export interface RootRouteChildren {
   StudioRoute: typeof StudioRouteWithChildren
   PayTokenRoute: typeof PayTokenRoute
   ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
+  ApiPublicEnvCheckRoute: typeof ApiPublicEnvCheckRoute
   ApiPublicSendTestEmailRoute: typeof ApiPublicSendTestEmailRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   SignContractContractIdRoute: typeof SignContractContractIdRoute
@@ -1338,6 +1351,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSendTestEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/env-check': {
+      id: '/api/public/env-check'
+      path: '/api/public/env-check'
+      fullPath: '/api/public/env-check'
+      preLoaderRoute: typeof ApiPublicEnvCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/create-checkout': {
       id: '/api/public/create-checkout'
       path: '/api/public/create-checkout'
@@ -1590,6 +1610,7 @@ const rootRouteChildren: RootRouteChildren = {
   StudioRoute: StudioRouteWithChildren,
   PayTokenRoute: PayTokenRoute,
   ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
+  ApiPublicEnvCheckRoute: ApiPublicEnvCheckRoute,
   ApiPublicSendTestEmailRoute: ApiPublicSendTestEmailRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   SignContractContractIdRoute: SignContractContractIdRoute,
