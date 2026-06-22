@@ -78,6 +78,7 @@ import { Route as ApiPublicSendTestEmailRouteImport } from './routes/api/public/
 import { Route as ApiPublicGoogleOauthCallbackRouteImport } from './routes/api/public/google-oauth-callback'
 import { Route as ApiPublicEnvCheckRouteImport } from './routes/api/public/env-check'
 import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
+import { Route as ApiPublicAvailabilityRouteImport } from './routes/api/public/availability'
 import { Route as StudioSettingsEmailsIndexRouteImport } from './routes/studio.settings.emails.index'
 import { Route as StudioSettingsSchedulingIdRouteImport } from './routes/studio.settings.scheduling.$id'
 import { Route as StudioSettingsEmailsEmailTypeRouteImport } from './routes/studio.settings.emails.$emailType'
@@ -443,6 +444,11 @@ const ApiPublicCreateCheckoutRoute = ApiPublicCreateCheckoutRouteImport.update({
   path: '/api/public/create-checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAvailabilityRoute = ApiPublicAvailabilityRouteImport.update({
+  id: '/api/public/availability',
+  path: '/api/public/availability',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StudioSettingsEmailsIndexRoute =
   StudioSettingsEmailsIndexRouteImport.update({
     id: '/emails/',
@@ -515,6 +521,7 @@ export interface FileRoutesByFullPath {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
+  '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
@@ -589,6 +596,7 @@ export interface FileRoutesByTo {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal': typeof PortalIndexRoute
   '/studio': typeof StudioIndexRoute
+  '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
@@ -667,6 +675,7 @@ export interface FileRoutesById {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
+  '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
@@ -746,6 +755,7 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal/'
     | '/studio/'
+    | '/api/public/availability'
     | '/api/public/create-checkout'
     | '/api/public/env-check'
     | '/api/public/google-oauth-callback'
@@ -820,6 +830,7 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal'
     | '/studio'
+    | '/api/public/availability'
     | '/api/public/create-checkout'
     | '/api/public/env-check'
     | '/api/public/google-oauth-callback'
@@ -897,6 +908,7 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal/'
     | '/studio/'
+    | '/api/public/availability'
     | '/api/public/create-checkout'
     | '/api/public/env-check'
     | '/api/public/google-oauth-callback'
@@ -945,6 +957,7 @@ export interface RootRouteChildren {
   PortalRoute: typeof PortalRouteWithChildren
   StudioRoute: typeof StudioRouteWithChildren
   PayTokenRoute: typeof PayTokenRoute
+  ApiPublicAvailabilityRoute: typeof ApiPublicAvailabilityRoute
   ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
   ApiPublicEnvCheckRoute: typeof ApiPublicEnvCheckRoute
   ApiPublicGoogleOauthCallbackRoute: typeof ApiPublicGoogleOauthCallbackRoute
@@ -1440,6 +1453,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCreateCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/availability': {
+      id: '/api/public/availability'
+      path: '/api/public/availability'
+      fullPath: '/api/public/availability'
+      preLoaderRoute: typeof ApiPublicAvailabilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/studio/settings/emails/': {
       id: '/studio/settings/emails/'
       path: '/emails'
@@ -1707,6 +1727,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortalRoute: PortalRouteWithChildren,
   StudioRoute: StudioRouteWithChildren,
   PayTokenRoute: PayTokenRoute,
+  ApiPublicAvailabilityRoute: ApiPublicAvailabilityRoute,
   ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
   ApiPublicEnvCheckRoute: ApiPublicEnvCheckRoute,
   ApiPublicGoogleOauthCallbackRoute: ApiPublicGoogleOauthCallbackRoute,
