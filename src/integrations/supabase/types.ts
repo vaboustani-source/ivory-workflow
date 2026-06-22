@@ -190,6 +190,7 @@ export type Database = {
           google_calendar_event_id: string | null
           google_calendar_id: string | null
           id: string
+          idempotency_key: string | null
           invite_token: string | null
           phone: string | null
           primary_email: string
@@ -222,6 +223,7 @@ export type Database = {
           google_calendar_event_id?: string | null
           google_calendar_id?: string | null
           id?: string
+          idempotency_key?: string | null
           invite_token?: string | null
           phone?: string | null
           primary_email: string
@@ -254,6 +256,7 @@ export type Database = {
           google_calendar_event_id?: string | null
           google_calendar_id?: string | null
           id?: string
+          idempotency_key?: string | null
           invite_token?: string | null
           phone?: string | null
           primary_email?: string
@@ -4308,6 +4311,25 @@ export type Database = {
         Args: { p_client_id: string; p_reason: string }
         Returns: Json
       }
+      create_booking: {
+        Args: {
+          p_call_type_id: string
+          p_couple_name_1: string
+          p_couple_name_2: string
+          p_custom_field_responses: Json
+          p_idempotency_key?: string
+          p_phone: string
+          p_primary_email: string
+          p_starts_at: string
+          p_visitor_timezone: string
+        }
+        Returns: {
+          booking_id: string
+          cancel_token: string
+          ends_at: string
+          starts_at: string
+        }[]
+      }
       create_booking_invoices: {
         Args: { p_client_id: string; p_overrides?: Json; p_template_id: string }
         Returns: Json
@@ -4326,6 +4348,24 @@ export type Database = {
           p_template_id: string
         }
         Returns: Json
+      }
+      get_booking_by_cancel_token: {
+        Args: { p_token: string }
+        Returns: {
+          booking_id: string
+          call_type_name: string
+          call_type_slug: string
+          cancel_token: string
+          couple_name_1: string
+          couple_name_2: string
+          duration_minutes: number
+          ends_at: string
+          primary_email: string
+          starts_at: string
+          status: string
+          timezone_snapshot: string
+          visitor_timezone: string
+        }[]
       }
       hard_delete_old_messages: { Args: never; Returns: number }
       has_role: {
