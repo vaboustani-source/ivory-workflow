@@ -77,12 +77,13 @@ export const Route = createFileRoute("/api/public/create-booking")({
           p_starts_at: new Date(startsAtMs).toISOString(),
           p_primary_email: b.primary_email,
           p_couple_name_1: b.couple_name_1,
-          p_couple_name_2: b.couple_name_2 ?? null,
-          p_phone: b.phone ?? null,
-          p_custom_field_responses: b.custom_field_responses ?? {},
+          p_couple_name_2: b.couple_name_2 ?? "",
+          p_phone: b.phone ?? "",
+          p_custom_field_responses: (b.custom_field_responses ?? {}) as never,
           p_visitor_timezone: b.visitor_timezone,
-          p_idempotency_key: b.idempotency_key ?? null,
+          p_idempotency_key: b.idempotency_key ?? undefined,
         });
+
 
         if (error) {
           const msg = error.message || "";

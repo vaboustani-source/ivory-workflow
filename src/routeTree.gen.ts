@@ -78,6 +78,7 @@ import { Route as ApiPublicSendTestEmailRouteImport } from './routes/api/public/
 import { Route as ApiPublicGoogleOauthCallbackRouteImport } from './routes/api/public/google-oauth-callback'
 import { Route as ApiPublicEnvCheckRouteImport } from './routes/api/public/env-check'
 import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
+import { Route as ApiPublicCreateBookingRouteImport } from './routes/api/public/create-booking'
 import { Route as ApiPublicAvailabilityRouteImport } from './routes/api/public/availability'
 import { Route as StudioSettingsEmailsIndexRouteImport } from './routes/studio.settings.emails.index'
 import { Route as StudioSettingsSchedulingIdRouteImport } from './routes/studio.settings.scheduling.$id'
@@ -444,6 +445,11 @@ const ApiPublicCreateCheckoutRoute = ApiPublicCreateCheckoutRouteImport.update({
   path: '/api/public/create-checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCreateBookingRoute = ApiPublicCreateBookingRouteImport.update({
+  id: '/api/public/create-booking',
+  path: '/api/public/create-booking',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAvailabilityRoute = ApiPublicAvailabilityRouteImport.update({
   id: '/api/public/availability',
   path: '/api/public/availability',
@@ -522,6 +528,7 @@ export interface FileRoutesByFullPath {
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
+  '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
@@ -597,6 +604,7 @@ export interface FileRoutesByTo {
   '/portal': typeof PortalIndexRoute
   '/studio': typeof StudioIndexRoute
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
+  '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
@@ -676,6 +684,7 @@ export interface FileRoutesById {
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
+  '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
@@ -756,6 +765,7 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/studio/'
     | '/api/public/availability'
+    | '/api/public/create-booking'
     | '/api/public/create-checkout'
     | '/api/public/env-check'
     | '/api/public/google-oauth-callback'
@@ -831,6 +841,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/studio'
     | '/api/public/availability'
+    | '/api/public/create-booking'
     | '/api/public/create-checkout'
     | '/api/public/env-check'
     | '/api/public/google-oauth-callback'
@@ -909,6 +920,7 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/studio/'
     | '/api/public/availability'
+    | '/api/public/create-booking'
     | '/api/public/create-checkout'
     | '/api/public/env-check'
     | '/api/public/google-oauth-callback'
@@ -958,6 +970,7 @@ export interface RootRouteChildren {
   StudioRoute: typeof StudioRouteWithChildren
   PayTokenRoute: typeof PayTokenRoute
   ApiPublicAvailabilityRoute: typeof ApiPublicAvailabilityRoute
+  ApiPublicCreateBookingRoute: typeof ApiPublicCreateBookingRoute
   ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
   ApiPublicEnvCheckRoute: typeof ApiPublicEnvCheckRoute
   ApiPublicGoogleOauthCallbackRoute: typeof ApiPublicGoogleOauthCallbackRoute
@@ -1453,6 +1466,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCreateCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/create-booking': {
+      id: '/api/public/create-booking'
+      path: '/api/public/create-booking'
+      fullPath: '/api/public/create-booking'
+      preLoaderRoute: typeof ApiPublicCreateBookingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/availability': {
       id: '/api/public/availability'
       path: '/api/public/availability'
@@ -1728,6 +1748,7 @@ const rootRouteChildren: RootRouteChildren = {
   StudioRoute: StudioRouteWithChildren,
   PayTokenRoute: PayTokenRoute,
   ApiPublicAvailabilityRoute: ApiPublicAvailabilityRoute,
+  ApiPublicCreateBookingRoute: ApiPublicCreateBookingRoute,
   ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
   ApiPublicEnvCheckRoute: ApiPublicEnvCheckRoute,
   ApiPublicGoogleOauthCallbackRoute: ApiPublicGoogleOauthCallbackRoute,
