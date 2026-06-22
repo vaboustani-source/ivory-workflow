@@ -55,13 +55,21 @@ function IntegrationsPage() {
   const disconnectFn = useServerFn(disconnectProvider);
   const refreshFn = useServerFn(refreshIntegrationToken);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["integrations"],
-    queryFn: async () => {
-      const r = await fetchList();
-      // TEMP debug
-      console.log("[INT_DEBUG] typeof:", typeof r, "isArray:", Array.isArray(r), "value:", r);
-      return r;
+    queryFn: async (): Promise<IntegrationStatus[]> => {
+      const r = (await fetchList()) as unknown;
+      // Defensive unwrap: some serverFn/middleware paths may return a wrapped
+      // envelope ({ result: [...] } / { data: [...] }) or a non-array (Response,
+      // error object). Normalize to IntegrationStatus[] so the UI never crashes.
+      if (Array.isArray(r)) return r as IntegrationStatus[];
+      if (r && typeof r === "object") {
+        const maybe =
+          (r as { result?: unknown }).result ??
+          (r as { data?: unknown }).data;
+        if (Array.isArray(maybe)) return maybe as IntegrationStatus[];
+      }
+      throw new Error("Unexpected response shape from listIntegrations");
     },
   });
 
