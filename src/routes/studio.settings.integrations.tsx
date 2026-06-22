@@ -57,7 +57,12 @@ function IntegrationsPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["integrations"],
-    queryFn: () => fetchList(),
+    queryFn: async () => {
+      const r = await fetchList();
+      // TEMP debug
+      console.log("[INT_DEBUG] typeof:", typeof r, "isArray:", Array.isArray(r), "value:", r);
+      return r;
+    },
   });
 
   const [busy, setBusy] = useState<string | null>(null);
