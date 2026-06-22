@@ -134,8 +134,9 @@ function IntegrationsPage() {
     },
   });
 
+  const rows: IntegrationStatus[] = Array.isArray(data) ? data : [];
   const byProvider = new Map<string, IntegrationStatus>(
-    (data ?? []).map((r) => [r.provider, r]),
+    rows.map((r) => [r.provider, r]),
   );
 
   return (
@@ -148,7 +149,19 @@ function IntegrationsPage() {
         </p>
       </header>
 
-      {(data ?? []).some((r) => r.needs_reconnect) && (
+      {isError && (
+        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm flex items-center justify-between gap-3">
+          <span>
+            Couldn't load your integrations
+            {error instanceof Error && error.message ? `: ${error.message}` : "."}
+          </span>
+          <Button size="sm" variant="outline" onClick={() => refetch()}>
+            Retry
+          </Button>
+        </div>
+      )}
+
+      {rows.some((r) => r.needs_reconnect) && (
         <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
           One or more connections were revoked at the provider. Click <strong>Connect</strong> below
           to reauthorize so scheduling keeps working.
