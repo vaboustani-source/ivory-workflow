@@ -111,7 +111,7 @@ export type IntegrationStatus = {
   token_expires_at: string | null;
 };
 
-export const listIntegrations = createServerFn({ method: "GET" })
+export const listIntegrations = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<IntegrationStatus[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
