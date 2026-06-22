@@ -68,11 +68,7 @@ function SchedulingSettingsPage() {
           <CallTypesTab />
         </TabsContent>
         <TabsContent value="availability" className="mt-6">
-          <Card>
-            <CardContent className="py-10 text-center text-sm text-muted-foreground">
-              Weekly availability editor ships in the next slice.
-            </CardContent>
-          </Card>
+          <AvailabilityTab />
         </TabsContent>
         <TabsContent value="settings" className="mt-6">
           <SettingsTab />
