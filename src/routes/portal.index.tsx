@@ -273,7 +273,7 @@ async function computeWhatsNext(clientId: string, client: any): Promise<{ label:
 
   if (status === "lead") {
     const { data: bookings } = await supabase
-      .from("bookings").select("id, scheduled_at").eq("client_id", clientId).order("scheduled_at", { ascending: true }).limit(1);
+      .from("legacy_bookings").select("id, scheduled_at").eq("client_id", clientId).order("scheduled_at", { ascending: true }).limit(1);
     if (bookings && bookings[0]?.scheduled_at) {
       return { label: `Your call is on ${shortDate(bookings[0].scheduled_at)}.`, to: "/portal/messages", cta: "Open messages" };
     }

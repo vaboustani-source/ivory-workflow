@@ -85,7 +85,7 @@ function Dashboard() {
 
     // This week
     const upcomingClients = await scopeClients(supabase.from("clients").select("id, couple_name_1, couple_name_2, wedding_date, venue_name").gte("wedding_date", todayISO).lte("wedding_date", weekEndISO));
-    const upcomingBookings = await scopeClients(supabase.from("bookings").select("id, scheduled_at, event_type, client_id, client:clients(couple_name_1, couple_name_2)").gte("scheduled_at", today.toISOString()).lte("scheduled_at", weekEnd.toISOString()), "client_id");
+    const upcomingBookings = await scopeClients(supabase.from("legacy_bookings").select("id, scheduled_at, event_type, client_id, client:clients(couple_name_1, couple_name_2)").gte("scheduled_at", today.toISOString()).lte("scheduled_at", weekEnd.toISOString()), "client_id");
     const upcomingEng = await scopeClients(supabase.from("engagement_sessions").select("id, scheduled_at, location, client_id, client:clients(couple_name_1, couple_name_2)").gte("scheduled_at", today.toISOString()).lte("scheduled_at", weekEnd.toISOString()), "client_id");
 
     const items: WeekItem[] = [];
