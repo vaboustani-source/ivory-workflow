@@ -1,8 +1,13 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth";
 import { ViewAsProvider } from "@/lib/view-as";
 import { Toaster } from "@/components/ui/sonner";
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: false } },
+});
 
 function NotFoundComponent() {
   return (
