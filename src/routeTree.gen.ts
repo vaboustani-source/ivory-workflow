@@ -44,6 +44,7 @@ import { Route as PortalDocumentsRouteImport } from './routes/portal.documents'
 import { Route as PortalActivityRouteImport } from './routes/portal.activity'
 import { Route as PortalAccountRouteImport } from './routes/portal.account'
 import { Route as PayTokenRouteImport } from './routes/pay.$token'
+import { Route as BookSlugRouteImport } from './routes/book.$slug'
 import { Route as StudioClientsIndexRouteImport } from './routes/studio.clients.index'
 import { Route as PortalAccountIndexRouteImport } from './routes/portal.account.index'
 import { Route as StudioSettingsWorkflowRouteImport } from './routes/studio.settings.workflow'
@@ -72,12 +73,14 @@ import { Route as SignContractContractIdRouteImport } from './routes/sign.contra
 import { Route as PortalAccountSecurityRouteImport } from './routes/portal.account.security'
 import { Route as PortalAccountPartnerRouteImport } from './routes/portal.account.partner'
 import { Route as PortalAccountNotificationsRouteImport } from './routes/portal.account.notifications'
+import { Route as BookConfirmedCancel_tokenRouteImport } from './routes/book.confirmed.$cancel_token'
 import { Route as ApiPublicZoomOauthCallbackRouteImport } from './routes/api/public/zoom-oauth-callback'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as ApiPublicSendTestEmailRouteImport } from './routes/api/public/send-test-email'
 import { Route as ApiPublicGoogleOauthCallbackRouteImport } from './routes/api/public/google-oauth-callback'
 import { Route as ApiPublicEnvCheckRouteImport } from './routes/api/public/env-check'
 import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
+import { Route as ApiPublicCreateBookingRouteImport } from './routes/api/public/create-booking'
 import { Route as ApiPublicAvailabilityRouteImport } from './routes/api/public/availability'
 import { Route as StudioSettingsEmailsIndexRouteImport } from './routes/studio.settings.emails.index'
 import { Route as StudioSettingsSchedulingIdRouteImport } from './routes/studio.settings.scheduling.$id'
@@ -261,6 +264,11 @@ const PayTokenRoute = PayTokenRouteImport.update({
   path: '/pay/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BookSlugRoute = BookSlugRouteImport.update({
+  id: '/book/$slug',
+  path: '/book/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StudioClientsIndexRoute = StudioClientsIndexRouteImport.update({
   id: '/clients/',
   path: '/clients/',
@@ -412,6 +420,12 @@ const PortalAccountNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => PortalAccountRoute,
   } as any)
+const BookConfirmedCancel_tokenRoute =
+  BookConfirmedCancel_tokenRouteImport.update({
+    id: '/book/confirmed/$cancel_token',
+    path: '/book/confirmed/$cancel_token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicZoomOauthCallbackRoute =
   ApiPublicZoomOauthCallbackRouteImport.update({
     id: '/api/public/zoom-oauth-callback',
@@ -442,6 +456,11 @@ const ApiPublicEnvCheckRoute = ApiPublicEnvCheckRouteImport.update({
 const ApiPublicCreateCheckoutRoute = ApiPublicCreateCheckoutRouteImport.update({
   id: '/api/public/create-checkout',
   path: '/api/public/create-checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicCreateBookingRoute = ApiPublicCreateBookingRouteImport.update({
+  id: '/api/public/create-booking',
+  path: '/api/public/create-booking',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicAvailabilityRoute = ApiPublicAvailabilityRouteImport.update({
@@ -490,6 +509,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
   '/studio': typeof StudioRouteWithChildren
+  '/book/$slug': typeof BookSlugRoute
   '/pay/$token': typeof PayTokenRoute
   '/portal/account': typeof PortalAccountRouteWithChildren
   '/portal/activity': typeof PortalActivityRoute
@@ -522,12 +542,14 @@ export interface FileRoutesByFullPath {
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
+  '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/zoom-oauth-callback': typeof ApiPublicZoomOauthCallbackRoute
+  '/book/confirmed/$cancel_token': typeof BookConfirmedCancel_tokenRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -566,6 +588,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/book/$slug': typeof BookSlugRoute
   '/pay/$token': typeof PayTokenRoute
   '/portal/activity': typeof PortalActivityRoute
   '/portal/documents': typeof PortalDocumentsRoute
@@ -597,12 +620,14 @@ export interface FileRoutesByTo {
   '/portal': typeof PortalIndexRoute
   '/studio': typeof StudioIndexRoute
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
+  '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/zoom-oauth-callback': typeof ApiPublicZoomOauthCallbackRoute
+  '/book/confirmed/$cancel_token': typeof BookConfirmedCancel_tokenRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -644,6 +669,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
   '/studio': typeof StudioRouteWithChildren
+  '/book/$slug': typeof BookSlugRoute
   '/pay/$token': typeof PayTokenRoute
   '/portal/account': typeof PortalAccountRouteWithChildren
   '/portal/activity': typeof PortalActivityRoute
@@ -676,12 +702,14 @@ export interface FileRoutesById {
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
+  '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/zoom-oauth-callback': typeof ApiPublicZoomOauthCallbackRoute
+  '/book/confirmed/$cancel_token': typeof BookConfirmedCancel_tokenRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -724,6 +752,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/studio'
+    | '/book/$slug'
     | '/pay/$token'
     | '/portal/account'
     | '/portal/activity'
@@ -756,12 +785,14 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/studio/'
     | '/api/public/availability'
+    | '/api/public/create-booking'
     | '/api/public/create-checkout'
     | '/api/public/env-check'
     | '/api/public/google-oauth-callback'
     | '/api/public/send-test-email'
     | '/api/public/stripe-webhook'
     | '/api/public/zoom-oauth-callback'
+    | '/book/confirmed/$cancel_token'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -800,6 +831,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/book/$slug'
     | '/pay/$token'
     | '/portal/activity'
     | '/portal/documents'
@@ -831,12 +863,14 @@ export interface FileRouteTypes {
     | '/portal'
     | '/studio'
     | '/api/public/availability'
+    | '/api/public/create-booking'
     | '/api/public/create-checkout'
     | '/api/public/env-check'
     | '/api/public/google-oauth-callback'
     | '/api/public/send-test-email'
     | '/api/public/stripe-webhook'
     | '/api/public/zoom-oauth-callback'
+    | '/book/confirmed/$cancel_token'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -877,6 +911,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/studio'
+    | '/book/$slug'
     | '/pay/$token'
     | '/portal/account'
     | '/portal/activity'
@@ -909,12 +944,14 @@ export interface FileRouteTypes {
     | '/portal/'
     | '/studio/'
     | '/api/public/availability'
+    | '/api/public/create-booking'
     | '/api/public/create-checkout'
     | '/api/public/env-check'
     | '/api/public/google-oauth-callback'
     | '/api/public/send-test-email'
     | '/api/public/stripe-webhook'
     | '/api/public/zoom-oauth-callback'
+    | '/book/confirmed/$cancel_token'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -956,14 +993,17 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PortalRoute: typeof PortalRouteWithChildren
   StudioRoute: typeof StudioRouteWithChildren
+  BookSlugRoute: typeof BookSlugRoute
   PayTokenRoute: typeof PayTokenRoute
   ApiPublicAvailabilityRoute: typeof ApiPublicAvailabilityRoute
+  ApiPublicCreateBookingRoute: typeof ApiPublicCreateBookingRoute
   ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
   ApiPublicEnvCheckRoute: typeof ApiPublicEnvCheckRoute
   ApiPublicGoogleOauthCallbackRoute: typeof ApiPublicGoogleOauthCallbackRoute
   ApiPublicSendTestEmailRoute: typeof ApiPublicSendTestEmailRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicZoomOauthCallbackRoute: typeof ApiPublicZoomOauthCallbackRoute
+  BookConfirmedCancel_tokenRoute: typeof BookConfirmedCancel_tokenRoute
   SignContractContractIdRoute: typeof SignContractContractIdRoute
   ApiPublicCoupleInvoicesTokenRoute: typeof ApiPublicCoupleInvoicesTokenRoute
 }
@@ -1215,6 +1255,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PayTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/book/$slug': {
+      id: '/book/$slug'
+      path: '/book/$slug'
+      fullPath: '/book/$slug'
+      preLoaderRoute: typeof BookSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/studio/clients/': {
       id: '/studio/clients/'
       path: '/clients'
@@ -1411,6 +1458,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalAccountNotificationsRouteImport
       parentRoute: typeof PortalAccountRoute
     }
+    '/book/confirmed/$cancel_token': {
+      id: '/book/confirmed/$cancel_token'
+      path: '/book/confirmed/$cancel_token'
+      fullPath: '/book/confirmed/$cancel_token'
+      preLoaderRoute: typeof BookConfirmedCancel_tokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/zoom-oauth-callback': {
       id: '/api/public/zoom-oauth-callback'
       path: '/api/public/zoom-oauth-callback'
@@ -1451,6 +1505,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/create-checkout'
       fullPath: '/api/public/create-checkout'
       preLoaderRoute: typeof ApiPublicCreateCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/create-booking': {
+      id: '/api/public/create-booking'
+      path: '/api/public/create-booking'
+      fullPath: '/api/public/create-booking'
+      preLoaderRoute: typeof ApiPublicCreateBookingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/availability': {
@@ -1726,14 +1787,17 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PortalRoute: PortalRouteWithChildren,
   StudioRoute: StudioRouteWithChildren,
+  BookSlugRoute: BookSlugRoute,
   PayTokenRoute: PayTokenRoute,
   ApiPublicAvailabilityRoute: ApiPublicAvailabilityRoute,
+  ApiPublicCreateBookingRoute: ApiPublicCreateBookingRoute,
   ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
   ApiPublicEnvCheckRoute: ApiPublicEnvCheckRoute,
   ApiPublicGoogleOauthCallbackRoute: ApiPublicGoogleOauthCallbackRoute,
   ApiPublicSendTestEmailRoute: ApiPublicSendTestEmailRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicZoomOauthCallbackRoute: ApiPublicZoomOauthCallbackRoute,
+  BookConfirmedCancel_tokenRoute: BookConfirmedCancel_tokenRoute,
   SignContractContractIdRoute: SignContractContractIdRoute,
   ApiPublicCoupleInvoicesTokenRoute: ApiPublicCoupleInvoicesTokenRoute,
 }
