@@ -73,6 +73,7 @@ import { Route as SignContractContractIdRouteImport } from './routes/sign.contra
 import { Route as PortalAccountSecurityRouteImport } from './routes/portal.account.security'
 import { Route as PortalAccountPartnerRouteImport } from './routes/portal.account.partner'
 import { Route as PortalAccountNotificationsRouteImport } from './routes/portal.account.notifications'
+import { Route as BookConfirmedCancel_tokenRouteImport } from './routes/book.confirmed.$cancel_token'
 import { Route as ApiPublicZoomOauthCallbackRouteImport } from './routes/api/public/zoom-oauth-callback'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as ApiPublicSendTestEmailRouteImport } from './routes/api/public/send-test-email'
@@ -419,6 +420,12 @@ const PortalAccountNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => PortalAccountRoute,
   } as any)
+const BookConfirmedCancel_tokenRoute =
+  BookConfirmedCancel_tokenRouteImport.update({
+    id: '/book/confirmed/$cancel_token',
+    path: '/book/confirmed/$cancel_token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicZoomOauthCallbackRoute =
   ApiPublicZoomOauthCallbackRouteImport.update({
     id: '/api/public/zoom-oauth-callback',
@@ -542,6 +549,7 @@ export interface FileRoutesByFullPath {
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/zoom-oauth-callback': typeof ApiPublicZoomOauthCallbackRoute
+  '/book/confirmed/$cancel_token': typeof BookConfirmedCancel_tokenRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -619,6 +627,7 @@ export interface FileRoutesByTo {
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/zoom-oauth-callback': typeof ApiPublicZoomOauthCallbackRoute
+  '/book/confirmed/$cancel_token': typeof BookConfirmedCancel_tokenRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -700,6 +709,7 @@ export interface FileRoutesById {
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/zoom-oauth-callback': typeof ApiPublicZoomOauthCallbackRoute
+  '/book/confirmed/$cancel_token': typeof BookConfirmedCancel_tokenRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
   '/portal/account/partner': typeof PortalAccountPartnerRoute
   '/portal/account/security': typeof PortalAccountSecurityRoute
@@ -782,6 +792,7 @@ export interface FileRouteTypes {
     | '/api/public/send-test-email'
     | '/api/public/stripe-webhook'
     | '/api/public/zoom-oauth-callback'
+    | '/book/confirmed/$cancel_token'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -859,6 +870,7 @@ export interface FileRouteTypes {
     | '/api/public/send-test-email'
     | '/api/public/stripe-webhook'
     | '/api/public/zoom-oauth-callback'
+    | '/book/confirmed/$cancel_token'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -939,6 +951,7 @@ export interface FileRouteTypes {
     | '/api/public/send-test-email'
     | '/api/public/stripe-webhook'
     | '/api/public/zoom-oauth-callback'
+    | '/book/confirmed/$cancel_token'
     | '/portal/account/notifications'
     | '/portal/account/partner'
     | '/portal/account/security'
@@ -990,6 +1003,7 @@ export interface RootRouteChildren {
   ApiPublicSendTestEmailRoute: typeof ApiPublicSendTestEmailRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicZoomOauthCallbackRoute: typeof ApiPublicZoomOauthCallbackRoute
+  BookConfirmedCancel_tokenRoute: typeof BookConfirmedCancel_tokenRoute
   SignContractContractIdRoute: typeof SignContractContractIdRoute
   ApiPublicCoupleInvoicesTokenRoute: typeof ApiPublicCoupleInvoicesTokenRoute
 }
@@ -1444,6 +1458,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalAccountNotificationsRouteImport
       parentRoute: typeof PortalAccountRoute
     }
+    '/book/confirmed/$cancel_token': {
+      id: '/book/confirmed/$cancel_token'
+      path: '/book/confirmed/$cancel_token'
+      fullPath: '/book/confirmed/$cancel_token'
+      preLoaderRoute: typeof BookConfirmedCancel_tokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/zoom-oauth-callback': {
       id: '/api/public/zoom-oauth-callback'
       path: '/api/public/zoom-oauth-callback'
@@ -1776,6 +1797,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSendTestEmailRoute: ApiPublicSendTestEmailRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicZoomOauthCallbackRoute: ApiPublicZoomOauthCallbackRoute,
+  BookConfirmedCancel_tokenRoute: BookConfirmedCancel_tokenRoute,
   SignContractContractIdRoute: SignContractContractIdRoute,
   ApiPublicCoupleInvoicesTokenRoute: ApiPublicCoupleInvoicesTokenRoute,
 }
