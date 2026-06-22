@@ -115,62 +115,180 @@ export type Database = {
           },
         ]
       }
-      bookings: {
+      booking_reminders: {
         Row: {
-          booked_by_email: string | null
-          booked_by_user: string | null
-          client_id: string | null
+          attempt_count: number
+          booking_id: string
           created_at: string
-          duration_minutes: number | null
-          event_type: Database["public"]["Enums"]["booking_event_type"] | null
-          google_event_id: string | null
+          email_send_id: string | null
           id: string
-          meeting_link: string | null
-          notes: string | null
-          scheduled_at: string | null
-          status: Database["public"]["Enums"]["booking_status"]
+          kind: Database["public"]["Enums"]["booking_reminder_kind"]
+          last_error: string | null
+          postmark_message_id: string | null
+          send_at: string
+          sent_at: string | null
+          status: Database["public"]["Enums"]["booking_reminder_status"]
         }
         Insert: {
-          booked_by_email?: string | null
-          booked_by_user?: string | null
-          client_id?: string | null
+          attempt_count?: number
+          booking_id: string
           created_at?: string
-          duration_minutes?: number | null
-          event_type?: Database["public"]["Enums"]["booking_event_type"] | null
-          google_event_id?: string | null
+          email_send_id?: string | null
           id?: string
-          meeting_link?: string | null
-          notes?: string | null
-          scheduled_at?: string | null
-          status?: Database["public"]["Enums"]["booking_status"]
+          kind: Database["public"]["Enums"]["booking_reminder_kind"]
+          last_error?: string | null
+          postmark_message_id?: string | null
+          send_at: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["booking_reminder_status"]
         }
         Update: {
-          booked_by_email?: string | null
-          booked_by_user?: string | null
-          client_id?: string | null
+          attempt_count?: number
+          booking_id?: string
           created_at?: string
-          duration_minutes?: number | null
-          event_type?: Database["public"]["Enums"]["booking_event_type"] | null
-          google_event_id?: string | null
+          email_send_id?: string | null
           id?: string
-          meeting_link?: string | null
-          notes?: string | null
-          scheduled_at?: string | null
-          status?: Database["public"]["Enums"]["booking_status"]
+          kind?: Database["public"]["Enums"]["booking_reminder_kind"]
+          last_error?: string | null
+          postmark_message_id?: string | null
+          send_at?: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["booking_reminder_status"]
         }
         Relationships: [
           {
-            foreignKeyName: "bookings_booked_by_user_fkey"
-            columns: ["booked_by_user"]
+            foreignKeyName: "booking_reminders_booking_id_fkey"
+            columns: ["booking_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "bookings_client_id_fkey"
+            foreignKeyName: "booking_reminders_email_send_id_fkey"
+            columns: ["email_send_id"]
+            isOneToOne: false
+            referencedRelation: "email_sends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          call_type_id: string
+          cancel_token: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by:
+            | Database["public"]["Enums"]["booking_cancelled_by"]
+            | null
+          client_id: string | null
+          couple_name_1: string
+          couple_name_2: string | null
+          created_at: string
+          custom_field_responses: Json
+          ends_at: string
+          google_calendar_event_id: string | null
+          google_calendar_id: string | null
+          id: string
+          invite_token: string | null
+          phone: string | null
+          primary_email: string
+          reschedule_token: string
+          rescheduled_from_booking_id: string | null
+          source: Database["public"]["Enums"]["booking_source"]
+          starts_at: string
+          status: Database["public"]["Enums"]["booking_status"]
+          timezone_snapshot: string
+          updated_at: string
+          visitor_timezone: string | null
+          zoom_join_url: string | null
+          zoom_meeting_id: string | null
+          zoom_password: string | null
+        }
+        Insert: {
+          call_type_id: string
+          cancel_token?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?:
+            | Database["public"]["Enums"]["booking_cancelled_by"]
+            | null
+          client_id?: string | null
+          couple_name_1: string
+          couple_name_2?: string | null
+          created_at?: string
+          custom_field_responses?: Json
+          ends_at: string
+          google_calendar_event_id?: string | null
+          google_calendar_id?: string | null
+          id?: string
+          invite_token?: string | null
+          phone?: string | null
+          primary_email: string
+          reschedule_token?: string
+          rescheduled_from_booking_id?: string | null
+          source?: Database["public"]["Enums"]["booking_source"]
+          starts_at: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          timezone_snapshot: string
+          updated_at?: string
+          visitor_timezone?: string | null
+          zoom_join_url?: string | null
+          zoom_meeting_id?: string | null
+          zoom_password?: string | null
+        }
+        Update: {
+          call_type_id?: string
+          cancel_token?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?:
+            | Database["public"]["Enums"]["booking_cancelled_by"]
+            | null
+          client_id?: string | null
+          couple_name_1?: string
+          couple_name_2?: string | null
+          created_at?: string
+          custom_field_responses?: Json
+          ends_at?: string
+          google_calendar_event_id?: string | null
+          google_calendar_id?: string | null
+          id?: string
+          invite_token?: string | null
+          phone?: string | null
+          primary_email?: string
+          reschedule_token?: string
+          rescheduled_from_booking_id?: string | null
+          source?: Database["public"]["Enums"]["booking_source"]
+          starts_at?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          timezone_snapshot?: string
+          updated_at?: string
+          visitor_timezone?: string | null
+          zoom_join_url?: string | null
+          zoom_meeting_id?: string | null
+          zoom_password?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_call_type_id_fkey"
+            columns: ["call_type_id"]
+            isOneToOne: false
+            referencedRelation: "call_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_client_id_fkey1"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_rescheduled_from_booking_id_fkey"
+            columns: ["rescheduled_from_booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
         ]
@@ -350,6 +468,101 @@ export type Database = {
           },
         ]
       }
+      call_type_fields: {
+        Row: {
+          call_type_id: string
+          created_at: string
+          display_order: number
+          field_key: string
+          field_type: Database["public"]["Enums"]["call_type_field_type"]
+          id: string
+          is_required: boolean
+          label: string
+          options: Json | null
+          placeholder: string | null
+          updated_at: string
+        }
+        Insert: {
+          call_type_id: string
+          created_at?: string
+          display_order?: number
+          field_key: string
+          field_type: Database["public"]["Enums"]["call_type_field_type"]
+          id?: string
+          is_required?: boolean
+          label: string
+          options?: Json | null
+          placeholder?: string | null
+          updated_at?: string
+        }
+        Update: {
+          call_type_id?: string
+          created_at?: string
+          display_order?: number
+          field_key?: string
+          field_type?: Database["public"]["Enums"]["call_type_field_type"]
+          id?: string
+          is_required?: boolean
+          label?: string
+          options?: Json | null
+          placeholder?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_type_fields_call_type_id_fkey"
+            columns: ["call_type_id"]
+            isOneToOne: false
+            referencedRelation: "call_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_types: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          display_order: number
+          duration_minutes: number
+          id: string
+          is_active: boolean
+          location_type: Database["public"]["Enums"]["call_location_type"]
+          name: string
+          pipeline_stage_on_book: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          duration_minutes: number
+          id?: string
+          is_active?: boolean
+          location_type?: Database["public"]["Enums"]["call_location_type"]
+          name: string
+          pipeline_stage_on_book?: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          location_type?: Database["public"]["Enums"]["call_location_type"]
+          name?: string
+          pipeline_stage_on_book?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       client_users: {
         Row: {
           client_id: string
@@ -431,6 +644,7 @@ export type Database = {
           package_price: number | null
           phone: string | null
           photographer_id: string | null
+          pipeline_stage: string | null
           portal_first_login_at: string | null
           portal_invited_at: string | null
           portal_login_mode: string | null
@@ -488,6 +702,7 @@ export type Database = {
           package_price?: number | null
           phone?: string | null
           photographer_id?: string | null
+          pipeline_stage?: string | null
           portal_first_login_at?: string | null
           portal_invited_at?: string | null
           portal_login_mode?: string | null
@@ -545,6 +760,7 @@ export type Database = {
           package_price?: number | null
           phone?: string | null
           photographer_id?: string | null
+          pipeline_stage?: string | null
           portal_first_login_at?: string | null
           portal_invited_at?: string | null
           portal_login_mode?: string | null
@@ -1634,6 +1850,133 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legacy_bookings: {
+        Row: {
+          booked_by_email: string | null
+          booked_by_user: string | null
+          client_id: string | null
+          created_at: string
+          duration_minutes: number | null
+          event_type: Database["public"]["Enums"]["booking_event_type"] | null
+          google_event_id: string | null
+          id: string
+          meeting_link: string | null
+          notes: string | null
+          scheduled_at: string | null
+          status: Database["public"]["Enums"]["booking_status"]
+        }
+        Insert: {
+          booked_by_email?: string | null
+          booked_by_user?: string | null
+          client_id?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          event_type?: Database["public"]["Enums"]["booking_event_type"] | null
+          google_event_id?: string | null
+          id?: string
+          meeting_link?: string | null
+          notes?: string | null
+          scheduled_at?: string | null
+          status?: Database["public"]["Enums"]["booking_status"]
+        }
+        Update: {
+          booked_by_email?: string | null
+          booked_by_user?: string | null
+          client_id?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          event_type?: Database["public"]["Enums"]["booking_event_type"] | null
+          google_event_id?: string | null
+          id?: string
+          meeting_link?: string | null
+          notes?: string | null
+          scheduled_at?: string | null
+          status?: Database["public"]["Enums"]["booking_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_booked_by_user_fkey"
+            columns: ["booked_by_user"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manual_invites: {
+        Row: {
+          call_type_id: string | null
+          client_id: string
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          personal_note: string | null
+          prefill: Json
+          token: string
+          updated_at: string
+          used_at: string | null
+          used_by_booking_id: string | null
+        }
+        Insert: {
+          call_type_id?: string | null
+          client_id: string
+          created_at?: string
+          created_by: string
+          expires_at?: string
+          id?: string
+          personal_note?: string | null
+          prefill?: Json
+          token?: string
+          updated_at?: string
+          used_at?: string | null
+          used_by_booking_id?: string | null
+        }
+        Update: {
+          call_type_id?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          personal_note?: string | null
+          prefill?: Json
+          token?: string
+          updated_at?: string
+          used_at?: string | null
+          used_by_booking_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_invites_call_type_id_fkey"
+            columns: ["call_type_id"]
+            isOneToOne: false
+            referencedRelation: "call_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_invites_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_invites_used_by_booking_fk"
+            columns: ["used_by_booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
         ]
@@ -3012,6 +3355,48 @@ export type Database = {
           },
         ]
       }
+      scheduling_settings: {
+        Row: {
+          also_busy_from_calendar_ids: string[]
+          buffer_minutes: number
+          created_at: string
+          id: string
+          lookahead_days: number
+          min_lead_time_hours: number
+          owner_notification_email: string | null
+          owner_user_id: string
+          primary_calendar_id: string | null
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          also_busy_from_calendar_ids?: string[]
+          buffer_minutes?: number
+          created_at?: string
+          id?: string
+          lookahead_days?: number
+          min_lead_time_hours?: number
+          owner_notification_email?: string | null
+          owner_user_id: string
+          primary_calendar_id?: string | null
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          also_busy_from_calendar_ids?: string[]
+          buffer_minutes?: number
+          created_at?: string
+          id?: string
+          lookahead_days?: number
+          min_lead_time_hours?: number
+          owner_notification_email?: string | null
+          owner_user_id?: string
+          primary_calendar_id?: string | null
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       service_item_costs: {
         Row: {
           cost_cents: number
@@ -4012,12 +4397,35 @@ export type Database = {
         | "timeline_review"
         | "engagement_session_consultation"
         | "custom"
+      booking_cancelled_by: "couple" | "owner" | "system"
       booking_event_type:
         | "discovery_call"
         | "timeline_review"
         | "engagement_consultation"
+      booking_reminder_kind:
+        | "confirmation"
+        | "reminder_24h"
+        | "reminder_1h"
+        | "owner_notification"
+        | "cancelled"
+        | "rescheduled"
+      booking_reminder_status:
+        | "pending"
+        | "sent"
+        | "failed"
+        | "skipped"
+        | "cancelled"
+      booking_source: "public" | "manual_invite"
       booking_status: "confirmed" | "cancelled" | "completed" | "no_show"
       calendar_provider: "google" | "zoom"
+      call_location_type: "zoom"
+      call_type_field_type:
+        | "text"
+        | "textarea"
+        | "email"
+        | "date"
+        | "dropdown"
+        | "checkbox"
       client_status:
         | "lead"
         | "booked"
@@ -4312,13 +4720,39 @@ export const Constants = {
         "engagement_session_consultation",
         "custom",
       ],
+      booking_cancelled_by: ["couple", "owner", "system"],
       booking_event_type: [
         "discovery_call",
         "timeline_review",
         "engagement_consultation",
       ],
+      booking_reminder_kind: [
+        "confirmation",
+        "reminder_24h",
+        "reminder_1h",
+        "owner_notification",
+        "cancelled",
+        "rescheduled",
+      ],
+      booking_reminder_status: [
+        "pending",
+        "sent",
+        "failed",
+        "skipped",
+        "cancelled",
+      ],
+      booking_source: ["public", "manual_invite"],
       booking_status: ["confirmed", "cancelled", "completed", "no_show"],
       calendar_provider: ["google", "zoom"],
+      call_location_type: ["zoom"],
+      call_type_field_type: [
+        "text",
+        "textarea",
+        "email",
+        "date",
+        "dropdown",
+        "checkbox",
+      ],
       client_status: [
         "lead",
         "booked",

@@ -136,7 +136,7 @@ function PipelinePage() {
     if (!confirm) return;
     const { lead, to } = confirm;
     if (to === "discovery") {
-      await supabase.from("bookings").insert({
+      await supabase.from("legacy_bookings").insert({
         client_id: lead.id,
         event_type: "discovery_call",
         status: "confirmed",
