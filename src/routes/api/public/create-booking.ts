@@ -1,15 +1,23 @@
-// Public booking endpoint (Slice 4).
+// Public booking endpoint (Slice 4 + Slice 5).
 //   POST /api/public/create-booking
 // Body (JSON): {
 //   call_type_id, starts_at (ISO), primary_email, couple_name_1,
 //   couple_name_2?, phone?, custom_field_responses?, visitor_timezone,
-//   idempotency_key?, hp? (honeypot)
+//   idempotency_key?, hp? (honeypot),
+//   __test_force_zoom_fail?, __test_force_google_fail?  // dev/sandbox only
 // }
-// Returns: { booking_id, cancel_token } | 409 SLOT_TAKEN | 4xx/5xx
+// Returns: { booking_id, cancel_token, zoom_join_url }
+//   | 409 SLOT_TAKEN
+//   | 503 scheduling_unavailable  (compensated; slot freed)
 
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import {
+  BookingProviderError,
+  alertOwner,
+  runBookingProviderFlow,
+} from "@/lib/scheduling/booking-providers.server";
 
 // Very simple per-IP rate limit (per Worker isolate; "best-effort, in-memory" per plan §9).
 const HITS = new Map<string, { count: number; resetAt: number }>();
@@ -37,6 +45,8 @@ const BodySchema = z.object({
   visitor_timezone: z.string().min(1).max(80),
   idempotency_key: z.string().min(8).max(80).optional(),
   hp: z.string().optional(), // honeypot
+  __test_force_zoom_fail: z.boolean().optional(),
+  __test_force_google_fail: z.boolean().optional(),
 });
 
 function jsonError(status: number, error: string, extra?: Record<string, unknown>) {
@@ -65,13 +75,17 @@ export const Route = createFileRoute("/api/public/create-booking")({
         }
         const b = parsed.data;
         if (b.hp && b.hp.length > 0) {
-          // Silently accept-but-don't-store the bot.
-          return Response.json({ booking_id: "00000000-0000-0000-0000-000000000000", cancel_token: "00000000-0000-0000-0000-000000000000" });
+          return Response.json({
+            booking_id: "00000000-0000-0000-0000-000000000000",
+            cancel_token: "00000000-0000-0000-0000-000000000000",
+            zoom_join_url: null,
+          });
         }
 
         const startsAtMs = Date.parse(b.starts_at);
         if (!Number.isFinite(startsAtMs)) return jsonError(400, "invalid_starts_at");
 
+        // ---- Step 1: atomic booking row creation (Slice 4) ----
         const { data, error } = await supabaseAdmin.rpc("create_booking", {
           p_call_type_id: b.call_type_id,
           p_starts_at: new Date(startsAtMs).toISOString(),
@@ -83,8 +97,6 @@ export const Route = createFileRoute("/api/public/create-booking")({
           p_visitor_timezone: b.visitor_timezone,
           p_idempotency_key: b.idempotency_key ?? undefined,
         });
-
-
         if (error) {
           const msg = error.message || "";
           if (/SLOT_TAKEN/.test(msg)) return jsonError(409, "SLOT_TAKEN");
@@ -94,12 +106,138 @@ export const Route = createFileRoute("/api/public/create-booking")({
         }
         const row = Array.isArray(data) ? data[0] : data;
         if (!row?.booking_id) return jsonError(500, "no_row_returned");
+        const bookingId = row.booking_id as string;
+        const cancelToken = row.cancel_token as string;
+        const endsAtIso = row.ends_at as string;
+        const startsAtIso = row.starts_at as string;
 
-        return Response.json({
-          booking_id: row.booking_id,
-          cancel_token: row.cancel_token,
-        });
+        // Idempotency replay: if this booking already has zoom links, we're done.
+        const { data: existing } = await supabaseAdmin
+          .from("bookings")
+          .select("zoom_join_url")
+          .eq("id", bookingId)
+          .maybeSingle();
+        if (existing?.zoom_join_url) {
+          return Response.json({
+            booking_id: bookingId,
+            cancel_token: cancelToken,
+            zoom_join_url: existing.zoom_join_url,
+          });
+        }
+
+        // ---- Step 2: load owner + call type + scheduling settings ----
+        const [{ data: settings }, { data: callType }] = await Promise.all([
+          supabaseAdmin
+            .from("scheduling_settings")
+            .select("owner_user_id, timezone, primary_calendar_id")
+            .limit(1)
+            .maybeSingle(),
+          supabaseAdmin
+            .from("call_types")
+            .select("name, duration_minutes")
+            .eq("id", b.call_type_id)
+            .maybeSingle(),
+        ]);
+        if (!settings?.owner_user_id || !callType) {
+          await compensateBookingRow(bookingId);
+          console.error("[create-booking] missing scheduling_settings or call_type");
+          return jsonError(503, "scheduling_unavailable");
+        }
+
+        const ownerUserId = settings.owner_user_id as string;
+
+        // ---- Step 3: provider flow with compensation ----
+        try {
+          const providers = await runBookingProviderFlow(supabaseAdmin, {
+            ownerUserId,
+            primaryCalendarId: settings.primary_calendar_id || "primary",
+            callTypeName: callType.name,
+            startUtcIso: startsAtIso,
+            endUtcIso: endsAtIso,
+            durationMinutes: callType.duration_minutes,
+            studioTimezone: settings.timezone || "America/New_York",
+            primaryEmail: b.primary_email,
+            coupleName1: b.couple_name_1,
+            coupleName2: b.couple_name_2 ?? null,
+            phone: b.phone ?? null,
+            customFieldResponses: (b.custom_field_responses ?? {}) as Record<string, unknown>,
+            __forceZoomFail: b.__test_force_zoom_fail,
+            __forceGoogleFail: b.__test_force_google_fail,
+          });
+
+          // ---- Step 4: persist provider artifacts ----
+          const { error: updErr } = await supabaseAdmin
+            .from("bookings")
+            .update({
+              zoom_meeting_id: providers.zoom_meeting_id,
+              zoom_join_url: providers.zoom_join_url,
+              zoom_password: providers.zoom_password,
+              google_calendar_event_id: providers.google_calendar_event_id,
+              google_calendar_id: providers.google_calendar_id,
+            })
+            .eq("id", bookingId);
+          if (updErr) {
+            // Persist failed but provider artifacts exist — alert, don't compensate
+            // (would orphan both Zoom + Google). Booking row still has slot.
+            console.error("[create-booking] persist failure:", updErr);
+            await alertOwner(supabaseAdmin, ownerUserId, {
+              title: "Booking provider links failed to save",
+              body: `Booking ${bookingId} created in Zoom (${providers.zoom_meeting_id}) and Google (${providers.google_calendar_event_id}) but the DB update failed: ${updErr.message}`,
+              actionType: "scheduling.persist_failed",
+              metadata: { bookingId, ...providers },
+            });
+            return jsonError(500, "server_error");
+          }
+
+          return Response.json({
+            booking_id: bookingId,
+            cancel_token: cancelToken,
+            zoom_join_url: providers.zoom_join_url,
+          });
+        } catch (e) {
+          await compensateBookingRow(bookingId);
+          const err =
+            e instanceof BookingProviderError
+              ? e
+              : new BookingProviderError({
+                  provider: "zoom",
+                  reason: "provider_error",
+                  detail: e instanceof Error ? e.message : String(e),
+                });
+          console.error("[create-booking] provider flow failed:", err);
+          await alertOwner(supabaseAdmin, ownerUserId, {
+            title:
+              err.reason === "no_connection"
+                ? `Reconnect ${err.provider} to accept bookings`
+                : err.reason === "token_revoked"
+                ? `${err.provider} access was revoked — reconnect required`
+                : `Booking failed at ${err.provider}`,
+            body:
+              `A couple tried to book a ${callType.name} on ${startsAtIso} but the ${err.provider} step failed and the booking was cancelled.\n\n` +
+              `Reason: ${err.reason}\nDetail: ${err.detail}` +
+              (err.orphanZoomMeetingId
+                ? `\n\n⚠ Orphan Zoom meeting left behind: ${err.orphanZoomMeetingId} — please delete it manually.`
+                : ""),
+            actionType: `scheduling.${err.reason}`,
+            metadata: {
+              provider: err.provider,
+              reason: err.reason,
+              detail: err.detail,
+              orphanZoomMeetingId: err.orphanZoomMeetingId,
+              attemptedBookingId: bookingId,
+              startsAt: startsAtIso,
+            },
+          });
+          return jsonError(503, "scheduling_unavailable");
+        }
       },
     },
   },
 });
+
+async function compensateBookingRow(bookingId: string): Promise<void> {
+  const { error } = await supabaseAdmin.from("bookings").delete().eq("id", bookingId);
+  if (error) {
+    console.error("[create-booking] compensation delete failed:", error, bookingId);
+  }
+}
