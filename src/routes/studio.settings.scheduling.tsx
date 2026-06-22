@@ -322,3 +322,144 @@ function SettingsTab() {
     </Card>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Availability tab — minimal editor for calendar_availability_rules.
+// One row = one weekly window. Days are 0=Sun..6=Sat to match JS getDay().
+// The availability engine reads these same rows.
+// ---------------------------------------------------------------------------
+
+type AvailabilityRow = {
+  id: string;
+  user_id: string;
+  event_type: "discovery_call" | "timeline_review" | "engagement_session_consultation" | "custom";
+  available_days: number[];
+  available_hours: { start: string; end: string };
+  is_active: boolean;
+};
+
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function AvailabilityTab() {
+  const { profile } = useAuth();
+  const [rows, setRows] = useState<AvailabilityRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    if (!profile) return;
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("calendar_availability_rules")
+      .select("id, user_id, event_type, available_days, available_hours, is_active")
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: true });
+    if (error) toast.error(error.message);
+    setRows(((data ?? []) as unknown) as AvailabilityRow[]);
+    setLoading(false);
+  }, [profile]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const addRow = async () => {
+    if (!profile) return;
+    const { error } = await supabase.from("calendar_availability_rules").insert({
+      user_id: profile.id,
+      event_type: "custom",
+      available_days: [2],
+      available_hours: { start: "10:00", end: "15:00" },
+      is_active: true,
+    } as never);
+    if (error) return toast.error(error.message);
+    await load();
+  };
+
+  const updateRow = async (id: string, patch: Partial<AvailabilityRow>) => {
+    const { error } = await supabase.from("calendar_availability_rules").update(patch as never).eq("id", id);
+    if (error) return toast.error(error.message);
+    await load();
+  };
+
+  const deleteRow = async (id: string) => {
+    const { error } = await supabase.from("calendar_availability_rules").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    await load();
+  };
+
+  if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Weekly windows</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Each row is one weekly window. Times are in your studio timezone (set in the Settings tab).
+            The public booking pages walk these windows in 15-minute steps and only show starts where the
+            full call still fits inside the window.
+          </p>
+          {rows.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No windows yet — add one below.</p>
+          ) : (
+            <ul className="space-y-2">
+              {rows.map((r) => (
+                <li key={r.id} className="flex flex-wrap items-center gap-2 border rounded-sm p-3">
+                  <div className="flex flex-wrap gap-1">
+                    {DAY_LABELS.map((lbl, idx) => {
+                      const on = r.available_days.includes(idx);
+                      return (
+                        <button
+                          key={lbl}
+                          type="button"
+                          onClick={() => {
+                            const next = on
+                              ? r.available_days.filter((x) => x !== idx)
+                              : [...r.available_days, idx].sort();
+                            void updateRow(r.id, { available_days: next });
+                          }}
+                          className={`text-xs px-2 py-1 rounded-sm border ${on ? "bg-primary text-primary-foreground border-primary" : "bg-background"}`}
+                        >
+                          {lbl}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <Input
+                    type="time"
+                    value={r.available_hours.start}
+                    onChange={(e) => updateRow(r.id, { available_hours: { ...r.available_hours, start: e.target.value } })}
+                    className="w-28"
+                  />
+                  <span className="text-sm text-muted-foreground">to</span>
+                  <Input
+                    type="time"
+                    value={r.available_hours.end}
+                    onChange={(e) => updateRow(r.id, { available_hours: { ...r.available_hours, end: e.target.value } })}
+                    className="w-28"
+                  />
+                  <div className="flex-1" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => updateRow(r.id, { is_active: !r.is_active })}
+                  >
+                    {r.is_active ? "Active" : "Inactive"}
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => deleteRow(r.id)}>
+                    Delete
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div>
+            <Button size="sm" onClick={addRow}>
+              <Plus className="size-4 mr-1" /> Add window
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
