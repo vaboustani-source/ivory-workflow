@@ -75,9 +75,9 @@ export function callbackPath(provider: Provider): string {
 const STATE_TTL_MS = 10 * 60 * 1000;
 
 function hmacKey(): Buffer {
-  // SUPABASE_SERVICE_ROLE_KEY is server-only and always present; use it as the
+  // SERVICE_ROLE_KEY is server-only and always present; use it as the
   // HMAC secret so we don't need to introduce a new secret for slice 1.
-  return Buffer.from(getEnv("SUPABASE_SERVICE_ROLE_KEY"));
+  return Buffer.from(getEnv("SERVICE_ROLE_KEY"));
 }
 
 function b64u(buf: Buffer): string {
