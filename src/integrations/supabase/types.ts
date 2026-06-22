@@ -4365,6 +4365,8 @@ export type Database = {
           status: string
           timezone_snapshot: string
           visitor_timezone: string
+          zoom_join_url: string
+          zoom_password: string
         }[]
       }
       hard_delete_old_messages: { Args: never; Returns: number }
