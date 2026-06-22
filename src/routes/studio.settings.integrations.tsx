@@ -55,9 +55,22 @@ function IntegrationsPage() {
   const disconnectFn = useServerFn(disconnectProvider);
   const refreshFn = useServerFn(refreshIntegrationToken);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["integrations"],
-    queryFn: () => fetchList(),
+    queryFn: async (): Promise<IntegrationStatus[]> => {
+      const r = (await fetchList()) as unknown;
+      // Defensive unwrap: some serverFn/middleware paths may return a wrapped
+      // envelope ({ result: [...] } / { data: [...] }) or a non-array (Response,
+      // error object). Normalize to IntegrationStatus[] so the UI never crashes.
+      if (Array.isArray(r)) return r as IntegrationStatus[];
+      if (r && typeof r === "object") {
+        const maybe =
+          (r as { result?: unknown }).result ??
+          (r as { data?: unknown }).data;
+        if (Array.isArray(maybe)) return maybe as IntegrationStatus[];
+      }
+      throw new Error("Unexpected response shape from listIntegrations");
+    },
   });
 
   const [busy, setBusy] = useState<string | null>(null);
@@ -121,8 +134,9 @@ function IntegrationsPage() {
     },
   });
 
+  const rows: IntegrationStatus[] = Array.isArray(data) ? data : [];
   const byProvider = new Map<string, IntegrationStatus>(
-    (data ?? []).map((r) => [r.provider, r]),
+    rows.map((r) => [r.provider, r]),
   );
 
   return (
@@ -135,7 +149,19 @@ function IntegrationsPage() {
         </p>
       </header>
 
-      {(data ?? []).some((r) => r.needs_reconnect) && (
+      {isError && (
+        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm flex items-center justify-between gap-3">
+          <span>
+            Couldn't load your integrations
+            {error instanceof Error && error.message ? `: ${error.message}` : "."}
+          </span>
+          <Button size="sm" variant="outline" onClick={() => refetch()}>
+            Retry
+          </Button>
+        </div>
+      )}
+
+      {rows.some((r) => r.needs_reconnect) && (
         <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
           One or more connections were revoked at the provider. Click <strong>Connect</strong> below
           to reauthorize so scheduling keeps working.
