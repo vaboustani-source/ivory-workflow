@@ -137,9 +137,10 @@ function CallTypeDetailPage() {
 
   const updateField = async (f: Field, patch: Partial<Field>) => {
     const merged = { ...f, ...patch };
-    const dbPatch: Record<string, unknown> = { ...patch };
-    if (patch.options !== undefined) dbPatch.options = patch.options;
-    const { error } = await supabase.from("call_type_fields").update(dbPatch).eq("id", f.id);
+    const { error } = await supabase
+      .from("call_type_fields")
+      .update(patch as never)
+      .eq("id", f.id);
     if (error) return toast.error(error.message);
     setFields((cur) => cur.map((x) => x.id === f.id ? merged : x));
   };

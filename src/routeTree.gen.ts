@@ -79,6 +79,7 @@ import { Route as ApiPublicEnvCheckRouteImport } from './routes/api/public/env-c
 import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
 import { Route as StudioSettingsSchedulingIndexRouteImport } from './routes/studio.settings.scheduling.index'
 import { Route as StudioSettingsEmailsIndexRouteImport } from './routes/studio.settings.emails.index'
+import { Route as StudioSettingsSchedulingIdRouteImport } from './routes/studio.settings.scheduling.$id'
 import { Route as StudioSettingsEmailsEmailTypeRouteImport } from './routes/studio.settings.emails.$emailType'
 import { Route as StudioContractsTemplatesIdRouteImport } from './routes/studio.contracts.templates.$id'
 import { Route as StudioClientsIdSourcingRouteImport } from './routes/studio.clients.$id_.sourcing'
@@ -448,6 +449,12 @@ const StudioSettingsEmailsIndexRoute =
     path: '/emails/',
     getParentRoute: () => StudioSettingsRoute,
   } as any)
+const StudioSettingsSchedulingIdRoute =
+  StudioSettingsSchedulingIdRouteImport.update({
+    id: '/scheduling/$id',
+    path: '/scheduling/$id',
+    getParentRoute: () => StudioSettingsRoute,
+  } as any)
 const StudioSettingsEmailsEmailTypeRoute =
   StudioSettingsEmailsEmailTypeRouteImport.update({
     id: '/emails/$emailType',
@@ -545,6 +552,7 @@ export interface FileRoutesByFullPath {
   '/studio/clients/$id/sourcing': typeof StudioClientsIdSourcingRoute
   '/studio/contracts/templates/$id': typeof StudioContractsTemplatesIdRoute
   '/studio/settings/emails/$emailType': typeof StudioSettingsEmailsEmailTypeRoute
+  '/studio/settings/scheduling/$id': typeof StudioSettingsSchedulingIdRoute
   '/studio/settings/emails/': typeof StudioSettingsEmailsIndexRoute
   '/studio/settings/scheduling/': typeof StudioSettingsSchedulingIndexRoute
 }
@@ -618,6 +626,7 @@ export interface FileRoutesByTo {
   '/studio/clients/$id/sourcing': typeof StudioClientsIdSourcingRoute
   '/studio/contracts/templates/$id': typeof StudioContractsTemplatesIdRoute
   '/studio/settings/emails/$emailType': typeof StudioSettingsEmailsEmailTypeRoute
+  '/studio/settings/scheduling/$id': typeof StudioSettingsSchedulingIdRoute
   '/studio/settings/emails': typeof StudioSettingsEmailsIndexRoute
   '/studio/settings/scheduling': typeof StudioSettingsSchedulingIndexRoute
 }
@@ -695,6 +704,7 @@ export interface FileRoutesById {
   '/studio/clients/$id_/sourcing': typeof StudioClientsIdSourcingRoute
   '/studio/contracts/templates/$id': typeof StudioContractsTemplatesIdRoute
   '/studio/settings/emails/$emailType': typeof StudioSettingsEmailsEmailTypeRoute
+  '/studio/settings/scheduling/$id': typeof StudioSettingsSchedulingIdRoute
   '/studio/settings/emails/': typeof StudioSettingsEmailsIndexRoute
   '/studio/settings/scheduling/': typeof StudioSettingsSchedulingIndexRoute
 }
@@ -773,6 +783,7 @@ export interface FileRouteTypes {
     | '/studio/clients/$id/sourcing'
     | '/studio/contracts/templates/$id'
     | '/studio/settings/emails/$emailType'
+    | '/studio/settings/scheduling/$id'
     | '/studio/settings/emails/'
     | '/studio/settings/scheduling/'
   fileRoutesByTo: FileRoutesByTo
@@ -846,6 +857,7 @@ export interface FileRouteTypes {
     | '/studio/clients/$id/sourcing'
     | '/studio/contracts/templates/$id'
     | '/studio/settings/emails/$emailType'
+    | '/studio/settings/scheduling/$id'
     | '/studio/settings/emails'
     | '/studio/settings/scheduling'
   id:
@@ -922,6 +934,7 @@ export interface FileRouteTypes {
     | '/studio/clients/$id_/sourcing'
     | '/studio/contracts/templates/$id'
     | '/studio/settings/emails/$emailType'
+    | '/studio/settings/scheduling/$id'
     | '/studio/settings/emails/'
     | '/studio/settings/scheduling/'
   fileRoutesById: FileRoutesById
@@ -1434,6 +1447,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioSettingsEmailsIndexRouteImport
       parentRoute: typeof StudioSettingsRoute
     }
+    '/studio/settings/scheduling/$id': {
+      id: '/studio/settings/scheduling/$id'
+      path: '/scheduling/$id'
+      fullPath: '/studio/settings/scheduling/$id'
+      preLoaderRoute: typeof StudioSettingsSchedulingIdRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
     '/studio/settings/emails/$emailType': {
       id: '/studio/settings/emails/$emailType'
       path: '/emails/$emailType'
@@ -1585,6 +1605,7 @@ interface StudioSettingsRouteChildren {
   StudioSettingsTeamRoute: typeof StudioSettingsTeamRoute
   StudioSettingsWorkflowRoute: typeof StudioSettingsWorkflowRoute
   StudioSettingsEmailsEmailTypeRoute: typeof StudioSettingsEmailsEmailTypeRoute
+  StudioSettingsSchedulingIdRoute: typeof StudioSettingsSchedulingIdRoute
   StudioSettingsEmailsIndexRoute: typeof StudioSettingsEmailsIndexRoute
   StudioSettingsSchedulingIndexRoute: typeof StudioSettingsSchedulingIndexRoute
 }
@@ -1606,6 +1627,7 @@ const StudioSettingsRouteChildren: StudioSettingsRouteChildren = {
   StudioSettingsTeamRoute: StudioSettingsTeamRoute,
   StudioSettingsWorkflowRoute: StudioSettingsWorkflowRoute,
   StudioSettingsEmailsEmailTypeRoute: StudioSettingsEmailsEmailTypeRoute,
+  StudioSettingsSchedulingIdRoute: StudioSettingsSchedulingIdRoute,
   StudioSettingsEmailsIndexRoute: StudioSettingsEmailsIndexRoute,
   StudioSettingsSchedulingIndexRoute: StudioSettingsSchedulingIndexRoute,
 }
