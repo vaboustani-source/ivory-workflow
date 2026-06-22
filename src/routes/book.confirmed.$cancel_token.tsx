@@ -133,10 +133,38 @@ function Confirmed() {
           Studio time: {fmtTime(b.starts_at, studioTz)} ({studioTz})
         </div>
 
-        <div className="mt-6 border-t border-[#6B1F2A]/10 pt-5 text-sm text-[#1a0a10]/75">
-          A calendar invite and Zoom link will arrive at{" "}
-          <span className="text-[#1a0a10]">{b.primary_email}</span> shortly.
-        </div>
+        {b.zoom_join_url ? (
+          <div className="mt-6 border-t border-[#6B1F2A]/10 pt-5">
+            <div className="text-[11px] uppercase tracking-[0.22em] text-[#B8924A]">
+              Join on Zoom
+            </div>
+            <a
+              href={b.zoom_join_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-block break-all text-[15px] text-[#6B1F2A] underline decoration-[#B8924A]/60 underline-offset-4 hover:decoration-[#6B1F2A]"
+            >
+              {b.zoom_join_url}
+            </a>
+            {b.zoom_password ? (
+              <div className="mt-2 text-sm text-[#1a0a10]/80">
+                Password:{" "}
+                <span className="rounded bg-[#6B1F2A]/5 px-1.5 py-0.5 font-mono text-[#6B1F2A]">
+                  {b.zoom_password}
+                </span>
+              </div>
+            ) : null}
+            <div className="mt-4 text-sm text-[#1a0a10]/75">
+              A calendar invite and confirmation email will arrive at{" "}
+              <span className="text-[#1a0a10]">{b.primary_email}</span> shortly.
+            </div>
+          </div>
+        ) : (
+          <div className="mt-6 border-t border-[#6B1F2A]/10 pt-5 text-sm text-[#1a0a10]/75">
+            A calendar invite and Zoom link will arrive at{" "}
+            <span className="text-[#1a0a10]">{b.primary_email}</span> shortly.
+          </div>
+        )}
       </div>
     </Shell>
   );
