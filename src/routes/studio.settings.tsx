@@ -24,6 +24,7 @@ function SettingsLayout() {
     { label: "Email copy", to: "/studio/settings/emails", visible: isOwner },
     { label: "Resources", to: "/studio/settings/resources", visible: true },
     { label: "Calendar", to: "/studio/settings/calendar", visible: true },
+    { label: "Scheduling", to: "/studio/settings/scheduling", visible: isOwner },
     { label: "Integrations", to: "/studio/settings/integrations", visible: true },
     { label: "Activity Log", to: "/studio/settings/activity-log", visible: isOwner },
     { label: "Storage", to: "/studio/settings/storage", visible: isOwner },
