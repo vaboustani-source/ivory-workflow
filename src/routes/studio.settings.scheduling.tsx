@@ -15,7 +15,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 
-export const Route = createFileRoute("/studio/settings/scheduling/")({
+export const Route = createFileRoute("/studio/settings/scheduling")({
   component: SchedulingSettingsPage,
 });
 
@@ -175,7 +175,6 @@ function CallTypesTab() {
           )}
         </CardContent>
       </Card>
-
       {creating && (
         <NewCallTypeDialog
           existingMaxOrder={rows.length ? Math.max(...rows.map((r) => r.display_order)) : 0}
@@ -184,7 +183,7 @@ function CallTypesTab() {
         />
       )}
     </div>
-  );
+  )
 }
 
 function NewCallTypeDialog({
