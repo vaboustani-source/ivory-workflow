@@ -819,7 +819,6 @@ export interface FileRouteTypes {
     | '/studio/revenue'
     | '/studio/rolodex'
     | '/studio/roster'
-    | '/studio/rolodex'
     | '/studio/settings'
     | '/studio/tasks'
     | '/portal/'
