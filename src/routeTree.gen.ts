@@ -732,6 +732,7 @@ export interface FileRoutesById {
   '/studio/revenue': typeof StudioRevenueRoute
   '/studio/rolodex': typeof StudioRolodexRoute
   '/studio/roster': typeof StudioRosterRoute
+  '/studio/rolodex': typeof StudioRolodexRoute
   '/studio/settings': typeof StudioSettingsRouteWithChildren
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
