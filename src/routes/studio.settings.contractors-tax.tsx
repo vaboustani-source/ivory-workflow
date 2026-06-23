@@ -36,11 +36,40 @@ const dollars = (cents: number) =>
 function ContractorsTaxPage() {
   const { roles } = useAuth();
   const allowed = roles.includes("owner") || roles.includes("studio_manager");
+  const isOwner = roles.includes("owner");
 
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [autoEnabled, setAutoEnabled] = useState(false);
+  const [togglingAuto, setTogglingAuto] = useState(false);
+  const [sendingFor, setSendingFor] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!allowed) return;
+    supabase
+      .from("studio_settings")
+      .select("w9_auto_request_enabled")
+      .eq("is_active", true)
+      .maybeSingle()
+      .then(({ data }) => setAutoEnabled(!!data?.w9_auto_request_enabled));
+  }, [allowed]);
+
+  const refresh = () => {
+    setLoading(true);
+    supabase
+      .rpc("get_contractor_1099_report", { _tax_year: year })
+      .then(({ data, error }) => {
+        if (error) {
+          toast.error(error.message);
+          setRows([]);
+        } else {
+          setRows((data ?? []) as Row[]);
+        }
+        setLoading(false);
+      });
+  };
 
   useEffect(() => {
     if (!allowed) return;
