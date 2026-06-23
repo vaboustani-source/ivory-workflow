@@ -294,7 +294,7 @@ function TaxW9Section({
       _contractor_id: contractor.id,
       _legal_name: legalName,
       _mailing_address: mailingAddress,
-      _business_type: businessType || null,
+      _business_type: (businessType || null) as string,
     });
     setSavingInfo(false);
     if (error) return toast.error(error.message);
