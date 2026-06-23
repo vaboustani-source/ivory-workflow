@@ -132,7 +132,8 @@ function ClientDetail() {
   const { id } = useParams({ from: "/studio/clients/$id" });
   const search = useSearch({ from: "/studio/clients/$id" });
   const navigate = useNavigate();
-  const { profile: _profile } = useAuth();
+  const { profile } = useAuth();
+  const canSendInvite = profile?.role === "owner" || profile?.role === "studio_manager";
   const [client, setClient] = useState<ClientDetailRow | null>(null);
   const initialTab: Tab = (search.tab && KEY_TO_TAB[search.tab]) || "Overview";
   const [tab, setTab] = useState<Tab>(initialTab);
@@ -471,12 +472,12 @@ function ClientDetail() {
                   {portalState === "invited" && `Invited ${relativeTime(client.portal_invited_at)}`}
                   {portalState === "active" && `Active since ${shortDate(client.portal_first_login_at)}`}
                 </p>
-                {portalState === "not_invited" && (
+                {portalState === "not_invited" && canSendInvite && (
                   <button onClick={sendInvite} className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium hover:bg-primary/90">
                     Send portal invitation
                   </button>
                 )}
-                {portalState === "invited" && (
+                {portalState === "invited" && canSendInvite && (
                   <button onClick={sendInvite} className="border border-gold text-gold px-4 py-2 rounded-md text-sm hover:bg-gold/10">
                     {`Resend · last sent ${shortDate(client.portal_invited_at)}`}
                   </button>
