@@ -195,10 +195,13 @@ function RolodexPage() {
       ) : (
         <div className="space-y-2">
           {visible.map((v) => (
-            <button
+            <div
               key={v.id}
-              onClick={() => setEditing(v)}
-              className="w-full text-left bg-surface rounded-lg shadow-soft border-t-2 border-gold p-4 flex flex-col md:flex-row md:items-center gap-4 hover:bg-background-alt/40 transition-colors"
+              onClick={() => { setOpenMergeOnEdit(false); setEditing(v); }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === "Enter") { setOpenMergeOnEdit(false); setEditing(v); } }}
+              className="w-full text-left bg-surface rounded-lg shadow-soft border-t-2 border-gold p-4 flex flex-col md:flex-row md:items-center gap-4 hover:bg-background-alt/40 transition-colors cursor-pointer"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-3 flex-wrap">
@@ -230,8 +233,29 @@ function RolodexPage() {
                   {v.instagram && <a href={v.instagram.startsWith("http") ? v.instagram : `https://instagram.com/${v.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-magenta hover:underline inline-flex items-center gap-1"><Instagram size={10} /> IG</a>}
                 </p>
               </div>
-              <span className="text-xs text-muted-foreground shrink-0">{canEdit ? "Edit →" : "View →"}</span>
-            </button>
+              <div className="flex items-center gap-2 shrink-0">
+                {canEdit && !v.is_verified && (
+                  <button
+                    type="button"
+                    onClick={(e) => quickVerify(v, e)}
+                    className="text-xs inline-flex items-center gap-1 border border-emerald-300 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-md"
+                  >
+                    <Check size={12} /> Verify
+                  </button>
+                )}
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={(e) => openMerge(v, e)}
+                    className="text-xs inline-flex items-center gap-1 border border-border text-muted-foreground hover:text-primary px-2.5 py-1.5 rounded-md"
+                    title="Merge into another vendor"
+                  >
+                    <GitMerge size={12} /> Merge
+                  </button>
+                )}
+                <span className="text-xs text-muted-foreground">{canEdit ? "Edit →" : "View →"}</span>
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -239,9 +263,11 @@ function RolodexPage() {
       {editing && (
         <VendorEditorModal
           vendor={editing}
+          allVendors={rows}
           canEdit={canEdit}
-          onClose={() => setEditing(null)}
-          onSaved={() => { setEditing(null); load(); }}
+          startInMergeMode={openMergeOnEdit}
+          onClose={() => { setEditing(null); setOpenMergeOnEdit(false); }}
+          onSaved={() => { setEditing(null); setOpenMergeOnEdit(false); load(); }}
         />
       )}
     </div>
