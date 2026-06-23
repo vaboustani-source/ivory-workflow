@@ -19,7 +19,6 @@ import { Route as StudioTasksRouteImport } from './routes/studio.tasks'
 import { Route as StudioSettingsRouteImport } from './routes/studio.settings'
 import { Route as StudioRosterRouteImport } from './routes/studio.roster'
 import { Route as StudioRolodexRouteImport } from './routes/studio.rolodex'
-import { Route as StudioRolodexRouteImport } from './routes/studio.rolodex'
 import { Route as StudioRevenueRouteImport } from './routes/studio.revenue'
 import { Route as StudioResourcesRouteImport } from './routes/studio.resources'
 import { Route as StudioQueueRouteImport } from './routes/studio.queue'
@@ -137,6 +136,11 @@ const StudioSettingsRoute = StudioSettingsRouteImport.update({
 const StudioRosterRoute = StudioRosterRouteImport.update({
   id: '/roster',
   path: '/roster',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioRolodexRoute = StudioRolodexRouteImport.update({
+  id: '/rolodex',
+  path: '/rolodex',
   getParentRoute: () => StudioRoute,
 } as any)
 const StudioRolodexRoute = StudioRolodexRouteImport.update({
