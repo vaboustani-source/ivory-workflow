@@ -280,12 +280,12 @@ function VendorEditorModal({
     (async () => {
       const { data } = await supabase
         .from("wedding_vendors")
-        .select("id, client_id, client:clients(id, primary_contact_name, partner_name)")
+        .select("id, client_id, client:clients(id, couple_name_1, couple_name_2)")
         .eq("vendor_id", vendor.id);
       const list: CoupleLink[] = ((data ?? []) as any[]).map((r) => {
         const c = r.client;
         const label = c
-          ? [c.primary_contact_name, c.partner_name].filter(Boolean).join(" & ") || "Untitled couple"
+          ? [c.couple_name_1, c.couple_name_2].filter(Boolean).join(" & ") || "Untitled couple"
           : "Unknown";
         return { id: r.id, client_id: r.client_id, couple_label: label };
       });
