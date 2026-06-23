@@ -45,6 +45,15 @@ function ContractorsPage() {
       .select("id", { count: "exact", head: true })
       .gte("created_at", monthStart.toISOString());
     setBookedThisMonth(bookedCount ?? 0);
+
+    const currentYear = new Date().getFullYear();
+    const { data: ytd } = await supabase
+      .from("contractor_ytd_pay")
+      .select("contractor_id, total_cents")
+      .eq("tax_year", currentYear);
+    const m = new Map<string, number>();
+    ((ytd ?? []) as any[]).forEach((r) => m.set(r.contractor_id, Number(r.total_cents ?? 0)));
+    setYtdByContractor(m);
   };
 
   useEffect(() => { load(); }, []);
