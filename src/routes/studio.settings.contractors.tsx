@@ -143,6 +143,18 @@ function ContractorsPage() {
           <option value="last_worked">Sort: Last worked</option>
           <option value="jobs">Sort: Jobs count</option>
         </select>
+        <button
+          type="button"
+          onClick={() => setW9Filter(w9Filter === "owes" ? "all" : "owes")}
+          className={`px-3 py-2 rounded-md text-xs border ${
+            w9Filter === "owes"
+              ? "bg-rose-100 text-rose-800 border-rose-300"
+              : "bg-background text-muted-foreground border-border hover:text-primary"
+          }`}
+          title="Show contractors who passed $600 YTD and still owe a W-9"
+        >
+          Owes W-9{owesCount ? ` (${owesCount})` : ""}
+        </button>
       </div>
 
       {loading ? (
