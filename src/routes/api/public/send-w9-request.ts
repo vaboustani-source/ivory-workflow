@@ -91,10 +91,12 @@ export const Route = createFileRoute("/api/public/send-w9-request")({
           .select("subject, body")
           .eq("name", templateName)
           .maybeSingle();
-        if (tmplErr || !tmpl) {
+        if (tmplErr || !tmpl || !tmpl.subject || !tmpl.body) {
           await markFailed(reqRow.id, contractor.id, `Template "${templateName}" missing.`);
           return json({ error: "template_missing" }, 500);
         }
+        const tmplSubject = tmpl.subject;
+        const tmplBody = tmpl.body;
 
         const firstName = (contractor.full_name ?? "there").split(/\s+/)[0] || "there";
         const merge: Record<string, string> = {
