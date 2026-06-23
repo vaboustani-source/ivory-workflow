@@ -328,19 +328,30 @@ function YesNo({ on }: { on: boolean }) {
 }
 
 function CrewCell({
-  assignedName, included, options, onAssign,
+  assignedId, assignedName, included, options, onAssign, owesW9,
 }: {
+  assignedId?: string | null;
   assignedName: string | null;
   included: boolean;
   options: Contractor[];
   onAssign: (id: string) => void;
+  owesW9?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  void assignedId;
   if (assignedName) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-sm text-foreground">
+      <span className="inline-flex items-center gap-1.5 text-sm text-foreground flex-wrap">
         <Check size={14} className="text-sage" />
         {assignedName}
+        {owesW9 && (
+          <span
+            title="This contractor has crossed $600 YTD and still owes a W-9"
+            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded-sm"
+          >
+            <AlertTriangle size={10} /> W-9
+          </span>
+        )}
       </span>
     );
   }
