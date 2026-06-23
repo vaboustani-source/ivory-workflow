@@ -173,6 +173,17 @@ function RolodexPage() {
             {!canEdit && <> Read-only.</>}
           </p>
         </div>
+        {isOwner && (
+          <button
+            type="button"
+            onClick={runBackfill}
+            disabled={importing}
+            className="text-xs inline-flex items-center gap-1 border border-border bg-background text-primary hover:bg-background-alt/60 px-3 py-2 rounded-md disabled:opacity-50"
+            title="Scan couples' questionnaire answers and add their vendors to the Rolodex (idempotent)"
+          >
+            {importing ? "Importing…" : "Import from questionnaires"}
+          </button>
+        )}
       </header>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
