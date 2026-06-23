@@ -307,6 +307,7 @@ function RolodexPage() {
           allVendors={rows}
           canEdit={canEdit}
           startInMergeMode={openMergeOnEdit}
+          onLog={logVendor}
           onClose={() => { setEditing(null); setOpenMergeOnEdit(false); }}
           onSaved={() => { setEditing(null); setOpenMergeOnEdit(false); load(); }}
         />
