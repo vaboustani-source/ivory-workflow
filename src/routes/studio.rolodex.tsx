@@ -60,13 +60,28 @@ type Vendor = {
 type StatusFilter = "all" | "unverified" | "preferred";
 
 function RolodexPage() {
-  const { roles } = useAuth();
+  const { roles, profile } = useAuth();
   const canEdit = roles.includes("owner") || roles.includes("studio_manager");
+  const isOwner = roles.includes("owner");
 
   const [rows, setRows] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Vendor | null>(null);
   const [openMergeOnEdit, setOpenMergeOnEdit] = useState(false);
+  const [importing, setImporting] = useState(false);
+
+  const logVendor = async (action: string, vendor: Vendor, extra: Record<string, unknown> = {}) => {
+    try {
+      await supabase.from("activity_log").insert({
+        user_id: profile?.id ?? null,
+        action_type: action,
+        target_type: "vendor",
+        target_id: vendor.id,
+        description: `${action} — ${vendor.name}`,
+        metadata: { vendor_id: vendor.id, vendor_name: vendor.name, category: vendor.category, ...extra },
+      });
+    } catch { /* swallow */ }
+  };
 
   const quickVerify = async (v: Vendor, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -75,6 +90,7 @@ function RolodexPage() {
     if (error) return toast.error(error.message);
     toast.success(`Verified ${v.name}`);
     setRows((rs) => rs.map((r) => (r.id === v.id ? { ...r, is_verified: true } : r)));
+    void logVendor("vendor.verified", v, { source: "quick_action" });
   };
 
   const openMerge = (v: Vendor, e: React.MouseEvent) => {
@@ -82,6 +98,20 @@ function RolodexPage() {
     if (!canEdit) return;
     setOpenMergeOnEdit(true);
     setEditing(v);
+  };
+
+  const runBackfill = async () => {
+    if (!isOwner) return;
+    if (!window.confirm("Import vendors from couples' questionnaire answers?\n\nThis scans every wedding questionnaire for florist/caterer/DJ/etc. entries and adds them to the Rolodex. Safe to re-run — duplicates are skipped.")) return;
+    setImporting(true);
+    const { data, error } = await supabase.rpc("backfill_vendors_from_questionnaires");
+    setImporting(false);
+    if (error) return toast.error(error.message);
+    const summary = (data ?? {}) as { vendors_created?: number; links_created?: number; skipped?: number };
+    toast.success(
+      `Imported · ${summary.vendors_created ?? 0} new vendors, ${summary.links_created ?? 0} couple links, ${summary.skipped ?? 0} skipped`
+    );
+    load();
   };
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -143,6 +173,17 @@ function RolodexPage() {
             {!canEdit && <> Read-only.</>}
           </p>
         </div>
+        {isOwner && (
+          <button
+            type="button"
+            onClick={runBackfill}
+            disabled={importing}
+            className="text-xs inline-flex items-center gap-1 border border-border bg-background text-primary hover:bg-background-alt/60 px-3 py-2 rounded-md disabled:opacity-50"
+            title="Scan couples' questionnaire answers and add their vendors to the Rolodex (idempotent)"
+          >
+            {importing ? "Importing…" : "Import from questionnaires"}
+          </button>
+        )}
       </header>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -266,6 +307,7 @@ function RolodexPage() {
           allVendors={rows}
           canEdit={canEdit}
           startInMergeMode={openMergeOnEdit}
+          onLog={logVendor}
           onClose={() => { setEditing(null); setOpenMergeOnEdit(false); }}
           onSaved={() => { setEditing(null); setOpenMergeOnEdit(false); load(); }}
         />
@@ -302,12 +344,13 @@ function Stat({ label, value }: { label: string; value: number }) {
 type CoupleLink = { id: string; client_id: string; couple_label: string };
 
 function VendorEditorModal({
-  vendor, allVendors, canEdit, startInMergeMode, onClose, onSaved,
+  vendor, allVendors, canEdit, startInMergeMode, onLog, onClose, onSaved,
 }: {
   vendor: Vendor;
   allVendors: Vendor[];
   canEdit: boolean;
   startInMergeMode?: boolean;
+  onLog: (action: string, vendor: Vendor, extra?: Record<string, unknown>) => Promise<void>;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -370,6 +413,10 @@ function VendorEditorModal({
       .eq("id", vendor.id);
     setSaving(false);
     if (error) return toast.error(error.message);
+    if (form.is_verified && !vendor.is_verified) void onLog("vendor.verified", vendor, { source: "editor" });
+    if (form.is_preferred !== vendor.is_preferred) {
+      void onLog(form.is_preferred ? "vendor.preferred_on" : "vendor.preferred_off", vendor);
+    }
     toast.success("Vendor updated");
     onSaved();
   };
