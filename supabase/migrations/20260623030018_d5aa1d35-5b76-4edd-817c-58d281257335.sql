@@ -1,0 +1,1 @@
+ALTER TABLE public.studio_settings ADD COLUMN IF NOT EXISTS portal_invite_auto_enabled boolean NOT NULL DEFAULT false;

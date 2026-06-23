@@ -3741,6 +3741,7 @@ export type Database = {
           overage_hourly_rate: number | null
           photographer_company: string | null
           photographer_name: string | null
+          portal_invite_auto_enabled: boolean
           rescheduling_fee_pct: number | null
           studio_address: string | null
           studio_email: string | null
@@ -3762,6 +3763,7 @@ export type Database = {
           overage_hourly_rate?: number | null
           photographer_company?: string | null
           photographer_name?: string | null
+          portal_invite_auto_enabled?: boolean
           rescheduling_fee_pct?: number | null
           studio_address?: string | null
           studio_email?: string | null
@@ -3783,6 +3785,7 @@ export type Database = {
           overage_hourly_rate?: number | null
           photographer_company?: string | null
           photographer_name?: string | null
+          portal_invite_auto_enabled?: boolean
           rescheduling_fee_pct?: number | null
           studio_address?: string | null
           studio_email?: string | null
