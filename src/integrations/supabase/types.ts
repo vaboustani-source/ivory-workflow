@@ -1543,6 +1543,7 @@ export type Database = {
       email_sends: {
         Row: {
           client_id: string | null
+          contractor_id: string | null
           created_at: string
           error_code: string | null
           error_message: string | null
@@ -1562,6 +1563,7 @@ export type Database = {
         }
         Insert: {
           client_id?: string | null
+          contractor_id?: string | null
           created_at?: string
           error_code?: string | null
           error_message?: string | null
@@ -1581,6 +1583,7 @@ export type Database = {
         }
         Update: {
           client_id?: string | null
+          contractor_id?: string | null
           created_at?: string
           error_code?: string | null
           error_message?: string | null
@@ -1604,6 +1607,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_sends_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
             referencedColumns: ["id"]
           },
         ]
@@ -4439,6 +4449,17 @@ export type Database = {
         Returns: Json
       }
       discard_draft: { Args: { _draft_id: string }; Returns: undefined }
+      ensure_contractor_w9_request: {
+        Args: {
+          _contractor_id: string
+          _created_by?: string
+          _tax_year: number
+        }
+        Returns: {
+          created: boolean
+          request_id: string
+        }[]
+      }
       finalize_tbd_booking: {
         Args: {
           p_client_id: string
@@ -4491,6 +4512,7 @@ export type Database = {
         Args: { _contractor_id: string }
         Returns: string
       }
+      get_internal_secret: { Args: { _name: string }; Returns: string }
       hard_delete_old_messages: { Args: never; Returns: number }
       has_role: {
         Args: {
