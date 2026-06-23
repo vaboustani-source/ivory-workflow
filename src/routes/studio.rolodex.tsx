@@ -525,6 +525,90 @@ function VendorEditorModal({
               {vendor.phone && <span className="inline-flex items-center gap-1"><Phone size={12} /> {vendor.phone}</span>}
             </div>
           )}
+
+          {canEdit && (
+            <div className="border-t border-border pt-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Merge duplicates</p>
+                {!showMerge ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowMerge(true)}
+                    className="text-xs inline-flex items-center gap-1 border border-border text-muted-foreground hover:text-primary px-2.5 py-1.5 rounded-md"
+                  >
+                    <GitMerge size={12} /> Merge into…
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { setShowMerge(false); setMergeTargetId(null); setMergeQuery(""); }}
+                    className="text-xs text-muted-foreground hover:text-primary"
+                  >
+                    Cancel merge
+                  </button>
+                )}
+              </div>
+              {showMerge && (
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground">
+                    Pick the vendor to keep. All {couples.length} {couples.length === 1 ? "couple" : "couples"} linked to <span className="italic">{vendor.name}</span> will move to it; this entry is retired.
+                  </p>
+                  <div className="border border-border rounded-md overflow-hidden">
+                    <Command shouldFilter={false}>
+                      <CommandInput placeholder="Search vendors to merge into…" value={mergeQuery} onValueChange={setMergeQuery} />
+                      <CommandList>
+                        <CommandEmpty>No vendors found.</CommandEmpty>
+                        <CommandGroup>
+                          {filteredCandidates.map((c) => {
+                            const myNorm = normalizeName(vendor.name);
+                            const cn = normalizeName(c.name);
+                            const likelyDup = cn === myNorm || cn.includes(myNorm) || myNorm.includes(cn);
+                            const sameCat = c.category === vendor.category;
+                            return (
+                              <CommandItem
+                                key={c.id}
+                                value={c.id}
+                                onSelect={() => setMergeTargetId(c.id)}
+                                className={mergeTargetId === c.id ? "bg-primary/10" : ""}
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-sm">{c.name}</span>
+                                    {likelyDup && (
+                                      <span className="text-[9px] uppercase tracking-wider bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-sm">
+                                        Likely duplicate
+                                      </span>
+                                    )}
+                                    {sameCat && !likelyDup && (
+                                      <span className="text-[9px] uppercase tracking-wider bg-background-alt text-primary px-1.5 py-0.5 rounded-sm">
+                                        Same category
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[11px] text-muted-foreground">{CATEGORY_LABEL[c.category] ?? c.category}</p>
+                                </div>
+                                {mergeTargetId === c.id && <Check size={14} className="text-primary" />}
+                              </CommandItem>
+                            );
+                          })}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={doMerge}
+                      disabled={!mergeTargetId || merging}
+                      className="text-xs inline-flex items-center gap-1 bg-amber-700 text-white px-3 py-2 rounded-md hover:bg-amber-800 disabled:opacity-50"
+                    >
+                      <GitMerge size={12} /> {merging ? "Merging…" : "Merge vendors"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="px-6 py-4 border-t border-border flex justify-end gap-2">
