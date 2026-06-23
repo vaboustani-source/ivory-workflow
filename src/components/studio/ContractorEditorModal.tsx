@@ -582,3 +582,34 @@ function StatusBadge({
     </span>
   );
 }
+
+function SendW9Button({ contractorId, disabled }: { contractorId: string; disabled?: boolean }) {
+  const [sending, setSending] = useState(false);
+  const send = async () => {
+    if (disabled) return;
+    if (!confirm("Send the W-9 request email to this contractor now?")) return;
+    setSending(true);
+    try {
+      const { sendContractorW9Request } = await import("@/lib/contractorW9.functions");
+      const res = await sendContractorW9Request({
+        data: { contractorId, taxYear: new Date().getFullYear() },
+      });
+      if (res?.ok) toast.success(res.status === "test_mode_blocked" ? "Logged (Postmark test mode)" : "W-9 request sent");
+      else toast.error(res?.error ?? "Send failed");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Send failed");
+    } finally {
+      setSending(false);
+    }
+  };
+  return (
+    <button
+      onClick={send}
+      disabled={disabled || sending}
+      title={disabled ? "W-9 already on file" : "Send W-9 request email"}
+      className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-md hover:bg-primary/90 disabled:opacity-40"
+    >
+      {sending ? "Sending…" : "Send W-9 request"}
+    </button>
+  );
+}
