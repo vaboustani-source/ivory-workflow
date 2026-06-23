@@ -413,6 +413,10 @@ function VendorEditorModal({
       .eq("id", vendor.id);
     setSaving(false);
     if (error) return toast.error(error.message);
+    if (form.is_verified && !vendor.is_verified) void onLog("vendor.verified", vendor, { source: "editor" });
+    if (form.is_preferred !== vendor.is_preferred) {
+      void onLog(form.is_preferred ? "vendor.preferred_on" : "vendor.preferred_off", vendor);
+    }
     toast.success("Vendor updated");
     onSaved();
   };
