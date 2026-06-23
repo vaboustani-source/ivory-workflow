@@ -4577,6 +4577,47 @@ export type Database = {
         Returns: undefined
       }
       clear_w9: { Args: { _contractor_id: string }; Returns: string }
+      couple_my_vendors: {
+        Args: { _client_id: string }
+        Returns: {
+          couple_notes: string
+          created_at: string
+          email: string
+          instagram: string
+          is_preferred: boolean
+          is_verified: boolean
+          phone: string
+          point_of_contact: string
+          point_of_contact_email: string
+          point_of_contact_phone: string
+          role_label: string
+          vendor_category: string
+          vendor_id: string
+          vendor_name: string
+          website: string
+          wedding_vendor_id: string
+        }[]
+      }
+      couple_recommended_vendors: {
+        Args: { _client_id: string }
+        Returns: {
+          category: string
+          instagram: string
+          name: string
+          preferred_blurb: string
+          vendor_id: string
+          website: string
+        }[]
+      }
+      couple_search_vendors: {
+        Args: { _category: string; _client_id: string; _query: string }
+        Returns: {
+          instagram: string
+          name: string
+          vendor_id: string
+          website: string
+        }[]
+      }
       create_booking: {
         Args: {
           p_call_type_id: string
