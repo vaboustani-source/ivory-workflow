@@ -5,6 +5,7 @@ import { X, Upload, Download, Eye, EyeOff, Trash2, FileCheck2 } from "lucide-rea
 import { CONTRACTOR_ROLES, type ContractorRole } from "@/lib/contractors";
 import { useAuth } from "@/lib/auth";
 import { shortDate } from "@/lib/dates";
+import { sendContractorW9Request } from "@/lib/contractorW9.functions";
 
 export interface ContractorRow {
   id: string;
@@ -453,7 +454,8 @@ function TaxW9Section({
       <Field label="Mailing address (where the 1099 is sent)">
         <textarea value={mailingAddress} onChange={(e) => setMailingAddress(e.target.value)} rows={2} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
       </Field>
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center gap-2">
+        <SendW9Button contractorId={contractor.id} disabled={collected} />
         <button onClick={saveInfo} disabled={savingInfo} className="text-xs border border-gold text-gold px-3 py-1.5 rounded-md hover:bg-gold/10 disabled:opacity-50">
           {savingInfo ? "Saving…" : "Save W-9 info"}
         </button>
@@ -579,5 +581,36 @@ function StatusBadge({
     <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider bg-muted text-muted-foreground px-2 py-1 rounded-full">
       Not requested
     </span>
+  );
+}
+
+function SendW9Button({ contractorId, disabled }: { contractorId: string; disabled?: boolean }) {
+  const [sending, setSending] = useState(false);
+  const send = async () => {
+    if (disabled) return;
+    if (!confirm("Send the W-9 request email to this contractor now?")) return;
+    setSending(true);
+    try {
+      // sendContractorW9Request imported at module scope
+      const res = await sendContractorW9Request({
+        data: { contractorId, taxYear: new Date().getFullYear() },
+      });
+      if (res?.ok) toast.success(res.status === "test_mode_blocked" ? "Logged (Postmark test mode)" : "W-9 request sent");
+      else toast.error(res?.error ?? "Send failed");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Send failed");
+    } finally {
+      setSending(false);
+    }
+  };
+  return (
+    <button
+      onClick={send}
+      disabled={disabled || sending}
+      title={disabled ? "W-9 already on file" : "Send W-9 request email"}
+      className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-md hover:bg-primary/90 disabled:opacity-40"
+    >
+      {sending ? "Sending…" : "Send W-9 request"}
+    </button>
   );
 }

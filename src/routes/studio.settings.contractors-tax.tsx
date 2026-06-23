@@ -3,8 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
-import { Download, FileText, AlertTriangle } from "lucide-react";
+import { Download, FileText, AlertTriangle, Send } from "lucide-react";
 import { shortDate } from "@/lib/dates";
+import { sendContractorW9Request } from "@/lib/contractorW9.functions";
 
 export const Route = createFileRoute("/studio/settings/contractors-tax")({
   component: ContractorsTaxPage,
@@ -35,14 +36,27 @@ const dollars = (cents: number) =>
 function ContractorsTaxPage() {
   const { roles } = useAuth();
   const allowed = roles.includes("owner") || roles.includes("studio_manager");
+  const isOwner = roles.includes("owner");
 
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [autoEnabled, setAutoEnabled] = useState(false);
+  const [togglingAuto, setTogglingAuto] = useState(false);
+  const [sendingFor, setSendingFor] = useState<string | null>(null);
 
   useEffect(() => {
     if (!allowed) return;
+    supabase
+      .from("studio_settings")
+      .select("w9_auto_request_enabled")
+      .eq("is_active", true)
+      .maybeSingle()
+      .then(({ data }) => setAutoEnabled(!!data?.w9_auto_request_enabled));
+  }, [allowed]);
+
+  const refresh = () => {
     setLoading(true);
     supabase
       .rpc("get_contractor_1099_report", { _tax_year: year })
@@ -55,7 +69,46 @@ function ContractorsTaxPage() {
         }
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    if (!allowed) return;
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year, allowed]);
+
+  const toggleAuto = async (next: boolean) => {
+    setTogglingAuto(true);
+    const { error } = await supabase
+      .from("studio_settings")
+      .update({ w9_auto_request_enabled: next })
+      .eq("is_active", true);
+    setTogglingAuto(false);
+    if (error) return toast.error(error.message);
+    setAutoEnabled(next);
+    toast.success(next ? "Auto W-9 requests enabled" : "Auto W-9 requests disabled");
+  };
+
+  const sendW9 = async (r: Row) => {
+    setSendingFor(r.contractor_id);
+    try {
+      const res = await sendContractorW9Request({
+        data: { contractorId: r.contractor_id, taxYear: year },
+      });
+      if (res?.ok) {
+        toast.success(
+          res.status === "test_mode_blocked" ? "Logged (Postmark test mode)" : "W-9 request sent",
+        );
+        refresh();
+      } else {
+        toast.error(res?.error ?? "Send failed");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Send failed");
+    } finally {
+      setSendingFor(null);
+    }
+  };
 
   const missingW9 = useMemo(() => rows.filter((r) => !r.w9_collected).length, [rows]);
 
@@ -164,6 +217,30 @@ function ContractorsTaxPage() {
         </div>
       </header>
 
+      {isOwner && (
+        <div className="bg-surface border-t-2 border-gold rounded-lg shadow-soft p-4 flex items-start gap-3">
+          <input
+            id="w9-auto"
+            type="checkbox"
+            checked={autoEnabled}
+            disabled={togglingAuto}
+            onChange={(e) => toggleAuto(e.target.checked)}
+            className="mt-1 h-4 w-4 accent-gold"
+          />
+          <label htmlFor="w9-auto" className="text-sm text-primary">
+            <div className="font-medium">
+              Automatically email a W-9 request when a contractor passes $600
+            </div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              Off by default. When on, the first time a contractor's calendar-year total
+              crosses $600, the system emails them the W-9 request once and records the
+              request here.
+            </div>
+          </label>
+        </div>
+      )}
+
+
       {!loading && rows.length > 0 && (
         <div className="bg-surface border-t-2 border-gold rounded-lg shadow-soft p-4 text-sm text-primary">
           <strong>{rows.length}</strong> contractor{rows.length === 1 ? "" : "s"} need a 1099 this year ·{" "}
@@ -259,6 +336,20 @@ function ContractorsTaxPage() {
                             className="text-xs border border-gold text-gold px-3 py-1.5 rounded-md hover:bg-gold/10 inline-flex items-center gap-1"
                           >
                             <Download size={12} /> W-9
+                          </button>
+                        )}
+                        {!r.w9_collected && (
+                          <button
+                            onClick={() => sendW9(r)}
+                            disabled={sendingFor === r.contractor_id}
+                            className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-md hover:bg-primary/90 disabled:opacity-40 inline-flex items-center gap-1"
+                          >
+                            <Send size={11} />
+                            {sendingFor === r.contractor_id
+                              ? "Sending…"
+                              : r.w9_requested_at
+                                ? "Resend"
+                                : "Send W-9 request"}
                           </button>
                         )}
                         <Link

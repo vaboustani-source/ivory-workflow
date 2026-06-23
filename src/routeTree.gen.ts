@@ -77,6 +77,7 @@ import { Route as PortalAccountNotificationsRouteImport } from './routes/portal.
 import { Route as BookConfirmedCancel_tokenRouteImport } from './routes/book.confirmed.$cancel_token'
 import { Route as ApiPublicZoomOauthCallbackRouteImport } from './routes/api/public/zoom-oauth-callback'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
+import { Route as ApiPublicSendW9RequestRouteImport } from './routes/api/public/send-w9-request'
 import { Route as ApiPublicSendTestEmailRouteImport } from './routes/api/public/send-test-email'
 import { Route as ApiPublicGoogleOauthCallbackRouteImport } from './routes/api/public/google-oauth-callback'
 import { Route as ApiPublicEnvCheckRouteImport } from './routes/api/public/env-check'
@@ -444,6 +445,11 @@ const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   path: '/api/public/stripe-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSendW9RequestRoute = ApiPublicSendW9RequestRouteImport.update({
+  id: '/api/public/send-w9-request',
+  path: '/api/public/send-w9-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicSendTestEmailRoute = ApiPublicSendTestEmailRouteImport.update({
   id: '/api/public/send-test-email',
   path: '/api/public/send-test-email',
@@ -554,6 +560,7 @@ export interface FileRoutesByFullPath {
   '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
+  '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/zoom-oauth-callback': typeof ApiPublicZoomOauthCallbackRoute
   '/book/confirmed/$cancel_token': typeof BookConfirmedCancel_tokenRoute
@@ -633,6 +640,7 @@ export interface FileRoutesByTo {
   '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
+  '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/zoom-oauth-callback': typeof ApiPublicZoomOauthCallbackRoute
   '/book/confirmed/$cancel_token': typeof BookConfirmedCancel_tokenRoute
@@ -716,6 +724,7 @@ export interface FileRoutesById {
   '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
+  '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
   '/api/public/zoom-oauth-callback': typeof ApiPublicZoomOauthCallbackRoute
   '/book/confirmed/$cancel_token': typeof BookConfirmedCancel_tokenRoute
@@ -800,6 +809,7 @@ export interface FileRouteTypes {
     | '/api/public/env-check'
     | '/api/public/google-oauth-callback'
     | '/api/public/send-test-email'
+    | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
     | '/api/public/zoom-oauth-callback'
     | '/book/confirmed/$cancel_token'
@@ -879,6 +889,7 @@ export interface FileRouteTypes {
     | '/api/public/env-check'
     | '/api/public/google-oauth-callback'
     | '/api/public/send-test-email'
+    | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
     | '/api/public/zoom-oauth-callback'
     | '/book/confirmed/$cancel_token'
@@ -961,6 +972,7 @@ export interface FileRouteTypes {
     | '/api/public/env-check'
     | '/api/public/google-oauth-callback'
     | '/api/public/send-test-email'
+    | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
     | '/api/public/zoom-oauth-callback'
     | '/book/confirmed/$cancel_token'
@@ -1014,6 +1026,7 @@ export interface RootRouteChildren {
   ApiPublicEnvCheckRoute: typeof ApiPublicEnvCheckRoute
   ApiPublicGoogleOauthCallbackRoute: typeof ApiPublicGoogleOauthCallbackRoute
   ApiPublicSendTestEmailRoute: typeof ApiPublicSendTestEmailRoute
+  ApiPublicSendW9RequestRoute: typeof ApiPublicSendW9RequestRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
   ApiPublicZoomOauthCallbackRoute: typeof ApiPublicZoomOauthCallbackRoute
   BookConfirmedCancel_tokenRoute: typeof BookConfirmedCancel_tokenRoute
@@ -1499,6 +1512,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/send-w9-request': {
+      id: '/api/public/send-w9-request'
+      path: '/api/public/send-w9-request'
+      fullPath: '/api/public/send-w9-request'
+      preLoaderRoute: typeof ApiPublicSendW9RequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/send-test-email': {
       id: '/api/public/send-test-email'
       path: '/api/public/send-test-email'
@@ -1817,6 +1837,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicEnvCheckRoute: ApiPublicEnvCheckRoute,
   ApiPublicGoogleOauthCallbackRoute: ApiPublicGoogleOauthCallbackRoute,
   ApiPublicSendTestEmailRoute: ApiPublicSendTestEmailRoute,
+  ApiPublicSendW9RequestRoute: ApiPublicSendW9RequestRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
   ApiPublicZoomOauthCallbackRoute: ApiPublicZoomOauthCallbackRoute,
   BookConfirmedCancel_tokenRoute: BookConfirmedCancel_tokenRoute,
