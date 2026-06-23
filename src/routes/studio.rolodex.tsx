@@ -374,6 +374,46 @@ function VendorEditorModal({
     onSaved();
   };
 
+  const doMerge = async () => {
+    if (!canEdit || !mergeTargetId) return;
+    const target = allVendors.find((v) => v.id === mergeTargetId);
+    if (!target) return toast.error("Pick a vendor to merge into");
+    const n = couples.length;
+    const msg = `Merge "${vendor.name}" into "${target.name}"?\n\nAll ${n} ${n === 1 ? "couple" : "couples"} will move to "${target.name}" and this entry will be retired. This cannot be undone.`;
+    if (!window.confirm(msg)) return;
+    setMerging(true);
+    const { error } = await supabase.rpc("merge_vendors", { _loser: vendor.id, _winner: target.id } as any);
+    setMerging(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Merged into ${target.name}`);
+    onSaved();
+  };
+
+  // Rank merge candidates: similar name first, then same category, then rest.
+  const mergeCandidates = useMemo(() => {
+    const myNorm = normalizeName(vendor.name);
+    const myFirst = myNorm.split(" ")[0] ?? "";
+    return allVendors
+      .filter((v) => v.id !== vendor.id)
+      .map((v) => {
+        const n = normalizeName(v.name);
+        let score = 0;
+        if (n === myNorm) score = 100;
+        else if (n.includes(myNorm) || myNorm.includes(n)) score = 80;
+        else if (myFirst && n.startsWith(myFirst)) score = 50;
+        if (v.category === vendor.category) score += 10;
+        return { v, score };
+      })
+      .sort((a, b) => b.score - a.score || a.v.name.localeCompare(b.v.name))
+      .map((x) => x.v);
+  }, [allVendors, vendor.id, vendor.name, vendor.category]);
+
+  const filteredCandidates = useMemo(() => {
+    const q = mergeQuery.trim().toLowerCase();
+    if (!q) return mergeCandidates.slice(0, 50);
+    return mergeCandidates.filter((v) => v.name.toLowerCase().includes(q)).slice(0, 50);
+  }, [mergeCandidates, mergeQuery]);
+
   const readOnly = !canEdit;
 
   return (
