@@ -24,6 +24,8 @@ function ContractorsPage() {
   const [sort, setSort] = useState<SortKey>("name");
   const [pendingRequests, setPendingRequests] = useState(0);
   const [bookedThisMonth, setBookedThisMonth] = useState(0);
+  const [ytdByContractor, setYtdByContractor] = useState<Map<string, number>>(new Map());
+  const [w9Filter, setW9Filter] = useState<"all" | "owes">("all");
 
   const load = async () => {
     setLoading(true);
