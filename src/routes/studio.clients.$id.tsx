@@ -473,12 +473,12 @@ function ClientDetail() {
                 </p>
                 {portalState === "not_invited" && (
                   <button onClick={sendInvite} className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium hover:bg-primary/90">
-                    Send portal invite
+                    Send portal invitation
                   </button>
                 )}
                 {portalState === "invited" && (
                   <button onClick={sendInvite} className="border border-gold text-gold px-4 py-2 rounded-md text-sm hover:bg-gold/10">
-                    Resend invite
+                    {`Resend · last sent ${shortDate(client.portal_invited_at)}`}
                   </button>
                 )}
               </Card>
