@@ -66,6 +66,23 @@ function RolodexPage() {
   const [rows, setRows] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Vendor | null>(null);
+  const [openMergeOnEdit, setOpenMergeOnEdit] = useState(false);
+
+  const quickVerify = async (v: Vendor, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!canEdit) return;
+    const { error } = await supabase.from("vendors").update({ is_verified: true }).eq("id", v.id);
+    if (error) return toast.error(error.message);
+    toast.success(`Verified ${v.name}`);
+    setRows((rs) => rs.map((r) => (r.id === v.id ? { ...r, is_verified: true } : r)));
+  };
+
+  const openMerge = (v: Vendor, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!canEdit) return;
+    setOpenMergeOnEdit(true);
+    setEditing(v);
+  };
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
