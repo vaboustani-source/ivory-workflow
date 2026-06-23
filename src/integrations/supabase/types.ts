@@ -1302,6 +1302,8 @@ export type Database = {
           updated_at: string
           w9_collected: boolean
           w9_collected_at: string | null
+          w9_file_path: string | null
+          w9_original_filename: string | null
           w9_requested_at: string | null
         }
         Insert: {
@@ -1332,6 +1334,8 @@ export type Database = {
           updated_at?: string
           w9_collected?: boolean
           w9_collected_at?: string | null
+          w9_file_path?: string | null
+          w9_original_filename?: string | null
           w9_requested_at?: string | null
         }
         Update: {
@@ -1362,6 +1366,8 @@ export type Database = {
           updated_at?: string
           w9_collected?: boolean
           w9_collected_at?: string | null
+          w9_file_path?: string | null
+          w9_original_filename?: string | null
           w9_requested_at?: string | null
         }
         Relationships: []
@@ -4403,6 +4409,7 @@ export type Database = {
         Args: { _contractor_id: string }
         Returns: undefined
       }
+      clear_w9: { Args: { _contractor_id: string }; Returns: string }
       create_booking: {
         Args: {
           p_call_type_id: string
@@ -4482,6 +4489,10 @@ export type Database = {
       is_owner: { Args: { _user_id: string }; Returns: boolean }
       is_studio_manager: { Args: { _user_id: string }; Returns: boolean }
       is_studio_user: { Args: { _user_id: string }; Returns: boolean }
+      mark_w9_collected: {
+        Args: { _contractor_id: string; _file_path: string; _filename: string }
+        Returns: undefined
+      }
       materialize_workflow_for_client: {
         Args: { p_client_id: string }
         Returns: undefined
@@ -4510,6 +4521,15 @@ export type Database = {
       reject_pending_change: {
         Args: { p_id: string; p_note?: string }
         Returns: Json
+      }
+      save_contractor_w9_info: {
+        Args: {
+          _business_type: string
+          _contractor_id: string
+          _legal_name: string
+          _mailing_address: string
+        }
+        Returns: undefined
       }
       set_contractor_tax_id: {
         Args: { _contractor_id: string; _plaintext: string; _type: string }
