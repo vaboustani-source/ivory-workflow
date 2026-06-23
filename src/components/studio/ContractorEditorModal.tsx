@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { X } from "lucide-react";
+import { X, Upload, Download, Eye, EyeOff, Trash2, FileCheck2 } from "lucide-react";
 import { CONTRACTOR_ROLES, type ContractorRole } from "@/lib/contractors";
+import { useAuth } from "@/lib/auth";
+import { shortDate } from "@/lib/dates";
 
 export interface ContractorRow {
   id: string;
@@ -23,6 +25,17 @@ export interface ContractorRow {
   notes: string | null;
   jobs_count: number;
   last_worked_with_at: string | null;
+  // W-9 / 1099 fields (visible only to owner + studio_manager)
+  legal_name?: string | null;
+  mailing_address?: string | null;
+  business_type?: string | null;
+  tax_id_type?: string | null;
+  tax_id_vault_secret_id?: string | null;
+  w9_collected?: boolean;
+  w9_collected_at?: string | null;
+  w9_requested_at?: string | null;
+  w9_file_path?: string | null;
+  w9_original_filename?: string | null;
 }
 
 interface Props {
@@ -31,7 +44,23 @@ interface Props {
   onSaved: () => void;
 }
 
+const BUSINESS_TYPES: { value: string; label: string }[] = [
+  { value: "individual", label: "Individual" },
+  { value: "sole_proprietor", label: "Sole proprietor" },
+  { value: "single_member_llc", label: "Single-member LLC" },
+  { value: "c_corp", label: "C corporation" },
+  { value: "s_corp", label: "S corporation" },
+  { value: "partnership", label: "Partnership" },
+  { value: "trust", label: "Trust / estate" },
+  { value: "other", label: "Other" },
+];
+
+const BUCKET = "contractor-tax-docs";
+
 export function ContractorEditorModal({ existing, onClose, onSaved }: Props) {
+  const { roles } = useAuth();
+  const canManageTax = roles.includes("owner") || roles.includes("studio_manager");
+
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     full_name: existing?.full_name ?? "",
@@ -191,6 +220,18 @@ export function ContractorEditorModal({ existing, onClose, onSaved }: Props) {
           <Field label="Internal notes (studio-only)">
             <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </Field>
+
+          {canManageTax && existing && (
+            <TaxW9Section
+              contractor={existing}
+              onChanged={onSaved}
+            />
+          )}
+          {canManageTax && !existing && (
+            <p className="text-xs text-muted-foreground italic border-t border-border pt-4">
+              Save the contractor first, then re-open to add W-9 details.
+            </p>
+          )}
         </div>
 
         <div className="sticky bottom-0 bg-surface border-t border-gold/30 px-6 py-4 flex items-center justify-end gap-2">
@@ -210,5 +251,333 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <label className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground block mb-2">{label}</label>
       {children}
     </div>
+  );
+}
+
+// ============================================================================
+// Tax / W-9 section — owner + studio_manager only.
+// Server-side RPCs (set/get/clear_contractor_tax_id, save_contractor_w9_info,
+// mark_w9_collected, clear_w9) self-check role.
+// ============================================================================
+
+function TaxW9Section({
+  contractor,
+  onChanged,
+}: {
+  contractor: ContractorRow;
+  onChanged: () => void;
+}) {
+  const [legalName, setLegalName] = useState(contractor.legal_name ?? "");
+  const [mailingAddress, setMailingAddress] = useState(contractor.mailing_address ?? "");
+  const [businessType, setBusinessType] = useState(contractor.business_type ?? "");
+  const [taxIdType, setTaxIdType] = useState<"ssn" | "ein">(
+    (contractor.tax_id_type as "ssn" | "ein") ?? "ssn",
+  );
+  const [taxIdInput, setTaxIdInput] = useState("");
+  const [revealedTaxId, setRevealedTaxId] = useState<string | null>(null);
+  const [revealing, setRevealing] = useState(false);
+  const [savingInfo, setSavingInfo] = useState(false);
+  const [savingTaxId, setSavingTaxId] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [marking, setMarking] = useState(false);
+  const [collected, setCollected] = useState(!!contractor.w9_collected);
+  const [collectedAt, setCollectedAt] = useState(contractor.w9_collected_at ?? null);
+  const [filePath, setFilePath] = useState(contractor.w9_file_path ?? null);
+  const [origFilename, setOrigFilename] = useState(contractor.w9_original_filename ?? null);
+  const [hasTaxId, setHasTaxId] = useState(!!contractor.tax_id_vault_secret_id);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const saveInfo = async () => {
+    setSavingInfo(true);
+    const { error } = await supabase.rpc("save_contractor_w9_info", {
+      _contractor_id: contractor.id,
+      _legal_name: legalName,
+      _mailing_address: mailingAddress,
+      _business_type: businessType || null,
+    });
+    setSavingInfo(false);
+    if (error) return toast.error(error.message);
+    toast.success("W-9 info saved");
+    onChanged();
+  };
+
+  const saveTaxId = async () => {
+    const trimmed = taxIdInput.trim();
+    if (!trimmed) return toast.error("Enter a tax ID number");
+    setSavingTaxId(true);
+    const { error } = await supabase.rpc("set_contractor_tax_id", {
+      _contractor_id: contractor.id,
+      _plaintext: trimmed,
+      _type: taxIdType,
+    });
+    setSavingTaxId(false);
+    if (error) return toast.error(error.message);
+    setTaxIdInput("");
+    setRevealedTaxId(null);
+    setHasTaxId(true);
+    toast.success("Tax ID encrypted and saved");
+    onChanged();
+  };
+
+  const reveal = async () => {
+    if (revealedTaxId) {
+      setRevealedTaxId(null);
+      return;
+    }
+    setRevealing(true);
+    const { data, error } = await supabase.rpc("get_contractor_tax_id", {
+      _contractor_id: contractor.id,
+    });
+    setRevealing(false);
+    if (error) return toast.error(error.message);
+    if (!data) return toast.error("No tax ID on file");
+    setRevealedTaxId(data as string);
+  };
+
+  const removeTaxId = async () => {
+    if (!confirm("Remove the encrypted tax ID for this contractor?")) return;
+    const { error } = await supabase.rpc("clear_contractor_tax_id", {
+      _contractor_id: contractor.id,
+    });
+    if (error) return toast.error(error.message);
+    setHasTaxId(false);
+    setRevealedTaxId(null);
+    toast.success("Tax ID removed");
+    onChanged();
+  };
+
+  const handleFile = async (file: File, displayName: string) => {
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      return toast.error("W-9 file must be a PDF");
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      return toast.error("File too large (max 10 MB)");
+    }
+    setUploading(true);
+    const safeName = displayName.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80) || "w9.pdf";
+    const path = `${contractor.id}/${Date.now()}-${safeName.endsWith(".pdf") ? safeName : safeName + ".pdf"}`;
+    const { error: upErr } = await supabase.storage
+      .from(BUCKET)
+      .upload(path, file, { contentType: "application/pdf", upsert: false });
+    if (upErr) {
+      setUploading(false);
+      return toast.error(upErr.message);
+    }
+    // Replace any existing file
+    if (filePath && filePath !== path) {
+      await supabase.storage.from(BUCKET).remove([filePath]).catch(() => {});
+    }
+    const { error: markErr } = await supabase.rpc("mark_w9_collected", {
+      _contractor_id: contractor.id,
+      _file_path: path,
+      _filename: safeName,
+    });
+    setUploading(false);
+    if (markErr) return toast.error(markErr.message);
+    setFilePath(path);
+    setOrigFilename(safeName);
+    setCollected(true);
+    setCollectedAt(new Date().toISOString());
+    toast.success("W-9 filed");
+    onChanged();
+  };
+
+  const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const def = (legalName || contractor.full_name || file.name).trim();
+    const display = prompt("Filename for this W-9 (PDF)", def) ?? def;
+    await handleFile(file, display);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const markCollectedOnly = async () => {
+    setMarking(true);
+    const { error } = await supabase.rpc("mark_w9_collected", {
+      _contractor_id: contractor.id,
+      _file_path: null,
+      _filename: null,
+    });
+    setMarking(false);
+    if (error) return toast.error(error.message);
+    setCollected(true);
+    setCollectedAt((prev) => prev ?? new Date().toISOString());
+    toast.success("Marked as collected");
+    onChanged();
+  };
+
+  const download = async () => {
+    if (!filePath) return;
+    const { data, error } = await supabase.storage
+      .from(BUCKET)
+      .createSignedUrl(filePath, 60);
+    if (error || !data?.signedUrl) return toast.error(error?.message ?? "Couldn't open file");
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const clearAll = async () => {
+    if (!confirm("Clear W-9 status and delete the filed PDF?")) return;
+    const { data: prior, error } = await supabase.rpc("clear_w9", { _contractor_id: contractor.id });
+    if (error) return toast.error(error.message);
+    if (prior) await supabase.storage.from(BUCKET).remove([prior as unknown as string]).catch(() => {});
+    setCollected(false);
+    setCollectedAt(null);
+    setFilePath(null);
+    setOrigFilename(null);
+    toast.success("W-9 cleared");
+    onChanged();
+  };
+
+  return (
+    <div className="border-t-2 border-gold pt-5 mt-2 space-y-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 className="font-serif italic text-lg text-primary">Tax / W-9</h3>
+        <StatusBadge collected={collected} collectedAt={collectedAt} requestedAt={contractor.w9_requested_at ?? null} />
+      </div>
+      <p className="text-[11px] text-muted-foreground -mt-2">
+        Owner + studio manager only. Tax ID is encrypted at rest in Vault.
+      </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Field label="Legal name (W-9 line 1)">
+          <input value={legalName} onChange={(e) => setLegalName(e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
+        </Field>
+        <Field label="Tax classification">
+          <select value={businessType} onChange={(e) => setBusinessType(e.target.value)} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground">
+            <option value="">—</option>
+            {BUSINESS_TYPES.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
+          </select>
+        </Field>
+      </div>
+      <Field label="Mailing address (where the 1099 is sent)">
+        <textarea value={mailingAddress} onChange={(e) => setMailingAddress(e.target.value)} rows={2} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
+      </Field>
+      <div className="flex justify-end">
+        <button onClick={saveInfo} disabled={savingInfo} className="text-xs border border-gold text-gold px-3 py-1.5 rounded-md hover:bg-gold/10 disabled:opacity-50">
+          {savingInfo ? "Saving…" : "Save W-9 info"}
+        </button>
+      </div>
+
+      <div className="border border-border rounded-md p-4 space-y-3 bg-background-alt">
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Tax ID number (SSN / EIN)</p>
+          {hasTaxId && (
+            <div className="flex items-center gap-2">
+              <button onClick={reveal} disabled={revealing} className="text-xs text-gold hover:underline inline-flex items-center gap-1 disabled:opacity-50">
+                {revealedTaxId ? <EyeOff size={12} /> : <Eye size={12} />}
+                {revealing ? "Working…" : revealedTaxId ? "Hide" : "Reveal"}
+              </button>
+              <button onClick={removeTaxId} className="text-xs text-magenta hover:underline inline-flex items-center gap-1">
+                <Trash2 size={12} /> Remove
+              </button>
+            </div>
+          )}
+        </div>
+        {hasTaxId ? (
+          <div className="font-mono text-sm text-foreground">
+            {revealedTaxId ?? "•••-••-••••"}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground italic">No tax ID on file.</p>
+        )}
+        <div className="flex flex-col md:flex-row gap-2 pt-1">
+          <select value={taxIdType} onChange={(e) => setTaxIdType(e.target.value as "ssn" | "ein")} className="px-3 py-2 bg-background border border-border rounded-md text-sm">
+            <option value="ssn">SSN</option>
+            <option value="ein">EIN</option>
+          </select>
+          <input
+            value={taxIdInput}
+            onChange={(e) => setTaxIdInput(e.target.value)}
+            placeholder={hasTaxId ? "Enter to rotate…" : "123-45-6789 or 12-3456789"}
+            inputMode="numeric"
+            autoComplete="off"
+            className="flex-1 px-3 py-2 bg-background border border-border rounded-md text-sm font-mono"
+          />
+          <button onClick={saveTaxId} disabled={savingTaxId || !taxIdInput.trim()} className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm hover:bg-primary/90 disabled:opacity-50">
+            {savingTaxId ? "Saving…" : hasTaxId ? "Rotate" : "Save"}
+          </button>
+        </div>
+      </div>
+
+      <div className="border border-border rounded-md p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Signed W-9 PDF</p>
+          {(collected || filePath) && (
+            <button onClick={clearAll} className="text-xs text-magenta hover:underline inline-flex items-center gap-1">
+              <Trash2 size={12} /> Clear
+            </button>
+          )}
+        </div>
+        {filePath ? (
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1 flex items-center gap-2 text-sm text-foreground">
+              <FileCheck2 size={14} className="text-sage shrink-0" />
+              <span className="truncate">{origFilename ?? "W-9.pdf"}</span>
+            </div>
+            <button onClick={download} className="text-xs border border-gold text-gold px-3 py-1.5 rounded-md hover:bg-gold/10 inline-flex items-center gap-1">
+              <Download size={12} /> Download
+            </button>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground italic">No PDF on file.</p>
+        )}
+        <div className="flex flex-wrap gap-2 pt-1">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm hover:bg-primary/90 disabled:opacity-50"
+          >
+            <Upload size={14} /> {uploading ? "Uploading…" : filePath ? "Replace PDF" : "Upload W-9 PDF"}
+          </button>
+          {!collected && (
+            <button
+              onClick={markCollectedOnly}
+              disabled={marking}
+              className="text-xs border border-border text-muted-foreground px-3 py-2 rounded-md hover:text-primary disabled:opacity-50"
+            >
+              {marking ? "Marking…" : "Mark collected without file"}
+            </button>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf,.pdf"
+            onChange={onPickFile}
+            className="hidden"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatusBadge({
+  collected,
+  collectedAt,
+  requestedAt,
+}: {
+  collected: boolean;
+  collectedAt: string | null;
+  requestedAt: string | null;
+}) {
+  if (collected) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider bg-sage/20 text-sage px-2 py-1 rounded-full">
+        On file{collectedAt && <> · {shortDate(collectedAt)}</>}
+      </span>
+    );
+  }
+  if (requestedAt) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider bg-gold/20 text-gold px-2 py-1 rounded-full">
+        Requested {shortDate(requestedAt)}
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider bg-muted text-muted-foreground px-2 py-1 rounded-full">
+      Not requested
+    </span>
   );
 }
