@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { sendPortalInvitation } from "@/lib/portal-invite.functions";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 
@@ -36,10 +37,10 @@ function PartnerSection() {
     if (!partnerEmail.trim() || !client) return;
     setSending(true);
     try {
-      const { error } = await supabase.functions.invoke("send-portal-invite", {
-        body: { client_id: client.id, invitation_type: "partner", invited_email: partnerEmail.trim() },
+      const result = await sendPortalInvitation({
+        data: { client_id: client.id, invitation_type: "partner", invited_email: partnerEmail.trim() },
       });
-      if (error) throw error;
+      if (!result.ok) throw new Error(result.error ?? "send failed");
       toast.success("Invitation sent.");
       setPartnerEmail("");
     } catch (e: any) {
