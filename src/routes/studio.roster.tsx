@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { AlertTriangle, Check, ChevronDown } from "lucide-react";
 
@@ -61,6 +62,8 @@ function fmtUSD(cents: number) {
 }
 
 function RosterPage() {
+  const { roles } = useAuth();
+  const canSeeTax = roles.includes("owner") || roles.includes("studio_manager");
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState<string>(String(currentYear));
   const [clients, setClients] = useState<ClientRow[]>([]);
@@ -68,6 +71,7 @@ function RosterPage() {
   const [quoteItems, setQuoteItems] = useState<QuoteItemRow[]>([]);
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [contractors, setContractors] = useState<Contractor[]>([]);
+  const [owesW9Ids, setOwesW9Ids] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
@@ -106,10 +110,37 @@ function RosterPage() {
     setQuoteItems(qi);
     setInvoices((invRes.data ?? []) as any);
     setContractors((conRes.data ?? []) as any);
+
+    if (canSeeTax) {
+      // Contractors who owe a W-9 right now: YTD pay >= $600 for relevant year
+      // AND w9_collected = false. Year follows the page selector when narrowed,
+      // otherwise current year.
+      const relevantYear = year === "all" ? currentYear : Number(year);
+      const [{ data: ytd }, { data: w9c }] = await Promise.all([
+        supabase
+          .from("contractor_ytd_pay")
+          .select("contractor_id, total_cents")
+          .eq("tax_year", relevantYear)
+          .gte("total_cents", 60000),
+        supabase.from("contractors").select("id, w9_collected"),
+      ]);
+      const collected = new Set(
+        ((w9c ?? []) as any[]).filter((c) => c.w9_collected).map((c) => c.id as string),
+      );
+      const owes = new Set<string>();
+      ((ytd ?? []) as any[]).forEach((r) => {
+        if (!collected.has(r.contractor_id)) owes.add(r.contractor_id as string);
+      });
+      setOwesW9Ids(owes);
+    } else {
+      setOwesW9Ids(new Set());
+    }
+
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); }, [year, canSeeTax]);
 
   const years = useMemo(() => {
     const set = new Set<string>();
@@ -257,18 +288,22 @@ function RosterPage() {
                     <td className="px-4 py-5"><YesNo on={albumIncluded} /></td>
                     <td className="px-4 py-5">
                       <CrewCell
+                        assignedId={ss?.contractor?.id ?? null}
                         assignedName={ss?.contractor?.full_name ?? null}
                         included={ssIncluded}
                         options={ssOptions}
                         onAssign={(id) => assign(c.id, "second_shooter", id)}
+                        owesW9={!!ss?.contractor?.id && owesW9Ids.has(ss.contractor.id)}
                       />
                     </td>
                     <td className="px-4 py-5">
                       <CrewCell
+                        assignedId={vid?.contractor?.id ?? null}
                         assignedName={vid?.contractor?.full_name ?? null}
                         included={videoIncluded}
                         options={videoOptions}
                         onAssign={(id) => assign(c.id, "videographer", id)}
+                        owesW9={!!vid?.contractor?.id && owesW9Ids.has(vid.contractor.id)}
                       />
                     </td>
                     <td className="px-4 py-5"><PaymentCell inv={inv} /></td>
@@ -293,19 +328,30 @@ function YesNo({ on }: { on: boolean }) {
 }
 
 function CrewCell({
-  assignedName, included, options, onAssign,
+  assignedId, assignedName, included, options, onAssign, owesW9,
 }: {
+  assignedId?: string | null;
   assignedName: string | null;
   included: boolean;
   options: Contractor[];
   onAssign: (id: string) => void;
+  owesW9?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  void assignedId;
   if (assignedName) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-sm text-foreground">
+      <span className="inline-flex items-center gap-1.5 text-sm text-foreground flex-wrap">
         <Check size={14} className="text-sage" />
         {assignedName}
+        {owesW9 && (
+          <span
+            title="This contractor has crossed $600 YTD and still owes a W-9"
+            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded-sm"
+          >
+            <AlertTriangle size={10} /> W-9
+          </span>
+        )}
       </span>
     );
   }

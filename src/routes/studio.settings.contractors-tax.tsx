@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { Download, FileText, AlertTriangle, Send } from "lucide-react";
 import { shortDate } from "@/lib/dates";
-import { sendContractorW9Request } from "@/lib/contractorW9.functions";
+import { sendContractorW9Request, sendContractorW9Bulk } from "@/lib/contractorW9.functions";
 
 export const Route = createFileRoute("/studio/settings/contractors-tax")({
   component: ContractorsTaxPage,
@@ -45,6 +45,7 @@ function ContractorsTaxPage() {
   const [autoEnabled, setAutoEnabled] = useState(false);
   const [togglingAuto, setTogglingAuto] = useState(false);
   const [sendingFor, setSendingFor] = useState<string | null>(null);
+  const [bulkSending, setBulkSending] = useState(false);
 
   useEffect(() => {
     if (!allowed) return;
@@ -110,7 +111,37 @@ function ContractorsTaxPage() {
     }
   };
 
+  const missingRows = useMemo(
+    () => rows.filter((r) => !r.w9_collected && !!r.email),
+    [rows],
+  );
   const missingW9 = useMemo(() => rows.filter((r) => !r.w9_collected).length, [rows]);
+
+  const sendBulkReminders = async () => {
+    const targets = missingRows;
+    if (targets.length === 0) {
+      toast.info("No contractors are missing a W-9 right now.");
+      return;
+    }
+    if (!confirm(`Email ${targets.length} contractor${targets.length === 1 ? "" : "s"} a W-9 reminder?`)) return;
+    setBulkSending(true);
+    try {
+      const res = await sendContractorW9Bulk({
+        data: {
+          contractorIds: targets.map((t) => t.contractor_id),
+          taxYear: year,
+          reminder: true,
+        },
+      });
+      const skipped = (res?.skipped ?? 0) + (res?.failed ?? 0);
+      toast.success(`Sent ${res?.sent ?? 0} reminder${res?.sent === 1 ? "" : "s"}${skipped ? `, ${skipped} skipped` : ""}`);
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Bulk send failed");
+    } finally {
+      setBulkSending(false);
+    }
+  };
 
   const yearOptions = useMemo(() => {
     const years: number[] = [];
@@ -242,9 +273,23 @@ function ContractorsTaxPage() {
 
 
       {!loading && rows.length > 0 && (
-        <div className="bg-surface border-t-2 border-gold rounded-lg shadow-soft p-4 text-sm text-primary">
-          <strong>{rows.length}</strong> contractor{rows.length === 1 ? "" : "s"} need a 1099 this year ·{" "}
-          <strong>{missingW9}</strong> still missing a W-9.
+        <div className="bg-surface border-t-2 border-gold rounded-lg shadow-soft p-4 text-sm text-primary flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <strong>{rows.length}</strong> contractor{rows.length === 1 ? "" : "s"} need a 1099 this year ·{" "}
+            <strong>{missingW9}</strong> still missing a W-9.
+          </div>
+          {isOwner && missingRows.length > 0 && (
+            <button
+              onClick={sendBulkReminders}
+              disabled={bulkSending}
+              className="inline-flex items-center gap-2 border border-gold text-gold px-3 py-1.5 rounded-md text-xs hover:bg-gold/10 disabled:opacity-40"
+            >
+              <Send size={12} />
+              {bulkSending
+                ? "Sending…"
+                : `Send reminder to all missing W-9 (${missingRows.length})`}
+            </button>
+          )}
         </div>
       )}
 

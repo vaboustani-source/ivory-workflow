@@ -167,6 +167,22 @@ export const Route = createFileRoute("/api/public/send-w9-request")({
             .from("contractors")
             .update({ w9_requested_at: new Date().toISOString() })
             .eq("id", contractor.id);
+          await supabaseAdmin.from("activity_log").insert({
+            action_type: useReminder
+              ? "contractor_w9.reminded"
+              : "contractor_w9.requested",
+            target_type: "contractor_w9_request",
+            target_id: reqRow.id,
+            description: useReminder
+              ? `W-9 reminder sent to ${contractor.full_name}`
+              : `W-9 request sent to ${contractor.full_name}`,
+            metadata: {
+              contractor_id: contractor.id,
+              tax_year: reqRow.tax_year,
+              reminder: useReminder,
+              test_mode: status === "test_mode_blocked",
+            } as Json,
+          });
         } else {
           await markFailed(
             reqRow.id,

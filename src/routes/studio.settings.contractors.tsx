@@ -24,6 +24,8 @@ function ContractorsPage() {
   const [sort, setSort] = useState<SortKey>("name");
   const [pendingRequests, setPendingRequests] = useState(0);
   const [bookedThisMonth, setBookedThisMonth] = useState(0);
+  const [ytdByContractor, setYtdByContractor] = useState<Map<string, number>>(new Map());
+  const [w9Filter, setW9Filter] = useState<"all" | "owes">("all");
 
   const load = async () => {
     setLoading(true);
@@ -43,15 +45,30 @@ function ContractorsPage() {
       .select("id", { count: "exact", head: true })
       .gte("created_at", monthStart.toISOString());
     setBookedThisMonth(bookedCount ?? 0);
+
+    const currentYear = new Date().getFullYear();
+    const { data: ytd } = await supabase
+      .from("contractor_ytd_pay")
+      .select("contractor_id, total_cents")
+      .eq("tax_year", currentYear);
+    const m = new Map<string, number>();
+    ((ytd ?? []) as any[]).forEach((r) => m.set(r.contractor_id, Number(r.total_cents ?? 0)));
+    setYtdByContractor(m);
   };
 
   useEffect(() => { load(); }, []);
+
+  const owesW9 = (r: ContractorRow): boolean => {
+    const cents = ytdByContractor.get(r.id) ?? 0;
+    return cents >= 60000 && !r.w9_collected;
+  };
 
   const visible = useMemo(() => {
     let v = rows;
     if (activeFilter === "active") v = v.filter((r) => r.is_active);
     if (activeFilter === "inactive") v = v.filter((r) => !r.is_active);
     if (roleFilter !== "all") v = v.filter((r) => r.roles?.includes(roleFilter));
+    if (w9Filter === "owes") v = v.filter(owesW9);
     if (search.trim()) {
       const s = search.toLowerCase();
       v = v.filter((r) => r.full_name.toLowerCase().includes(s) || r.email.toLowerCase().includes(s));
@@ -65,7 +82,10 @@ function ContractorsPage() {
       return bt - at;
     });
     return v;
-  }, [rows, activeFilter, roleFilter, search, sort]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, activeFilter, roleFilter, search, sort, w9Filter, ytdByContractor]);
+
+  const owesCount = useMemo(() => rows.filter(owesW9).length, [rows, ytdByContractor]);
 
   const totalActive = rows.filter((r) => r.is_active).length;
   const totalInactive = rows.filter((r) => !r.is_active).length;
@@ -123,6 +143,18 @@ function ContractorsPage() {
           <option value="last_worked">Sort: Last worked</option>
           <option value="jobs">Sort: Jobs count</option>
         </select>
+        <button
+          type="button"
+          onClick={() => setW9Filter(w9Filter === "owes" ? "all" : "owes")}
+          className={`px-3 py-2 rounded-md text-xs border ${
+            w9Filter === "owes"
+              ? "bg-rose-100 text-rose-800 border-rose-300"
+              : "bg-background text-muted-foreground border-border hover:text-primary"
+          }`}
+          title="Show contractors who passed $600 YTD and still owe a W-9"
+        >
+          Owes W-9{owesCount ? ` (${owesCount})` : ""}
+        </button>
       </div>
 
       {loading ? (
@@ -139,6 +171,11 @@ function ContractorsPage() {
                 <div className="flex items-baseline gap-3 flex-wrap">
                   <h3 className="font-serif italic text-lg text-primary">{c.full_name}</h3>
                   {!c.is_active && <span className="text-[10px] uppercase tracking-wider text-muted-foreground">inactive</span>}
+                  <W9Indicator
+                    cents={ytdByContractor.get(c.id) ?? 0}
+                    collected={!!c.w9_collected}
+                    requestedAt={c.w9_requested_at ?? null}
+                  />
                   {c.instagram && <a href={c.instagram.startsWith("http") ? c.instagram : `https://instagram.com/${c.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-xs text-magenta hover:underline inline-flex items-center gap-1">IG <ExternalLink size={10} /></a>}
                   {c.portfolio_url && <a href={c.portfolio_url} target="_blank" rel="noopener noreferrer" className="text-xs text-magenta hover:underline inline-flex items-center gap-1">Portfolio <ExternalLink size={10} /></a>}
                 </div>
@@ -182,5 +219,36 @@ function Stat({ label, value }: { label: string; value: number }) {
       <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
       <p className="font-serif text-[28px] text-primary leading-none mt-2">{value}</p>
     </div>
+  );
+}
+
+function W9Indicator({
+  cents, collected, requestedAt,
+}: {
+  cents: number;
+  collected: boolean;
+  requestedAt: string | null;
+}) {
+  if (cents < 60000) {
+    return <span className="text-[10px] uppercase tracking-wider text-muted-foreground">—</span>;
+  }
+  if (collected) {
+    return (
+      <span className="text-[10px] uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-sm">
+        W-9 on file
+      </span>
+    );
+  }
+  if (requestedAt) {
+    return (
+      <span className="text-[10px] uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded-sm">
+        W-9 requested
+      </span>
+    );
+  }
+  return (
+    <span className="text-[10px] uppercase tracking-wider bg-rose-100 text-rose-800 px-2 py-0.5 rounded-sm">
+      W-9 not on file
+    </span>
   );
 }

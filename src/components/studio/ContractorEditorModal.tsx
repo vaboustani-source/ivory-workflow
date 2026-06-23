@@ -380,6 +380,13 @@ function TaxW9Section({
     setOrigFilename(safeName);
     setCollected(true);
     setCollectedAt(new Date().toISOString());
+    await supabase.from("activity_log").insert({
+      action_type: "contractor_w9.collected",
+      target_type: "contractor",
+      target_id: contractor.id,
+      description: `W-9 filed for ${contractor.full_name}`,
+      metadata: { contractor_id: contractor.id, source: "upload" } as never,
+    });
     toast.success("W-9 filed");
     onChanged();
   };
@@ -404,6 +411,13 @@ function TaxW9Section({
     if (error) return toast.error(error.message);
     setCollected(true);
     setCollectedAt((prev) => prev ?? new Date().toISOString());
+    await supabase.from("activity_log").insert({
+      action_type: "contractor_w9.collected",
+      target_type: "contractor",
+      target_id: contractor.id,
+      description: `W-9 marked collected for ${contractor.full_name}`,
+      metadata: { contractor_id: contractor.id, source: "manual" } as never,
+    });
     toast.success("Marked as collected");
     onChanged();
   };
