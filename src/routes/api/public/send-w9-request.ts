@@ -106,8 +106,8 @@ export const Route = createFileRoute("/api/public/send-w9-request")({
           w9_form_url: "https://www.irs.gov/pub/irs-pdf/fw9.pdf",
           studio_signature: "Stories by Victoria",
         };
-        const subject = applyMerge(tmpl.subject, merge);
-        const text = applyMerge(tmpl.body, merge);
+        const subject = applyMerge(tmplSubject, merge);
+        const text = applyMerge(tmplBody, merge);
         const htmlBody = renderHtml(text);
 
         const sendResult = await sendEmail({
