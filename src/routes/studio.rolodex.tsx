@@ -344,12 +344,13 @@ function Stat({ label, value }: { label: string; value: number }) {
 type CoupleLink = { id: string; client_id: string; couple_label: string };
 
 function VendorEditorModal({
-  vendor, allVendors, canEdit, startInMergeMode, onClose, onSaved,
+  vendor, allVendors, canEdit, startInMergeMode, onLog, onClose, onSaved,
 }: {
   vendor: Vendor;
   allVendors: Vendor[];
   canEdit: boolean;
   startInMergeMode?: boolean;
+  onLog: (action: string, vendor: Vendor, extra?: Record<string, unknown>) => Promise<void>;
   onClose: () => void;
   onSaved: () => void;
 }) {
