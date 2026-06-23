@@ -18,6 +18,7 @@ import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as StudioTasksRouteImport } from './routes/studio.tasks'
 import { Route as StudioSettingsRouteImport } from './routes/studio.settings'
 import { Route as StudioRosterRouteImport } from './routes/studio.roster'
+import { Route as StudioRolodexRouteImport } from './routes/studio.rolodex'
 import { Route as StudioRevenueRouteImport } from './routes/studio.revenue'
 import { Route as StudioResourcesRouteImport } from './routes/studio.resources'
 import { Route as StudioQueueRouteImport } from './routes/studio.queue'
@@ -135,6 +136,11 @@ const StudioSettingsRoute = StudioSettingsRouteImport.update({
 const StudioRosterRoute = StudioRosterRouteImport.update({
   id: '/roster',
   path: '/roster',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioRolodexRoute = StudioRolodexRouteImport.update({
+  id: '/rolodex',
+  path: '/rolodex',
   getParentRoute: () => StudioRoute,
 } as any)
 const StudioRevenueRoute = StudioRevenueRouteImport.update({
@@ -556,6 +562,7 @@ export interface FileRoutesByFullPath {
   '/studio/queue': typeof StudioQueueRouteWithChildren
   '/studio/resources': typeof StudioResourcesRoute
   '/studio/revenue': typeof StudioRevenueRoute
+  '/studio/rolodex': typeof StudioRolodexRoute
   '/studio/roster': typeof StudioRosterRoute
   '/studio/settings': typeof StudioSettingsRouteWithChildren
   '/studio/tasks': typeof StudioTasksRoute
@@ -637,6 +644,7 @@ export interface FileRoutesByTo {
   '/studio/queue': typeof StudioQueueRouteWithChildren
   '/studio/resources': typeof StudioResourcesRoute
   '/studio/revenue': typeof StudioRevenueRoute
+  '/studio/rolodex': typeof StudioRolodexRoute
   '/studio/roster': typeof StudioRosterRoute
   '/studio/settings': typeof StudioSettingsRouteWithChildren
   '/studio/tasks': typeof StudioTasksRoute
@@ -722,6 +730,7 @@ export interface FileRoutesById {
   '/studio/queue': typeof StudioQueueRouteWithChildren
   '/studio/resources': typeof StudioResourcesRoute
   '/studio/revenue': typeof StudioRevenueRoute
+  '/studio/rolodex': typeof StudioRolodexRoute
   '/studio/roster': typeof StudioRosterRoute
   '/studio/settings': typeof StudioSettingsRouteWithChildren
   '/studio/tasks': typeof StudioTasksRoute
@@ -808,6 +817,7 @@ export interface FileRouteTypes {
     | '/studio/queue'
     | '/studio/resources'
     | '/studio/revenue'
+    | '/studio/rolodex'
     | '/studio/roster'
     | '/studio/settings'
     | '/studio/tasks'
@@ -889,6 +899,7 @@ export interface FileRouteTypes {
     | '/studio/queue'
     | '/studio/resources'
     | '/studio/revenue'
+    | '/studio/rolodex'
     | '/studio/roster'
     | '/studio/settings'
     | '/studio/tasks'
@@ -973,6 +984,7 @@ export interface FileRouteTypes {
     | '/studio/queue'
     | '/studio/resources'
     | '/studio/revenue'
+    | '/studio/rolodex'
     | '/studio/roster'
     | '/studio/settings'
     | '/studio/tasks'
@@ -1109,6 +1121,13 @@ declare module '@tanstack/react-router' {
       path: '/roster'
       fullPath: '/studio/roster'
       preLoaderRoute: typeof StudioRosterRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/rolodex': {
+      id: '/studio/rolodex'
+      path: '/rolodex'
+      fullPath: '/studio/rolodex'
+      preLoaderRoute: typeof StudioRolodexRouteImport
       parentRoute: typeof StudioRoute
     }
     '/studio/revenue': {
@@ -1806,6 +1825,7 @@ interface StudioRouteChildren {
   StudioQueueRoute: typeof StudioQueueRouteWithChildren
   StudioResourcesRoute: typeof StudioResourcesRoute
   StudioRevenueRoute: typeof StudioRevenueRoute
+  StudioRolodexRoute: typeof StudioRolodexRoute
   StudioRosterRoute: typeof StudioRosterRoute
   StudioSettingsRoute: typeof StudioSettingsRouteWithChildren
   StudioTasksRoute: typeof StudioTasksRoute
@@ -1831,6 +1851,7 @@ const StudioRouteChildren: StudioRouteChildren = {
   StudioQueueRoute: StudioQueueRouteWithChildren,
   StudioResourcesRoute: StudioResourcesRoute,
   StudioRevenueRoute: StudioRevenueRoute,
+  StudioRolodexRoute: StudioRolodexRoute,
   StudioRosterRoute: StudioRosterRoute,
   StudioSettingsRoute: StudioSettingsRouteWithChildren,
   StudioTasksRoute: StudioTasksRoute,
