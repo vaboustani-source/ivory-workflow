@@ -171,6 +171,11 @@ function ContractorsPage() {
                 <div className="flex items-baseline gap-3 flex-wrap">
                   <h3 className="font-serif italic text-lg text-primary">{c.full_name}</h3>
                   {!c.is_active && <span className="text-[10px] uppercase tracking-wider text-muted-foreground">inactive</span>}
+                  <W9Indicator
+                    cents={ytdByContractor.get(c.id) ?? 0}
+                    collected={!!c.w9_collected}
+                    requestedAt={c.w9_requested_at ?? null}
+                  />
                   {c.instagram && <a href={c.instagram.startsWith("http") ? c.instagram : `https://instagram.com/${c.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="text-xs text-magenta hover:underline inline-flex items-center gap-1">IG <ExternalLink size={10} /></a>}
                   {c.portfolio_url && <a href={c.portfolio_url} target="_blank" rel="noopener noreferrer" className="text-xs text-magenta hover:underline inline-flex items-center gap-1">Portfolio <ExternalLink size={10} /></a>}
                 </div>
