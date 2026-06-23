@@ -3977,6 +3977,84 @@ export type Database = {
         }
         Relationships: []
       }
+      vendors: {
+        Row: {
+          address: string | null
+          category: string
+          created_at: string
+          created_by_client_id: string | null
+          email: string | null
+          id: string
+          instagram: string | null
+          is_preferred: boolean
+          is_verified: boolean
+          merged_into_vendor_id: string | null
+          name: string
+          normalized_name: string
+          notes: string | null
+          phone: string | null
+          preferred_blurb: string | null
+          source: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          category: string
+          created_at?: string
+          created_by_client_id?: string | null
+          email?: string | null
+          id?: string
+          instagram?: string | null
+          is_preferred?: boolean
+          is_verified?: boolean
+          merged_into_vendor_id?: string | null
+          name: string
+          normalized_name: string
+          notes?: string | null
+          phone?: string | null
+          preferred_blurb?: string | null
+          source?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          category?: string
+          created_at?: string
+          created_by_client_id?: string | null
+          email?: string | null
+          id?: string
+          instagram?: string | null
+          is_preferred?: boolean
+          is_verified?: boolean
+          merged_into_vendor_id?: string | null
+          name?: string
+          normalized_name?: string
+          notes?: string | null
+          phone?: string | null
+          preferred_blurb?: string | null
+          source?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendors_created_by_client_id_fkey"
+            columns: ["created_by_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendors_merged_into_vendor_id_fkey"
+            columns: ["merged_into_vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wedding_expenses: {
         Row: {
           amount: number
@@ -4079,6 +4157,63 @@ export type Database = {
             columns: ["contractor_id"]
             isOneToOne: false
             referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wedding_vendors: {
+        Row: {
+          added_by: string
+          client_id: string
+          couple_notes: string | null
+          created_at: string
+          id: string
+          point_of_contact: string | null
+          point_of_contact_email: string | null
+          point_of_contact_phone: string | null
+          role_label: string | null
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          added_by?: string
+          client_id: string
+          couple_notes?: string | null
+          created_at?: string
+          id?: string
+          point_of_contact?: string | null
+          point_of_contact_email?: string | null
+          point_of_contact_phone?: string | null
+          role_label?: string | null
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          added_by?: string
+          client_id?: string
+          couple_notes?: string | null
+          created_at?: string
+          id?: string
+          point_of_contact?: string | null
+          point_of_contact_email?: string | null
+          point_of_contact_phone?: string | null
+          role_label?: string | null
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_vendors_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wedding_vendors_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]
@@ -4402,6 +4537,28 @@ export type Database = {
         }
         Returns: Json
       }
+      add_vendor_for_client: {
+        Args: {
+          _address?: string
+          _category: string
+          _client_id: string
+          _couple_notes?: string
+          _email?: string
+          _instagram?: string
+          _name: string
+          _phone?: string
+          _point_of_contact?: string
+          _point_of_contact_email?: string
+          _point_of_contact_phone?: string
+          _role_label?: string
+          _website?: string
+        }
+        Returns: {
+          out_created_new: boolean
+          out_vendor_id: string
+          out_wedding_vendor_id: string
+        }[]
+      }
       approve_pending_change: {
         Args: { p_force?: boolean; p_id: string }
         Returns: Json
@@ -4538,6 +4695,11 @@ export type Database = {
         Args: { p_client_id: string }
         Returns: undefined
       }
+      merge_vendors: {
+        Args: { _loser: string; _winner: string }
+        Returns: undefined
+      }
+      normalize_vendor_name: { Args: { _name: string }; Returns: string }
       preview_publish_impact: { Args: { _draft_id: string }; Returns: Json }
       process_stripe_payment_succeeded: {
         Args: {
