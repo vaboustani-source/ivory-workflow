@@ -4563,6 +4563,7 @@ export type Database = {
         Args: { p_force?: boolean; p_id: string }
         Returns: Json
       }
+      backfill_vendors_from_questionnaires: { Args: never; Returns: Json }
       calculate_production_stage: {
         Args: { _client_id: string }
         Returns: string
