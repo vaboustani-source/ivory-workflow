@@ -143,11 +143,6 @@ const StudioRolodexRoute = StudioRolodexRouteImport.update({
   path: '/rolodex',
   getParentRoute: () => StudioRoute,
 } as any)
-const StudioRolodexRoute = StudioRolodexRouteImport.update({
-  id: '/rolodex',
-  path: '/rolodex',
-  getParentRoute: () => StudioRoute,
-} as any)
 const StudioRevenueRoute = StudioRevenueRouteImport.update({
   id: '/revenue',
   path: '/revenue',
