@@ -380,6 +380,13 @@ function TaxW9Section({
     setOrigFilename(safeName);
     setCollected(true);
     setCollectedAt(new Date().toISOString());
+    await supabase.from("activity_log").insert({
+      action_type: "contractor_w9.collected",
+      target_type: "contractor",
+      target_id: contractor.id,
+      description: `W-9 filed for ${contractor.full_name}`,
+      metadata: { contractor_id: contractor.id, source: "upload" } as never,
+    });
     toast.success("W-9 filed");
     onChanged();
   };
