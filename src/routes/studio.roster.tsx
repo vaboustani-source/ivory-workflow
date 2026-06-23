@@ -139,7 +139,8 @@ function RosterPage() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); }, [year, canSeeTax]);
 
   const years = useMemo(() => {
     const set = new Set<string>();
