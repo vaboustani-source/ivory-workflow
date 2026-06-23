@@ -6,8 +6,9 @@ export const Route = createFileRoute("/studio/settings")({
 });
 
 function SettingsLayout() {
-  const { profile } = useAuth();
+  const { profile, roles } = useAuth();
   const isOwner = profile?.role === "owner";
+  const canSeeTax = isOwner || roles.includes("studio_manager") || roles.includes("owner");
   const location = useLocation();
 
   const items = [
