@@ -302,10 +302,12 @@ function Stat({ label, value }: { label: string; value: number }) {
 type CoupleLink = { id: string; client_id: string; couple_label: string };
 
 function VendorEditorModal({
-  vendor, canEdit, onClose, onSaved,
+  vendor, allVendors, canEdit, startInMergeMode, onClose, onSaved,
 }: {
   vendor: Vendor;
+  allVendors: Vendor[];
   canEdit: boolean;
+  startInMergeMode?: boolean;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -324,6 +326,10 @@ function VendorEditorModal({
   });
   const [saving, setSaving] = useState(false);
   const [couples, setCouples] = useState<CoupleLink[]>([]);
+  const [showMerge, setShowMerge] = useState(!!startInMergeMode);
+  const [mergeTargetId, setMergeTargetId] = useState<string | null>(null);
+  const [mergeQuery, setMergeQuery] = useState("");
+  const [merging, setMerging] = useState(false);
 
   useEffect(() => {
     (async () => {
