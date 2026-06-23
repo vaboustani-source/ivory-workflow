@@ -1,14 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, ExternalLink, Instagram, Mail, Phone, X } from "lucide-react";
+import { Search, ExternalLink, Instagram, Mail, Phone, X, Check, GitMerge } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { shortDate } from "@/lib/dates";
 import { toast } from "sonner";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
 export const Route = createFileRoute("/studio/rolodex")({
   component: RolodexPage,
 });
+
+// Normalize a name the same way the DB does — lowercase, alnum + spaces, collapsed.
+function normalizeName(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+}
 
 type VendorCategory =
   | "planner" | "florist" | "caterer" | "dj_band" | "videographer"
@@ -60,6 +66,23 @@ function RolodexPage() {
   const [rows, setRows] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Vendor | null>(null);
+  const [openMergeOnEdit, setOpenMergeOnEdit] = useState(false);
+
+  const quickVerify = async (v: Vendor, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!canEdit) return;
+    const { error } = await supabase.from("vendors").update({ is_verified: true }).eq("id", v.id);
+    if (error) return toast.error(error.message);
+    toast.success(`Verified ${v.name}`);
+    setRows((rs) => rs.map((r) => (r.id === v.id ? { ...r, is_verified: true } : r)));
+  };
+
+  const openMerge = (v: Vendor, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!canEdit) return;
+    setOpenMergeOnEdit(true);
+    setEditing(v);
+  };
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -172,10 +195,13 @@ function RolodexPage() {
       ) : (
         <div className="space-y-2">
           {visible.map((v) => (
-            <button
+            <div
               key={v.id}
-              onClick={() => setEditing(v)}
-              className="w-full text-left bg-surface rounded-lg shadow-soft border-t-2 border-gold p-4 flex flex-col md:flex-row md:items-center gap-4 hover:bg-background-alt/40 transition-colors"
+              onClick={() => { setOpenMergeOnEdit(false); setEditing(v); }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === "Enter") { setOpenMergeOnEdit(false); setEditing(v); } }}
+              className="w-full text-left bg-surface rounded-lg shadow-soft border-t-2 border-gold p-4 flex flex-col md:flex-row md:items-center gap-4 hover:bg-background-alt/40 transition-colors cursor-pointer"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-3 flex-wrap">
@@ -207,8 +233,29 @@ function RolodexPage() {
                   {v.instagram && <a href={v.instagram.startsWith("http") ? v.instagram : `https://instagram.com/${v.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-magenta hover:underline inline-flex items-center gap-1"><Instagram size={10} /> IG</a>}
                 </p>
               </div>
-              <span className="text-xs text-muted-foreground shrink-0">{canEdit ? "Edit →" : "View →"}</span>
-            </button>
+              <div className="flex items-center gap-2 shrink-0">
+                {canEdit && !v.is_verified && (
+                  <button
+                    type="button"
+                    onClick={(e) => quickVerify(v, e)}
+                    className="text-xs inline-flex items-center gap-1 border border-emerald-300 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-md"
+                  >
+                    <Check size={12} /> Verify
+                  </button>
+                )}
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={(e) => openMerge(v, e)}
+                    className="text-xs inline-flex items-center gap-1 border border-border text-muted-foreground hover:text-primary px-2.5 py-1.5 rounded-md"
+                    title="Merge into another vendor"
+                  >
+                    <GitMerge size={12} /> Merge
+                  </button>
+                )}
+                <span className="text-xs text-muted-foreground">{canEdit ? "Edit →" : "View →"}</span>
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -216,9 +263,11 @@ function RolodexPage() {
       {editing && (
         <VendorEditorModal
           vendor={editing}
+          allVendors={rows}
           canEdit={canEdit}
-          onClose={() => setEditing(null)}
-          onSaved={() => { setEditing(null); load(); }}
+          startInMergeMode={openMergeOnEdit}
+          onClose={() => { setEditing(null); setOpenMergeOnEdit(false); }}
+          onSaved={() => { setEditing(null); setOpenMergeOnEdit(false); load(); }}
         />
       )}
     </div>
@@ -253,10 +302,12 @@ function Stat({ label, value }: { label: string; value: number }) {
 type CoupleLink = { id: string; client_id: string; couple_label: string };
 
 function VendorEditorModal({
-  vendor, canEdit, onClose, onSaved,
+  vendor, allVendors, canEdit, startInMergeMode, onClose, onSaved,
 }: {
   vendor: Vendor;
+  allVendors: Vendor[];
   canEdit: boolean;
+  startInMergeMode?: boolean;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -275,6 +326,10 @@ function VendorEditorModal({
   });
   const [saving, setSaving] = useState(false);
   const [couples, setCouples] = useState<CoupleLink[]>([]);
+  const [showMerge, setShowMerge] = useState(!!startInMergeMode);
+  const [mergeTargetId, setMergeTargetId] = useState<string | null>(null);
+  const [mergeQuery, setMergeQuery] = useState("");
+  const [merging, setMerging] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -318,6 +373,46 @@ function VendorEditorModal({
     toast.success("Vendor updated");
     onSaved();
   };
+
+  const doMerge = async () => {
+    if (!canEdit || !mergeTargetId) return;
+    const target = allVendors.find((v) => v.id === mergeTargetId);
+    if (!target) return toast.error("Pick a vendor to merge into");
+    const n = couples.length;
+    const msg = `Merge "${vendor.name}" into "${target.name}"?\n\nAll ${n} ${n === 1 ? "couple" : "couples"} will move to "${target.name}" and this entry will be retired. This cannot be undone.`;
+    if (!window.confirm(msg)) return;
+    setMerging(true);
+    const { error } = await supabase.rpc("merge_vendors", { _loser: vendor.id, _winner: target.id });
+    setMerging(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Merged into ${target.name}`);
+    onSaved();
+  };
+
+  // Rank merge candidates: similar name first, then same category, then rest.
+  const mergeCandidates = useMemo(() => {
+    const myNorm = normalizeName(vendor.name);
+    const myFirst = myNorm.split(" ")[0] ?? "";
+    return allVendors
+      .filter((v) => v.id !== vendor.id)
+      .map((v) => {
+        const n = normalizeName(v.name);
+        let score = 0;
+        if (n === myNorm) score = 100;
+        else if (n.includes(myNorm) || myNorm.includes(n)) score = 80;
+        else if (myFirst && n.startsWith(myFirst)) score = 50;
+        if (v.category === vendor.category) score += 10;
+        return { v, score };
+      })
+      .sort((a, b) => b.score - a.score || a.v.name.localeCompare(b.v.name))
+      .map((x) => x.v);
+  }, [allVendors, vendor.id, vendor.name, vendor.category]);
+
+  const filteredCandidates = useMemo(() => {
+    const q = mergeQuery.trim().toLowerCase();
+    if (!q) return mergeCandidates.slice(0, 50);
+    return mergeCandidates.filter((v) => v.name.toLowerCase().includes(q)).slice(0, 50);
+  }, [mergeCandidates, mergeQuery]);
 
   const readOnly = !canEdit;
 
@@ -428,6 +523,90 @@ function VendorEditorModal({
             <div className="text-xs text-muted-foreground flex flex-wrap gap-3 border-t border-border pt-3">
               {vendor.email && <span className="inline-flex items-center gap-1"><Mail size={12} /> {vendor.email}</span>}
               {vendor.phone && <span className="inline-flex items-center gap-1"><Phone size={12} /> {vendor.phone}</span>}
+            </div>
+          )}
+
+          {canEdit && (
+            <div className="border-t border-border pt-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Merge duplicates</p>
+                {!showMerge ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowMerge(true)}
+                    className="text-xs inline-flex items-center gap-1 border border-border text-muted-foreground hover:text-primary px-2.5 py-1.5 rounded-md"
+                  >
+                    <GitMerge size={12} /> Merge into…
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { setShowMerge(false); setMergeTargetId(null); setMergeQuery(""); }}
+                    className="text-xs text-muted-foreground hover:text-primary"
+                  >
+                    Cancel merge
+                  </button>
+                )}
+              </div>
+              {showMerge && (
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground">
+                    Pick the vendor to keep. All {couples.length} {couples.length === 1 ? "couple" : "couples"} linked to <span className="italic">{vendor.name}</span> will move to it; this entry is retired.
+                  </p>
+                  <div className="border border-border rounded-md overflow-hidden">
+                    <Command shouldFilter={false}>
+                      <CommandInput placeholder="Search vendors to merge into…" value={mergeQuery} onValueChange={setMergeQuery} />
+                      <CommandList>
+                        <CommandEmpty>No vendors found.</CommandEmpty>
+                        <CommandGroup>
+                          {filteredCandidates.map((c) => {
+                            const myNorm = normalizeName(vendor.name);
+                            const cn = normalizeName(c.name);
+                            const likelyDup = cn === myNorm || cn.includes(myNorm) || myNorm.includes(cn);
+                            const sameCat = c.category === vendor.category;
+                            return (
+                              <CommandItem
+                                key={c.id}
+                                value={c.id}
+                                onSelect={() => setMergeTargetId(c.id)}
+                                className={mergeTargetId === c.id ? "bg-primary/10" : ""}
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-sm">{c.name}</span>
+                                    {likelyDup && (
+                                      <span className="text-[9px] uppercase tracking-wider bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-sm">
+                                        Likely duplicate
+                                      </span>
+                                    )}
+                                    {sameCat && !likelyDup && (
+                                      <span className="text-[9px] uppercase tracking-wider bg-background-alt text-primary px-1.5 py-0.5 rounded-sm">
+                                        Same category
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[11px] text-muted-foreground">{CATEGORY_LABEL[c.category] ?? c.category}</p>
+                                </div>
+                                {mergeTargetId === c.id && <Check size={14} className="text-primary" />}
+                              </CommandItem>
+                            );
+                          })}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={doMerge}
+                      disabled={!mergeTargetId || merging}
+                      className="text-xs inline-flex items-center gap-1 bg-amber-700 text-white px-3 py-2 rounded-md hover:bg-amber-800 disabled:opacity-50"
+                    >
+                      <GitMerge size={12} /> {merging ? "Merging…" : "Merge vendors"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
