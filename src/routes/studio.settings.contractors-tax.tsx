@@ -217,6 +217,30 @@ function ContractorsTaxPage() {
         </div>
       </header>
 
+      {isOwner && (
+        <div className="bg-surface border-t-2 border-gold rounded-lg shadow-soft p-4 flex items-start gap-3">
+          <input
+            id="w9-auto"
+            type="checkbox"
+            checked={autoEnabled}
+            disabled={togglingAuto}
+            onChange={(e) => toggleAuto(e.target.checked)}
+            className="mt-1 h-4 w-4 accent-gold"
+          />
+          <label htmlFor="w9-auto" className="text-sm text-primary">
+            <div className="font-medium">
+              Automatically email a W-9 request when a contractor passes $600
+            </div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              Off by default. When on, the first time a contractor's calendar-year total
+              crosses $600, the system emails them the W-9 request once and records the
+              request here.
+            </div>
+          </label>
+        </div>
+      )}
+
+
       {!loading && rows.length > 0 && (
         <div className="bg-surface border-t-2 border-gold rounded-lg shadow-soft p-4 text-sm text-primary">
           <strong>{rows.length}</strong> contractor{rows.length === 1 ? "" : "s"} need a 1099 this year ·{" "}
