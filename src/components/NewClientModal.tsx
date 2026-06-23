@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { sendPortalInvitation } from "@/lib/portal-invite.functions";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { X } from "lucide-react";
@@ -70,6 +71,25 @@ export function NewClientModal({ open, onClose, onCreated }: { open: boolean; on
       target_id: data.id,
       description: `Added ${form.couple_name_1}${form.couple_name_2 ? " & " + form.couple_name_2 : ""}`,
     });
+
+    // Auto-send portal invitation when the studio flag is on AND the client
+    // is added as something other than a lead. Fire-and-forget: a send failure
+    // must NEVER block client creation.
+    if (form.status !== "lead" && form.primary_email) {
+      try {
+        const { data: ss } = await supabase
+          .from("studio_settings")
+          .select("portal_invite_auto_enabled")
+          .eq("is_active", true)
+          .maybeSingle();
+        if (ss?.portal_invite_auto_enabled) {
+          void sendPortalInvitation({
+            data: { client_id: data.id, invitation_type: "initial" },
+          }).catch(() => { /* swallow — owner is notified via notifications table */ });
+        }
+      } catch { /* swallow */ }
+    }
+
     toast.success("Client added.");
     onCreated();
     onClose();
