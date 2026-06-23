@@ -221,3 +221,34 @@ function Stat({ label, value }: { label: string; value: number }) {
     </div>
   );
 }
+
+function W9Indicator({
+  cents, collected, requestedAt,
+}: {
+  cents: number;
+  collected: boolean;
+  requestedAt: string | null;
+}) {
+  if (cents < 60000) {
+    return <span className="text-[10px] uppercase tracking-wider text-muted-foreground">—</span>;
+  }
+  if (collected) {
+    return (
+      <span className="text-[10px] uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-sm">
+        W-9 on file
+      </span>
+    );
+  }
+  if (requestedAt) {
+    return (
+      <span className="text-[10px] uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded-sm">
+        W-9 requested
+      </span>
+    );
+  }
+  return (
+    <span className="text-[10px] uppercase tracking-wider bg-rose-100 text-rose-800 px-2 py-0.5 rounded-sm">
+      W-9 not on file
+    </span>
+  );
+}
