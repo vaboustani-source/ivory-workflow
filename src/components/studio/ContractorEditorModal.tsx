@@ -5,6 +5,7 @@ import { X, Upload, Download, Eye, EyeOff, Trash2, FileCheck2 } from "lucide-rea
 import { CONTRACTOR_ROLES, type ContractorRole } from "@/lib/contractors";
 import { useAuth } from "@/lib/auth";
 import { shortDate } from "@/lib/dates";
+import { sendContractorW9Request } from "@/lib/contractorW9.functions";
 
 export interface ContractorRow {
   id: string;
