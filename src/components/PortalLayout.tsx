@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Home, Calendar, MessageCircle, FileText, Image, Receipt, BookOpen, User,
-  Bell, LogOut, Menu, ClipboardList, Heart, Camera, Activity,
+  Bell, LogOut, Menu, ClipboardList, Heart, Camera, Activity, Users,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { firstName, shortDate } from "@/lib/dates";

@@ -32,6 +32,7 @@ import { Route as StudioCalendarRouteImport } from './routes/studio.calendar'
 import { Route as StudioBriefingsRouteImport } from './routes/studio.briefings'
 import { Route as StudioApprovalQueueRouteImport } from './routes/studio.approval-queue'
 import { Route as PortalWelcomeRouteImport } from './routes/portal.welcome'
+import { Route as PortalVendorsRouteImport } from './routes/portal.vendors'
 import { Route as PortalTimelineRouteImport } from './routes/portal.timeline'
 import { Route as PortalResourcesRouteImport } from './routes/portal.resources'
 import { Route as PortalQuestionnairesRouteImport } from './routes/portal.questionnaires'
@@ -204,6 +205,11 @@ const StudioApprovalQueueRoute = StudioApprovalQueueRouteImport.update({
 const PortalWelcomeRoute = PortalWelcomeRouteImport.update({
   id: '/welcome',
   path: '/welcome',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalVendorsRoute = PortalVendorsRouteImport.update({
+  id: '/vendors',
+  path: '/vendors',
   getParentRoute: () => PortalRoute,
 } as any)
 const PortalTimelineRoute = PortalTimelineRouteImport.update({
@@ -535,6 +541,7 @@ export interface FileRoutesByFullPath {
   '/portal/questionnaires': typeof PortalQuestionnairesRoute
   '/portal/resources': typeof PortalResourcesRoute
   '/portal/timeline': typeof PortalTimelineRoute
+  '/portal/vendors': typeof PortalVendorsRoute
   '/portal/welcome': typeof PortalWelcomeRoute
   '/studio/approval-queue': typeof StudioApprovalQueueRoute
   '/studio/briefings': typeof StudioBriefingsRouteWithChildren
@@ -615,6 +622,7 @@ export interface FileRoutesByTo {
   '/portal/questionnaires': typeof PortalQuestionnairesRoute
   '/portal/resources': typeof PortalResourcesRoute
   '/portal/timeline': typeof PortalTimelineRoute
+  '/portal/vendors': typeof PortalVendorsRoute
   '/portal/welcome': typeof PortalWelcomeRoute
   '/studio/approval-queue': typeof StudioApprovalQueueRoute
   '/studio/briefings': typeof StudioBriefingsRouteWithChildren
@@ -699,6 +707,7 @@ export interface FileRoutesById {
   '/portal/questionnaires': typeof PortalQuestionnairesRoute
   '/portal/resources': typeof PortalResourcesRoute
   '/portal/timeline': typeof PortalTimelineRoute
+  '/portal/vendors': typeof PortalVendorsRoute
   '/portal/welcome': typeof PortalWelcomeRoute
   '/studio/approval-queue': typeof StudioApprovalQueueRoute
   '/studio/briefings': typeof StudioBriefingsRouteWithChildren
@@ -784,6 +793,7 @@ export interface FileRouteTypes {
     | '/portal/questionnaires'
     | '/portal/resources'
     | '/portal/timeline'
+    | '/portal/vendors'
     | '/portal/welcome'
     | '/studio/approval-queue'
     | '/studio/briefings'
@@ -864,6 +874,7 @@ export interface FileRouteTypes {
     | '/portal/questionnaires'
     | '/portal/resources'
     | '/portal/timeline'
+    | '/portal/vendors'
     | '/portal/welcome'
     | '/studio/approval-queue'
     | '/studio/briefings'
@@ -947,6 +958,7 @@ export interface FileRouteTypes {
     | '/portal/questionnaires'
     | '/portal/resources'
     | '/portal/timeline'
+    | '/portal/vendors'
     | '/portal/welcome'
     | '/studio/approval-queue'
     | '/studio/briefings'
@@ -1195,6 +1207,13 @@ declare module '@tanstack/react-router' {
       path: '/welcome'
       fullPath: '/portal/welcome'
       preLoaderRoute: typeof PortalWelcomeRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/vendors': {
+      id: '/portal/vendors'
+      path: '/vendors'
+      fullPath: '/portal/vendors'
+      preLoaderRoute: typeof PortalVendorsRouteImport
       parentRoute: typeof PortalRoute
     }
     '/portal/timeline': {
@@ -1636,6 +1655,7 @@ interface PortalRouteChildren {
   PortalQuestionnairesRoute: typeof PortalQuestionnairesRoute
   PortalResourcesRoute: typeof PortalResourcesRoute
   PortalTimelineRoute: typeof PortalTimelineRoute
+  PortalVendorsRoute: typeof PortalVendorsRoute
   PortalWelcomeRoute: typeof PortalWelcomeRoute
   PortalIndexRoute: typeof PortalIndexRoute
 }
@@ -1652,6 +1672,7 @@ const PortalRouteChildren: PortalRouteChildren = {
   PortalQuestionnairesRoute: PortalQuestionnairesRoute,
   PortalResourcesRoute: PortalResourcesRoute,
   PortalTimelineRoute: PortalTimelineRoute,
+  PortalVendorsRoute: PortalVendorsRoute,
   PortalWelcomeRoute: PortalWelcomeRoute,
   PortalIndexRoute: PortalIndexRoute,
 }
@@ -1847,13 +1868,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
