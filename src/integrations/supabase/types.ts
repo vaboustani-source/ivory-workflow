@@ -1228,9 +1228,55 @@ export type Database = {
           },
         ]
       }
+      contractor_w9_requests: {
+        Row: {
+          contractor_id: string
+          created_by: string | null
+          email_send_id: string | null
+          id: string
+          requested_at: string
+          status: string
+          tax_year: number
+        }
+        Insert: {
+          contractor_id: string
+          created_by?: string | null
+          email_send_id?: string | null
+          id?: string
+          requested_at?: string
+          status?: string
+          tax_year: number
+        }
+        Update: {
+          contractor_id?: string
+          created_by?: string | null
+          email_send_id?: string | null
+          id?: string
+          requested_at?: string
+          status?: string
+          tax_year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_w9_requests_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_w9_requests_email_send_id_fkey"
+            columns: ["email_send_id"]
+            isOneToOne: false
+            referencedRelation: "email_sends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractors: {
         Row: {
           bio: string | null
+          business_type: string | null
           created_at: string
           email: string
           full_name: string
@@ -1242,6 +1288,8 @@ export type Database = {
           is_active: boolean
           jobs_count: number
           last_worked_with_at: string | null
+          legal_name: string | null
+          mailing_address: string | null
           notes: string | null
           phone: string | null
           portfolio_url: string | null
@@ -1249,10 +1297,16 @@ export type Database = {
           preferred_min_hourly_rate: number | null
           rate_notes: string | null
           roles: Database["public"]["Enums"]["contractor_role"][]
+          tax_id_type: string | null
+          tax_id_vault_secret_id: string | null
           updated_at: string
+          w9_collected: boolean
+          w9_collected_at: string | null
+          w9_requested_at: string | null
         }
         Insert: {
           bio?: string | null
+          business_type?: string | null
           created_at?: string
           email: string
           full_name: string
@@ -1264,6 +1318,8 @@ export type Database = {
           is_active?: boolean
           jobs_count?: number
           last_worked_with_at?: string | null
+          legal_name?: string | null
+          mailing_address?: string | null
           notes?: string | null
           phone?: string | null
           portfolio_url?: string | null
@@ -1271,10 +1327,16 @@ export type Database = {
           preferred_min_hourly_rate?: number | null
           rate_notes?: string | null
           roles?: Database["public"]["Enums"]["contractor_role"][]
+          tax_id_type?: string | null
+          tax_id_vault_secret_id?: string | null
           updated_at?: string
+          w9_collected?: boolean
+          w9_collected_at?: string | null
+          w9_requested_at?: string | null
         }
         Update: {
           bio?: string | null
+          business_type?: string | null
           created_at?: string
           email?: string
           full_name?: string
@@ -1286,6 +1348,8 @@ export type Database = {
           is_active?: boolean
           jobs_count?: number
           last_worked_with_at?: string | null
+          legal_name?: string | null
+          mailing_address?: string | null
           notes?: string | null
           phone?: string | null
           portfolio_url?: string | null
@@ -1293,7 +1357,12 @@ export type Database = {
           preferred_min_hourly_rate?: number | null
           rate_notes?: string | null
           roles?: Database["public"]["Enums"]["contractor_role"][]
+          tax_id_type?: string | null
+          tax_id_vault_secret_id?: string | null
           updated_at?: string
+          w9_collected?: boolean
+          w9_collected_at?: string | null
+          w9_requested_at?: string | null
         }
         Relationships: []
       }
@@ -3663,6 +3732,7 @@ export type Database = {
           studio_phone: string | null
           updated_at: string | null
           video_cancellation_fee: number | null
+          w9_auto_request_enabled: boolean
           website: string | null
         }
         Insert: {
@@ -3683,6 +3753,7 @@ export type Database = {
           studio_phone?: string | null
           updated_at?: string | null
           video_cancellation_fee?: number | null
+          w9_auto_request_enabled?: boolean
           website?: string | null
         }
         Update: {
@@ -3703,6 +3774,7 @@ export type Database = {
           studio_phone?: string | null
           updated_at?: string | null
           video_cancellation_fee?: number | null
+          w9_auto_request_enabled?: boolean
           website?: string | null
         }
         Relationships: []
@@ -4206,7 +4278,22 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      contractor_ytd_pay: {
+        Row: {
+          contractor_id: string | null
+          tax_year: number | null
+          total_cents: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_team_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       _anchor_date: {
@@ -4307,9 +4394,14 @@ export type Database = {
         Args: { _client_id: string }
         Returns: string
       }
+      can_manage_contractor_tax_id: { Args: { _uid: string }; Returns: boolean }
       cancel_tbd_booking: {
         Args: { p_client_id: string; p_reason: string }
         Returns: Json
+      }
+      clear_contractor_tax_id: {
+        Args: { _contractor_id: string }
+        Returns: undefined
       }
       create_booking: {
         Args: {
@@ -4369,6 +4461,10 @@ export type Database = {
           zoom_password: string
         }[]
       }
+      get_contractor_tax_id: {
+        Args: { _contractor_id: string }
+        Returns: string
+      }
       hard_delete_old_messages: { Args: never; Returns: number }
       has_role: {
         Args: {
@@ -4414,6 +4510,10 @@ export type Database = {
       reject_pending_change: {
         Args: { p_id: string; p_note?: string }
         Returns: Json
+      }
+      set_contractor_tax_id: {
+        Args: { _contractor_id: string; _plaintext: string; _type: string }
+        Returns: undefined
       }
       trigger_event_handler: {
         Args: {
