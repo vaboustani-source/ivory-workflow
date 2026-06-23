@@ -73,19 +73,42 @@ function ContractorsTaxPage() {
 
   useEffect(() => {
     if (!allowed) return;
-    setLoading(true);
-    supabase
-      .rpc("get_contractor_1099_report", { _tax_year: year })
-      .then(({ data, error }) => {
-        if (error) {
-          toast.error(error.message);
-          setRows([]);
-        } else {
-          setRows((data ?? []) as Row[]);
-        }
-        setLoading(false);
-      });
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year, allowed]);
+
+  const toggleAuto = async (next: boolean) => {
+    setTogglingAuto(true);
+    const { error } = await supabase
+      .from("studio_settings")
+      .update({ w9_auto_request_enabled: next })
+      .eq("is_active", true);
+    setTogglingAuto(false);
+    if (error) return toast.error(error.message);
+    setAutoEnabled(next);
+    toast.success(next ? "Auto W-9 requests enabled" : "Auto W-9 requests disabled");
+  };
+
+  const sendW9 = async (r: Row) => {
+    setSendingFor(r.contractor_id);
+    try {
+      const res = await sendContractorW9Request({
+        data: { contractorId: r.contractor_id, taxYear: year },
+      });
+      if (res?.ok) {
+        toast.success(
+          res.status === "test_mode_blocked" ? "Logged (Postmark test mode)" : "W-9 request sent",
+        );
+        refresh();
+      } else {
+        toast.error(res?.error ?? "Send failed");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Send failed");
+    } finally {
+      setSendingFor(null);
+    }
+  };
 
   const missingW9 = useMemo(() => rows.filter((r) => !r.w9_collected).length, [rows]);
 
