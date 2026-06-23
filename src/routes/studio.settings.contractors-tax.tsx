@@ -3,8 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
-import { Download, FileText, AlertTriangle } from "lucide-react";
+import { Download, FileText, AlertTriangle, Send } from "lucide-react";
 import { shortDate } from "@/lib/dates";
+import { sendContractorW9Request } from "@/lib/contractorW9.functions";
 
 export const Route = createFileRoute("/studio/settings/contractors-tax")({
   component: ContractorsTaxPage,
