@@ -273,9 +273,23 @@ function ContractorsTaxPage() {
 
 
       {!loading && rows.length > 0 && (
-        <div className="bg-surface border-t-2 border-gold rounded-lg shadow-soft p-4 text-sm text-primary">
-          <strong>{rows.length}</strong> contractor{rows.length === 1 ? "" : "s"} need a 1099 this year ·{" "}
-          <strong>{missingW9}</strong> still missing a W-9.
+        <div className="bg-surface border-t-2 border-gold rounded-lg shadow-soft p-4 text-sm text-primary flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <strong>{rows.length}</strong> contractor{rows.length === 1 ? "" : "s"} need a 1099 this year ·{" "}
+            <strong>{missingW9}</strong> still missing a W-9.
+          </div>
+          {isOwner && missingRows.length > 0 && (
+            <button
+              onClick={sendBulkReminders}
+              disabled={bulkSending}
+              className="inline-flex items-center gap-2 border border-gold text-gold px-3 py-1.5 rounded-md text-xs hover:bg-gold/10 disabled:opacity-40"
+            >
+              <Send size={12} />
+              {bulkSending
+                ? "Sending…"
+                : `Send reminder to all missing W-9 (${missingRows.length})`}
+            </button>
+          )}
         </div>
       )}
 
