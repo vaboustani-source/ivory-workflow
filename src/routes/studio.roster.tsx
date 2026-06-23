@@ -110,6 +110,32 @@ function RosterPage() {
     setQuoteItems(qi);
     setInvoices((invRes.data ?? []) as any);
     setContractors((conRes.data ?? []) as any);
+
+    if (canSeeTax) {
+      // Contractors who owe a W-9 right now: YTD pay >= $600 for relevant year
+      // AND w9_collected = false. Year follows the page selector when narrowed,
+      // otherwise current year.
+      const relevantYear = year === "all" ? currentYear : Number(year);
+      const [{ data: ytd }, { data: w9c }] = await Promise.all([
+        supabase
+          .from("contractor_ytd_pay")
+          .select("contractor_id, total_cents")
+          .eq("tax_year", relevantYear)
+          .gte("total_cents", 60000),
+        supabase.from("contractors").select("id, w9_collected"),
+      ]);
+      const collected = new Set(
+        ((w9c ?? []) as any[]).filter((c) => c.w9_collected).map((c) => c.id as string),
+      );
+      const owes = new Set<string>();
+      ((ytd ?? []) as any[]).forEach((r) => {
+        if (!collected.has(r.contractor_id)) owes.add(r.contractor_id as string);
+      });
+      setOwesW9Ids(owes);
+    } else {
+      setOwesW9Ids(new Set());
+    }
+
     setLoading(false);
   };
 
