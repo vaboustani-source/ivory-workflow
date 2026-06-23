@@ -13,7 +13,7 @@ import { z } from "zod";
 
 // ---------- Loader server fn ----------
 
-const loadBookingPage = createServerFn({ method: "GET" })
+const loadBookingPage = createServerFn({ method: "POST" })
   .inputValidator((d: { slug: string }) =>
     z.object({ slug: z.string().min(1).max(80) }).parse(d),
   )

@@ -7,7 +7,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const loadConfirmation = createServerFn({ method: "GET" })
+const loadConfirmation = createServerFn({ method: "POST" })
   .inputValidator((d: { token: string }) =>
     z.object({ token: z.string().uuid() }).parse(d),
   )
