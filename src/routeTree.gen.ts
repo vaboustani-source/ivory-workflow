@@ -58,6 +58,7 @@ import { Route as StudioSettingsProfileRouteImport } from './routes/studio.setti
 import { Route as StudioSettingsPackagesRouteImport } from './routes/studio.settings.packages'
 import { Route as StudioSettingsIntegrationsRouteImport } from './routes/studio.settings.integrations'
 import { Route as StudioSettingsEmailTemplatesRouteImport } from './routes/studio.settings.email-templates'
+import { Route as StudioSettingsContractorsTaxRouteImport } from './routes/studio.settings.contractors-tax'
 import { Route as StudioSettingsContractorsRouteImport } from './routes/studio.settings.contractors'
 import { Route as StudioSettingsContractTemplatesRouteImport } from './routes/studio.settings.contract-templates'
 import { Route as StudioSettingsContractDefaultsRouteImport } from './routes/studio.settings.contract-defaults'
@@ -338,6 +339,12 @@ const StudioSettingsEmailTemplatesRoute =
     path: '/email-templates',
     getParentRoute: () => StudioSettingsRoute,
   } as any)
+const StudioSettingsContractorsTaxRoute =
+  StudioSettingsContractorsTaxRouteImport.update({
+    id: '/contractors-tax',
+    path: '/contractors-tax',
+    getParentRoute: () => StudioSettingsRoute,
+  } as any)
 const StudioSettingsContractorsRoute =
   StudioSettingsContractorsRouteImport.update({
     id: '/contractors',
@@ -565,6 +572,7 @@ export interface FileRoutesByFullPath {
   '/studio/settings/contract-defaults': typeof StudioSettingsContractDefaultsRoute
   '/studio/settings/contract-templates': typeof StudioSettingsContractTemplatesRoute
   '/studio/settings/contractors': typeof StudioSettingsContractorsRoute
+  '/studio/settings/contractors-tax': typeof StudioSettingsContractorsTaxRoute
   '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
   '/studio/settings/integrations': typeof StudioSettingsIntegrationsRoute
   '/studio/settings/packages': typeof StudioSettingsPackagesRoute
@@ -643,6 +651,7 @@ export interface FileRoutesByTo {
   '/studio/settings/contract-defaults': typeof StudioSettingsContractDefaultsRoute
   '/studio/settings/contract-templates': typeof StudioSettingsContractTemplatesRoute
   '/studio/settings/contractors': typeof StudioSettingsContractorsRoute
+  '/studio/settings/contractors-tax': typeof StudioSettingsContractorsTaxRoute
   '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
   '/studio/settings/integrations': typeof StudioSettingsIntegrationsRoute
   '/studio/settings/packages': typeof StudioSettingsPackagesRoute
@@ -725,6 +734,7 @@ export interface FileRoutesById {
   '/studio/settings/contract-defaults': typeof StudioSettingsContractDefaultsRoute
   '/studio/settings/contract-templates': typeof StudioSettingsContractTemplatesRoute
   '/studio/settings/contractors': typeof StudioSettingsContractorsRoute
+  '/studio/settings/contractors-tax': typeof StudioSettingsContractorsTaxRoute
   '/studio/settings/email-templates': typeof StudioSettingsEmailTemplatesRoute
   '/studio/settings/integrations': typeof StudioSettingsIntegrationsRoute
   '/studio/settings/packages': typeof StudioSettingsPackagesRoute
@@ -808,6 +818,7 @@ export interface FileRouteTypes {
     | '/studio/settings/contract-defaults'
     | '/studio/settings/contract-templates'
     | '/studio/settings/contractors'
+    | '/studio/settings/contractors-tax'
     | '/studio/settings/email-templates'
     | '/studio/settings/integrations'
     | '/studio/settings/packages'
@@ -886,6 +897,7 @@ export interface FileRouteTypes {
     | '/studio/settings/contract-defaults'
     | '/studio/settings/contract-templates'
     | '/studio/settings/contractors'
+    | '/studio/settings/contractors-tax'
     | '/studio/settings/email-templates'
     | '/studio/settings/integrations'
     | '/studio/settings/packages'
@@ -967,6 +979,7 @@ export interface FileRouteTypes {
     | '/studio/settings/contract-defaults'
     | '/studio/settings/contract-templates'
     | '/studio/settings/contractors'
+    | '/studio/settings/contractors-tax'
     | '/studio/settings/email-templates'
     | '/studio/settings/integrations'
     | '/studio/settings/packages'
@@ -1353,6 +1366,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioSettingsEmailTemplatesRouteImport
       parentRoute: typeof StudioSettingsRoute
     }
+    '/studio/settings/contractors-tax': {
+      id: '/studio/settings/contractors-tax'
+      path: '/contractors-tax'
+      fullPath: '/studio/settings/contractors-tax'
+      preLoaderRoute: typeof StudioSettingsContractorsTaxRouteImport
+      parentRoute: typeof StudioSettingsRoute
+    }
     '/studio/settings/contractors': {
       id: '/studio/settings/contractors'
       path: '/contractors'
@@ -1689,6 +1709,7 @@ interface StudioSettingsRouteChildren {
   StudioSettingsContractDefaultsRoute: typeof StudioSettingsContractDefaultsRoute
   StudioSettingsContractTemplatesRoute: typeof StudioSettingsContractTemplatesRoute
   StudioSettingsContractorsRoute: typeof StudioSettingsContractorsRoute
+  StudioSettingsContractorsTaxRoute: typeof StudioSettingsContractorsTaxRoute
   StudioSettingsEmailTemplatesRoute: typeof StudioSettingsEmailTemplatesRoute
   StudioSettingsIntegrationsRoute: typeof StudioSettingsIntegrationsRoute
   StudioSettingsPackagesRoute: typeof StudioSettingsPackagesRoute
@@ -1710,6 +1731,7 @@ const StudioSettingsRouteChildren: StudioSettingsRouteChildren = {
   StudioSettingsContractDefaultsRoute: StudioSettingsContractDefaultsRoute,
   StudioSettingsContractTemplatesRoute: StudioSettingsContractTemplatesRoute,
   StudioSettingsContractorsRoute: StudioSettingsContractorsRoute,
+  StudioSettingsContractorsTaxRoute: StudioSettingsContractorsTaxRoute,
   StudioSettingsEmailTemplatesRoute: StudioSettingsEmailTemplatesRoute,
   StudioSettingsIntegrationsRoute: StudioSettingsIntegrationsRoute,
   StudioSettingsPackagesRoute: StudioSettingsPackagesRoute,

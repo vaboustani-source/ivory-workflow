@@ -4468,6 +4468,25 @@ export type Database = {
           zoom_password: string
         }[]
       }
+      get_contractor_1099_report: {
+        Args: { _tax_year: number }
+        Returns: {
+          business_type: string
+          contractor_id: string
+          email: string
+          full_name: string
+          legal_name: string
+          mailing_address: string
+          tax_id_on_file: boolean
+          tax_id_type: string
+          total_cents: number
+          w9_collected: boolean
+          w9_collected_at: string
+          w9_file_path: string
+          w9_original_filename: string
+          w9_requested_at: string
+        }[]
+      }
       get_contractor_tax_id: {
         Args: { _contractor_id: string }
         Returns: string

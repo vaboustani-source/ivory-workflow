@@ -6,8 +6,9 @@ export const Route = createFileRoute("/studio/settings")({
 });
 
 function SettingsLayout() {
-  const { profile } = useAuth();
+  const { profile, roles } = useAuth();
   const isOwner = profile?.role === "owner";
+  const canSeeTax = isOwner || roles.includes("studio_manager") || roles.includes("owner");
   const location = useLocation();
 
   const items = [
@@ -15,6 +16,7 @@ function SettingsLayout() {
     { label: "Studio Profile", to: "/studio/settings/studio-profile", visible: isOwner },
     { label: "Team", to: "/studio/settings/team", visible: true },
     { label: "Contractors", to: "/studio/settings/contractors", visible: true },
+    { label: "1099 / Taxes", to: "/studio/settings/contractors-tax", visible: canSeeTax },
     // Packages tab hidden from nav — table still powers invoicing until quote-builder migration. Do not delete.
     { label: "Services", to: "/studio/settings/services", visible: true },
     { label: "Contract templates", to: "/studio/settings/contract-templates", visible: true },
