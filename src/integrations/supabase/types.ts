@@ -4554,9 +4554,9 @@ export type Database = {
           _website?: string
         }
         Returns: {
-          created_new: boolean
-          vendor_id: string
-          wedding_vendor_id: string
+          out_created_new: boolean
+          out_vendor_id: string
+          out_wedding_vendor_id: string
         }[]
       }
       approve_pending_change: {
