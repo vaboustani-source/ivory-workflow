@@ -62,6 +62,8 @@ function fmtUSD(cents: number) {
 }
 
 function RosterPage() {
+  const { roles } = useAuth();
+  const canSeeTax = roles.includes("owner") || roles.includes("studio_manager");
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState<string>(String(currentYear));
   const [clients, setClients] = useState<ClientRow[]>([]);
@@ -69,6 +71,7 @@ function RosterPage() {
   const [quoteItems, setQuoteItems] = useState<QuoteItemRow[]>([]);
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [contractors, setContractors] = useState<Contractor[]>([]);
+  const [owesW9Ids, setOwesW9Ids] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
