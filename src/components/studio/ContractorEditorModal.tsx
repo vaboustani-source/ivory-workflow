@@ -396,8 +396,8 @@ function TaxW9Section({
     setMarking(true);
     const { error } = await supabase.rpc("mark_w9_collected", {
       _contractor_id: contractor.id,
-      _file_path: null,
-      _filename: null,
+      _file_path: null as unknown as string,
+      _filename: null as unknown as string,
     });
     setMarking(false);
     if (error) return toast.error(error.message);
