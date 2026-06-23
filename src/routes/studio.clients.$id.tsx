@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useParams, useSearch, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { sendPortalInvitation } from "@/lib/portal-invite.functions";
 import { ChevronRight } from "lucide-react";
 import { shortDate, relativeTime, daysBetween } from "@/lib/dates";
 import { useAuth } from "@/lib/auth";
