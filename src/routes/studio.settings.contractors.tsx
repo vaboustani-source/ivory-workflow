@@ -58,11 +58,17 @@ function ContractorsPage() {
 
   useEffect(() => { load(); }, []);
 
+  const owesW9 = (r: ContractorRow): boolean => {
+    const cents = ytdByContractor.get(r.id) ?? 0;
+    return cents >= 60000 && !r.w9_collected;
+  };
+
   const visible = useMemo(() => {
     let v = rows;
     if (activeFilter === "active") v = v.filter((r) => r.is_active);
     if (activeFilter === "inactive") v = v.filter((r) => !r.is_active);
     if (roleFilter !== "all") v = v.filter((r) => r.roles?.includes(roleFilter));
+    if (w9Filter === "owes") v = v.filter(owesW9);
     if (search.trim()) {
       const s = search.toLowerCase();
       v = v.filter((r) => r.full_name.toLowerCase().includes(s) || r.email.toLowerCase().includes(s));
@@ -76,7 +82,10 @@ function ContractorsPage() {
       return bt - at;
     });
     return v;
-  }, [rows, activeFilter, roleFilter, search, sort]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, activeFilter, roleFilter, search, sort, w9Filter, ytdByContractor]);
+
+  const owesCount = useMemo(() => rows.filter(owesW9).length, [rows, ytdByContractor]);
 
   const totalActive = rows.filter((r) => r.is_active).length;
   const totalInactive = rows.filter((r) => !r.is_active).length;
