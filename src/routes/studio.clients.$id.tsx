@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useParams, useSearch, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { sendPortalInvitation } from "@/lib/portal-invite.functions";
 import { ChevronRight } from "lucide-react";
 import { shortDate, relativeTime, daysBetween } from "@/lib/dates";
 import { useAuth } from "@/lib/auth";
@@ -131,7 +132,8 @@ function ClientDetail() {
   const { id } = useParams({ from: "/studio/clients/$id" });
   const search = useSearch({ from: "/studio/clients/$id" });
   const navigate = useNavigate();
-  const { profile: _profile } = useAuth();
+  const { profile } = useAuth();
+  const canSendInvite = profile?.role === "owner" || profile?.role === "studio_manager";
   const [client, setClient] = useState<ClientDetailRow | null>(null);
   const initialTab: Tab = (search.tab && KEY_TO_TAB[search.tab]) || "Overview";
   const [tab, setTab] = useState<Tab>(initialTab);
@@ -247,16 +249,17 @@ function ClientDetail() {
   const sendInvite = async () => {
     const isResend = !!client?.portal_invited_at;
     try {
-      const { data, error } = await supabase.functions.invoke("send-portal-invite", {
-        body: { client_id: id, invitation_type: isResend ? "resend" : "initial" },
+      const result = await sendPortalInvitation({
+        data: { client_id: id, invitation_type: isResend ? "resend" : "initial" },
       });
-      if (error) throw error;
-      if (data?.warn === "no_resend_key") {
-        toast.success("Invite created. Email key not configured — share link manually.");
-      } else if (data?.warn === "email_failed") {
-        toast.success("Invite created, but email send failed.");
+      if (result.ok) {
+        toast.success(
+          result.status === "test_mode_blocked"
+            ? "Invite created (Postmark test mode — recipient not delivered)."
+            : "Portal invitation sent.",
+        );
       } else {
-        toast.success("Portal invite sent.");
+        toast.error(result.error ?? "Couldn't send invite.");
       }
     } catch (e: any) {
       toast.error(e?.message ?? "Couldn't send invite.");
@@ -469,14 +472,14 @@ function ClientDetail() {
                   {portalState === "invited" && `Invited ${relativeTime(client.portal_invited_at)}`}
                   {portalState === "active" && `Active since ${shortDate(client.portal_first_login_at)}`}
                 </p>
-                {portalState === "not_invited" && (
+                {portalState === "not_invited" && canSendInvite && (
                   <button onClick={sendInvite} className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium hover:bg-primary/90">
-                    Send portal invite
+                    Send portal invitation
                   </button>
                 )}
-                {portalState === "invited" && (
+                {portalState === "invited" && canSendInvite && (
                   <button onClick={sendInvite} className="border border-gold text-gold px-4 py-2 rounded-md text-sm hover:bg-gold/10">
-                    Resend invite
+                    {`Resend · last sent ${shortDate(client.portal_invited_at)}`}
                   </button>
                 )}
               </Card>
