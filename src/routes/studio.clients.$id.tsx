@@ -247,16 +247,17 @@ function ClientDetail() {
   const sendInvite = async () => {
     const isResend = !!client?.portal_invited_at;
     try {
-      const { data, error } = await supabase.functions.invoke("send-portal-invite", {
-        body: { client_id: id, invitation_type: isResend ? "resend" : "initial" },
+      const result = await sendPortalInvitation({
+        data: { client_id: id, invitation_type: isResend ? "resend" : "initial" },
       });
-      if (error) throw error;
-      if (data?.warn === "no_resend_key") {
-        toast.success("Invite created. Email key not configured — share link manually.");
-      } else if (data?.warn === "email_failed") {
-        toast.success("Invite created, but email send failed.");
+      if (result.ok) {
+        toast.success(
+          result.status === "test_mode_blocked"
+            ? "Invite created (Postmark test mode — recipient not delivered)."
+            : "Portal invitation sent.",
+        );
       } else {
-        toast.success("Portal invite sent.");
+        toast.error(result.error ?? "Couldn't send invite.");
       }
     } catch (e: any) {
       toast.error(e?.message ?? "Couldn't send invite.");
