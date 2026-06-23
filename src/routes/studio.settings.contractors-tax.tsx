@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { Download, FileText, AlertTriangle, Send } from "lucide-react";
 import { shortDate } from "@/lib/dates";
-import { sendContractorW9Request } from "@/lib/contractorW9.functions";
+import { sendContractorW9Request, sendContractorW9Bulk } from "@/lib/contractorW9.functions";
 
 export const Route = createFileRoute("/studio/settings/contractors-tax")({
   component: ContractorsTaxPage,
