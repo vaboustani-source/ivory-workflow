@@ -382,7 +382,7 @@ function VendorEditorModal({
     const msg = `Merge "${vendor.name}" into "${target.name}"?\n\nAll ${n} ${n === 1 ? "couple" : "couples"} will move to "${target.name}" and this entry will be retired. This cannot be undone.`;
     if (!window.confirm(msg)) return;
     setMerging(true);
-    const { error } = await supabase.rpc("merge_vendors", { _loser: vendor.id, _winner: target.id } as any);
+    const { error } = await supabase.rpc("merge_vendors", { _loser: vendor.id, _winner: target.id });
     setMerging(false);
     if (error) return toast.error(error.message);
     toast.success(`Merged into ${target.name}`);
