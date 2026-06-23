@@ -453,7 +453,8 @@ function TaxW9Section({
       <Field label="Mailing address (where the 1099 is sent)">
         <textarea value={mailingAddress} onChange={(e) => setMailingAddress(e.target.value)} rows={2} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
       </Field>
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center gap-2">
+        <SendW9Button contractorId={contractor.id} disabled={collected} />
         <button onClick={saveInfo} disabled={savingInfo} className="text-xs border border-gold text-gold px-3 py-1.5 rounded-md hover:bg-gold/10 disabled:opacity-50">
           {savingInfo ? "Saving…" : "Save W-9 info"}
         </button>
