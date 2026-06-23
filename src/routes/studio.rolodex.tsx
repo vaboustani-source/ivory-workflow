@@ -1,14 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, ExternalLink, Instagram, Mail, Phone, X } from "lucide-react";
+import { Search, ExternalLink, Instagram, Mail, Phone, X, Check, GitMerge } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { shortDate } from "@/lib/dates";
 import { toast } from "sonner";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
 export const Route = createFileRoute("/studio/rolodex")({
   component: RolodexPage,
 });
+
+// Normalize a name the same way the DB does — lowercase, alnum + spaces, collapsed.
+function normalizeName(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+}
 
 type VendorCategory =
   | "planner" | "florist" | "caterer" | "dj_band" | "videographer"
