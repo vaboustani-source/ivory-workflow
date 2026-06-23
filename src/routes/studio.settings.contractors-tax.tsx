@@ -45,6 +45,7 @@ function ContractorsTaxPage() {
   const [autoEnabled, setAutoEnabled] = useState(false);
   const [togglingAuto, setTogglingAuto] = useState(false);
   const [sendingFor, setSendingFor] = useState<string | null>(null);
+  const [bulkSending, setBulkSending] = useState(false);
 
   useEffect(() => {
     if (!allowed) return;
