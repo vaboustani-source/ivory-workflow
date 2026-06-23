@@ -111,7 +111,37 @@ function ContractorsTaxPage() {
     }
   };
 
+  const missingRows = useMemo(
+    () => rows.filter((r) => !r.w9_collected && !!r.email),
+    [rows],
+  );
   const missingW9 = useMemo(() => rows.filter((r) => !r.w9_collected).length, [rows]);
+
+  const sendBulkReminders = async () => {
+    const targets = missingRows;
+    if (targets.length === 0) {
+      toast.info("No contractors are missing a W-9 right now.");
+      return;
+    }
+    if (!confirm(`Email ${targets.length} contractor${targets.length === 1 ? "" : "s"} a W-9 reminder?`)) return;
+    setBulkSending(true);
+    try {
+      const res = await sendContractorW9Bulk({
+        data: {
+          contractorIds: targets.map((t) => t.contractor_id),
+          taxYear: year,
+          reminder: true,
+        },
+      });
+      const skipped = (res?.skipped ?? 0) + (res?.failed ?? 0);
+      toast.success(`Sent ${res?.sent ?? 0} reminder${res?.sent === 1 ? "" : "s"}${skipped ? `, ${skipped} skipped` : ""}`);
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Bulk send failed");
+    } finally {
+      setBulkSending(false);
+    }
+  };
 
   const yearOptions = useMemo(() => {
     const years: number[] = [];
