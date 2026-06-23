@@ -338,6 +338,20 @@ function ContractorsTaxPage() {
                             <Download size={12} /> W-9
                           </button>
                         )}
+                        {!r.w9_collected && (
+                          <button
+                            onClick={() => sendW9(r)}
+                            disabled={sendingFor === r.contractor_id}
+                            className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-md hover:bg-primary/90 disabled:opacity-40 inline-flex items-center gap-1"
+                          >
+                            <Send size={11} />
+                            {sendingFor === r.contractor_id
+                              ? "Sending…"
+                              : r.w9_requested_at
+                                ? "Resend"
+                                : "Send W-9 request"}
+                          </button>
+                        )}
                         <Link
                           to="/studio/settings/contractors"
                           className="text-xs border border-border text-muted-foreground px-3 py-1.5 rounded-md hover:text-primary"
