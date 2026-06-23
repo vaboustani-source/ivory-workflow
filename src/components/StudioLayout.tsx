@@ -56,6 +56,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Galleries", to: "/studio/galleries", icon: Image },
       { label: "Documents", to: "/studio/contracts", icon: FileText, matchPrefix: "/studio/contracts", badgeKey: "contracts", badgeStyle: "dot" },
       { label: "Briefings", to: "/studio/briefings", icon: Newspaper },
+      { label: "Rolodex", to: "/studio/rolodex", icon: BookOpen },
       { label: "Resources", to: "/studio/resources", icon: BookOpen },
     ],
   },
