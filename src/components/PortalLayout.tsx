@@ -36,6 +36,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Plan",
     items: [
       { label: "Timeline", to: "/portal/timeline", icon: Calendar, hideForLead: true },
+      { label: "Your Vendors", to: "/portal/vendors", icon: Users, hideForLead: true },
       { label: "Forms", to: "/portal/questionnaires", icon: ClipboardList, badgeKey: "questionnaires" },
       { label: "Family Portraits", to: "/portal/portrait-sequence", icon: Camera, hideForLead: true, badgeKey: "portrait", showOnlyIfKey: "portraitExists" },
     ],
