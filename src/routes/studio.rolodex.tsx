@@ -60,13 +60,28 @@ type Vendor = {
 type StatusFilter = "all" | "unverified" | "preferred";
 
 function RolodexPage() {
-  const { roles } = useAuth();
+  const { roles, profile } = useAuth();
   const canEdit = roles.includes("owner") || roles.includes("studio_manager");
+  const isOwner = roles.includes("owner");
 
   const [rows, setRows] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Vendor | null>(null);
   const [openMergeOnEdit, setOpenMergeOnEdit] = useState(false);
+  const [importing, setImporting] = useState(false);
+
+  const logVendor = async (action: string, vendor: Vendor, extra: Record<string, unknown> = {}) => {
+    try {
+      await supabase.from("activity_log").insert({
+        user_id: profile?.id ?? null,
+        action_type: action,
+        target_type: "vendor",
+        target_id: vendor.id,
+        description: `${action} — ${vendor.name}`,
+        metadata: { vendor_id: vendor.id, vendor_name: vendor.name, category: vendor.category, ...extra },
+      });
+    } catch { /* swallow */ }
+  };
 
   const quickVerify = async (v: Vendor, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -75,6 +90,7 @@ function RolodexPage() {
     if (error) return toast.error(error.message);
     toast.success(`Verified ${v.name}`);
     setRows((rs) => rs.map((r) => (r.id === v.id ? { ...r, is_verified: true } : r)));
+    void logVendor("vendor.verified", v, { source: "quick_action" });
   };
 
   const openMerge = (v: Vendor, e: React.MouseEvent) => {
@@ -82,6 +98,20 @@ function RolodexPage() {
     if (!canEdit) return;
     setOpenMergeOnEdit(true);
     setEditing(v);
+  };
+
+  const runBackfill = async () => {
+    if (!isOwner) return;
+    if (!window.confirm("Import vendors from couples' questionnaire answers?\n\nThis scans every wedding questionnaire for florist/caterer/DJ/etc. entries and adds them to the Rolodex. Safe to re-run — duplicates are skipped.")) return;
+    setImporting(true);
+    const { data, error } = await supabase.rpc("backfill_vendors_from_questionnaires");
+    setImporting(false);
+    if (error) return toast.error(error.message);
+    const summary = (data ?? {}) as { vendors_created?: number; links_created?: number; skipped?: number };
+    toast.success(
+      `Imported · ${summary.vendors_created ?? 0} new vendors, ${summary.links_created ?? 0} couple links, ${summary.skipped ?? 0} skipped`
+    );
+    load();
   };
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
