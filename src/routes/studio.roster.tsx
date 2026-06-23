@@ -288,18 +288,22 @@ function RosterPage() {
                     <td className="px-4 py-5"><YesNo on={albumIncluded} /></td>
                     <td className="px-4 py-5">
                       <CrewCell
+                        assignedId={ss?.contractor?.id ?? null}
                         assignedName={ss?.contractor?.full_name ?? null}
                         included={ssIncluded}
                         options={ssOptions}
                         onAssign={(id) => assign(c.id, "second_shooter", id)}
+                        owesW9={!!ss?.contractor?.id && owesW9Ids.has(ss.contractor.id)}
                       />
                     </td>
                     <td className="px-4 py-5">
                       <CrewCell
+                        assignedId={vid?.contractor?.id ?? null}
                         assignedName={vid?.contractor?.full_name ?? null}
                         included={videoIncluded}
                         options={videoOptions}
                         onAssign={(id) => assign(c.id, "videographer", id)}
+                        owesW9={!!vid?.contractor?.id && owesW9Ids.has(vid.contractor.id)}
                       />
                     </td>
                     <td className="px-4 py-5"><PaymentCell inv={inv} /></td>
