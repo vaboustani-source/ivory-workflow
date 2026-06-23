@@ -591,7 +591,7 @@ function SendW9Button({ contractorId, disabled }: { contractorId: string; disabl
     if (!confirm("Send the W-9 request email to this contractor now?")) return;
     setSending(true);
     try {
-      const { sendContractorW9Request } = await import("@/lib/contractorW9.functions");
+      // sendContractorW9Request imported at module scope
       const res = await sendContractorW9Request({
         data: { contractorId, taxYear: new Date().getFullYear() },
       });
