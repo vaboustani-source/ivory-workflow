@@ -28,7 +28,9 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { parseReplyToken, verifyReplyToken } from "@/lib/messaging-reply-token.server";
+// NOTE: messaging-reply-token.server.ts is imported lazily inside handlers
+// because route files are part of the client module graph at module scope
+// (only handler bodies are stripped) and that module pulls in node:crypto.
 
 const AttachmentSchema = z.object({
   Name: z.string(),
