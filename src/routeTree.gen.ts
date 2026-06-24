@@ -81,6 +81,7 @@ import { Route as ApiPublicZoomOauthCallbackRouteImport } from './routes/api/pub
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as ApiPublicSendW9RequestRouteImport } from './routes/api/public/send-w9-request'
 import { Route as ApiPublicSendTestEmailRouteImport } from './routes/api/public/send-test-email'
+import { Route as ApiPublicPostmarkInboundRouteImport } from './routes/api/public/postmark-inbound'
 import { Route as ApiPublicGoogleOauthCallbackRouteImport } from './routes/api/public/google-oauth-callback'
 import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
 import { Route as ApiPublicCreateBookingRouteImport } from './routes/api/public/create-booking'
@@ -466,6 +467,12 @@ const ApiPublicSendTestEmailRoute = ApiPublicSendTestEmailRouteImport.update({
   path: '/api/public/send-test-email',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPostmarkInboundRoute =
+  ApiPublicPostmarkInboundRouteImport.update({
+    id: '/api/public/postmark-inbound',
+    path: '/api/public/postmark-inbound',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicGoogleOauthCallbackRoute =
   ApiPublicGoogleOauthCallbackRouteImport.update({
     id: '/api/public/google-oauth-callback',
@@ -566,6 +573,7 @@ export interface FileRoutesByFullPath {
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
+  '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
@@ -647,6 +655,7 @@ export interface FileRoutesByTo {
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
+  '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
@@ -732,6 +741,7 @@ export interface FileRoutesById {
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
+  '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
@@ -818,6 +828,7 @@ export interface FileRouteTypes {
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
     | '/api/public/google-oauth-callback'
+    | '/api/public/postmark-inbound'
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
@@ -899,6 +910,7 @@ export interface FileRouteTypes {
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
     | '/api/public/google-oauth-callback'
+    | '/api/public/postmark-inbound'
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
@@ -983,6 +995,7 @@ export interface FileRouteTypes {
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
     | '/api/public/google-oauth-callback'
+    | '/api/public/postmark-inbound'
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
@@ -1036,6 +1049,7 @@ export interface RootRouteChildren {
   ApiPublicCreateBookingRoute: typeof ApiPublicCreateBookingRoute
   ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
   ApiPublicGoogleOauthCallbackRoute: typeof ApiPublicGoogleOauthCallbackRoute
+  ApiPublicPostmarkInboundRoute: typeof ApiPublicPostmarkInboundRoute
   ApiPublicSendTestEmailRoute: typeof ApiPublicSendTestEmailRoute
   ApiPublicSendW9RequestRoute: typeof ApiPublicSendW9RequestRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
@@ -1551,6 +1565,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSendTestEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/postmark-inbound': {
+      id: '/api/public/postmark-inbound'
+      path: '/api/public/postmark-inbound'
+      fullPath: '/api/public/postmark-inbound'
+      preLoaderRoute: typeof ApiPublicPostmarkInboundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/google-oauth-callback': {
       id: '/api/public/google-oauth-callback'
       path: '/api/public/google-oauth-callback'
@@ -1857,6 +1878,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCreateBookingRoute: ApiPublicCreateBookingRoute,
   ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
   ApiPublicGoogleOauthCallbackRoute: ApiPublicGoogleOauthCallbackRoute,
+  ApiPublicPostmarkInboundRoute: ApiPublicPostmarkInboundRoute,
   ApiPublicSendTestEmailRoute: ApiPublicSendTestEmailRoute,
   ApiPublicSendW9RequestRoute: ApiPublicSendW9RequestRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,

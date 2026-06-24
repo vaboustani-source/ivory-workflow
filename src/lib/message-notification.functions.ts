@@ -199,6 +199,26 @@ export async function runMessageNotification(message_id: string, userId: string)
     const { buildMessageNotificationEmail } = await import("@/lib/message-notification-render.server");
     const { sendEmail, POSTMARK_DEFAULTS } = await import("@/integrations/postmark/client.server");
 
+    // Slice 2: tokened Reply-To, flag-gated. Default OFF; until the studio
+    // flips studio_settings.messaging_inbound_enabled the Reply-To stays
+    // the safe studio inbox so nothing bounces.
+    const { data: studioRow } = await supabaseAdmin
+      .from("studio_settings")
+      .select("messaging_inbound_enabled")
+      .limit(1)
+      .maybeSingle();
+    const inboundEnabled = !!(studioRow as { messaging_inbound_enabled?: boolean } | null)?.messaging_inbound_enabled;
+    let tokenedReplyTo: string | null = null;
+    if (inboundEnabled) {
+      try {
+        const { buildReplyToAddress } = await import("@/lib/messaging-reply-token.server");
+        tokenedReplyTo = buildReplyToAddress(msg.conversation_id, msg.id);
+      } catch {
+        tokenedReplyTo = null; // missing secret => fall back to studio inbox
+      }
+    }
+
+
     const sentMessageIds: string[] = [];
     const skipped: string[] = [];
 
@@ -226,9 +246,10 @@ export async function runMessageNotification(message_id: string, userId: string)
         subject,
         htmlBody: html,
         textBody,
-        // Slice 2: switch Reply-To to reply+<conv>.<msg>.<hmac>@parse.victoriaboustani.com
-        // once the Postmark inbound webhook + reply-token verification land.
-        replyTo: POSTMARK_DEFAULTS.replyTo,
+        // Slice 2: when messaging_inbound_enabled is ON the Reply-To is the
+        // tokened parse address so email replies can land back in the thread.
+        // When OFF, fall back to the studio inbox (safe / no bounces).
+        replyTo: tokenedReplyTo ?? POSTMARK_DEFAULTS.replyTo,
         tag: "message_notification",
         metadata: {
           conversation_id: msg.conversation_id,
@@ -248,7 +269,7 @@ export async function runMessageNotification(message_id: string, userId: string)
       const logPayload: TablesInsert<"email_sends"> = {
         to_address: rec.email,
         from_address: POSTMARK_DEFAULTS.from,
-        reply_to: POSTMARK_DEFAULTS.replyTo,
+        reply_to: tokenedReplyTo ?? POSTMARK_DEFAULTS.replyTo,
         subject,
         template_key: "message_notification",
         client_id: clientId,
