@@ -222,7 +222,7 @@ export async function processInboundPayload(payload: z.infer<typeof InboundSchem
   const { data: clientUsers } = await supabaseAdmin
     .from("client_users")
     .select("user_id, partner_email")
-    .eq("client_id", conv.client_id);
+    .eq("client_id", clientId);
 
   const partnerEmails = (clientUsers ?? [])
     .map((c) => (c.partner_email ?? "").toLowerCase())
@@ -248,7 +248,7 @@ export async function processInboundPayload(payload: z.infer<typeof InboundSchem
       action_type: "inbound_email_skipped",
       target_type: "conversation",
       target_id: conv.id,
-      client_id: conv.client_id,
+      client_id: clientId,
       description: `Inbound email skipped: sender ${fromEmail} not a member of this client`,
       metadata: { from: fromEmail } as never,
     });
@@ -281,7 +281,7 @@ export async function processInboundPayload(payload: z.infer<typeof InboundSchem
       action_type: "inbound_email_failed",
       target_type: "conversation",
       target_id: conv.id,
-      client_id: conv.client_id,
+      client_id: clientId,
       description: `Inbound email insert failed: ${insErr?.message ?? "unknown"}`,
       metadata: { from: fromEmail } as never,
     });
@@ -308,7 +308,7 @@ export async function processInboundPayload(payload: z.infer<typeof InboundSchem
             action_type: "inbound_attachment_failed",
             target_type: "message",
             target_id: inserted.id,
-            client_id: conv.client_id,
+            client_id: clientId,
             description: `Inbound attachment upload failed for ${att.Name}: ${upErr.message}`,
           });
           continue;
@@ -330,7 +330,7 @@ export async function processInboundPayload(payload: z.infer<typeof InboundSchem
           action_type: "inbound_attachment_failed",
           target_type: "message",
           target_id: inserted.id,
-          client_id: conv.client_id,
+          client_id: clientId,
           description: `Inbound attachment error: ${e instanceof Error ? e.message : String(e)}`,
         });
       }
