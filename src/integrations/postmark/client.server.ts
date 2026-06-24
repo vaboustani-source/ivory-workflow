@@ -18,6 +18,8 @@ export interface SendEmailArgs {
   from?: string;
   tag?: string;
   metadata?: Record<string, string>;
+  /** Custom RFC 5322 headers, e.g. Message-ID, In-Reply-To, References. */
+  headers?: Array<{ Name: string; Value: string }>;
 }
 
 export interface SendEmailResult {
