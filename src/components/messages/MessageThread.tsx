@@ -582,8 +582,16 @@ export function MessageThread({
     setPending([]);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
 
-    // Fire-and-forget notification (DB webhook is the primary path; this is defensive)
-    supabase.functions.invoke("send-message-notification", { body: { message_id: messageId } }).catch(() => {});
+    // Fire-and-forget Postmark notification via TanStack server fn.
+    // A failure here must NEVER block posting or break the UI.
+    void (async () => {
+      try {
+        const { sendMessageNotification } = await import("@/lib/message-notification.functions");
+        await sendMessageNotification({ data: { message_id: messageId } });
+      } catch (err) {
+        console.warn("[messages] notification send failed", err);
+      }
+    })();
 
     isAtBottomRef.current = true;
     await load();
