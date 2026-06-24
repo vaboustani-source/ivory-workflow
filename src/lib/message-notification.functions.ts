@@ -246,9 +246,10 @@ export async function runMessageNotification(message_id: string, userId: string)
         subject,
         htmlBody: html,
         textBody,
-        // Slice 2: switch Reply-To to reply+<conv>.<msg>.<hmac>@parse.victoriaboustani.com
-        // once the Postmark inbound webhook + reply-token verification land.
-        replyTo: POSTMARK_DEFAULTS.replyTo,
+        // Slice 2: when messaging_inbound_enabled is ON the Reply-To is the
+        // tokened parse address so email replies can land back in the thread.
+        // When OFF, fall back to the studio inbox (safe / no bounces).
+        replyTo: tokenedReplyTo ?? POSTMARK_DEFAULTS.replyTo,
         tag: "message_notification",
         metadata: {
           conversation_id: msg.conversation_id,
