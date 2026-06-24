@@ -123,9 +123,10 @@ function isAutoResponder(headers: Array<{ Name: string; Value: string }>): boole
  * `MailboxHash` (Postmark's parsed local-part after `+`), falls back to
  * scanning `OriginalRecipient` and `To` for a `reply+...` address.
  */
-function recoverToken(payload: z.infer<typeof InboundSchema>) {
+type TokenModule = typeof import("@/lib/messaging-reply-token.server");
+function recoverToken(payload: z.infer<typeof InboundSchema>, tokens: TokenModule) {
   if (payload.MailboxHash) {
-    const t = parseReplyToken(payload.MailboxHash);
+    const t = tokens.parseReplyToken(payload.MailboxHash);
     if (t) return t;
   }
   for (const candidate of [payload.OriginalRecipient, payload.To]) {
@@ -133,7 +134,7 @@ function recoverToken(payload: z.infer<typeof InboundSchema>) {
     // To can be "Name <addr>, Name <addr>" — scan each address
     const addrs = candidate.match(/[^\s,<>]+@[^\s,<>]+/g) ?? [];
     for (const a of addrs) {
-      const t = parseReplyToken(a);
+      const t = tokens.parseReplyToken(a);
       if (t) return t;
     }
   }
