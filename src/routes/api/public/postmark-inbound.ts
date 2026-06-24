@@ -28,7 +28,9 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { parseReplyToken, verifyReplyToken } from "@/lib/messaging-reply-token.server";
+// NOTE: messaging-reply-token.server.ts is imported lazily inside handlers
+// because route files are part of the client module graph at module scope
+// (only handler bodies are stripped) and that module pulls in node:crypto.
 
 const AttachmentSchema = z.object({
   Name: z.string(),
@@ -121,9 +123,10 @@ function isAutoResponder(headers: Array<{ Name: string; Value: string }>): boole
  * `MailboxHash` (Postmark's parsed local-part after `+`), falls back to
  * scanning `OriginalRecipient` and `To` for a `reply+...` address.
  */
-function recoverToken(payload: z.infer<typeof InboundSchema>) {
+type TokenModule = typeof import("@/lib/messaging-reply-token.server");
+function recoverToken(payload: z.infer<typeof InboundSchema>, tokens: TokenModule) {
   if (payload.MailboxHash) {
-    const t = parseReplyToken(payload.MailboxHash);
+    const t = tokens.parseReplyToken(payload.MailboxHash);
     if (t) return t;
   }
   for (const candidate of [payload.OriginalRecipient, payload.To]) {
@@ -131,7 +134,7 @@ function recoverToken(payload: z.infer<typeof InboundSchema>) {
     // To can be "Name <addr>, Name <addr>" — scan each address
     const addrs = candidate.match(/[^\s,<>]+@[^\s,<>]+/g) ?? [];
     for (const a of addrs) {
-      const t = parseReplyToken(a);
+      const t = tokens.parseReplyToken(a);
       if (t) return t;
     }
   }
@@ -156,6 +159,7 @@ export async function processInboundPayload(payload: z.infer<typeof InboundSchem
   message_id?: string;
 }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const tokens = await import("@/lib/messaging-reply-token.server");
 
   // 1. Auto-responder filter
   if (isAutoResponder(payload.Headers)) {
@@ -169,7 +173,7 @@ export async function processInboundPayload(payload: z.infer<typeof InboundSchem
   }
 
   // 2. Token recovery + HMAC verify
-  const token = recoverToken(payload);
+  const token = recoverToken(payload, tokens);
   if (!token) {
     await supabaseAdmin.from("activity_log").insert({
       action_type: "inbound_email_skipped",
@@ -179,7 +183,7 @@ export async function processInboundPayload(payload: z.infer<typeof InboundSchem
     });
     return { status: "skipped", reason: "missing_token" };
   }
-  if (!verifyReplyToken(token)) {
+  if (!tokens.verifyReplyToken(token)) {
     await supabaseAdmin.from("activity_log").insert({
       action_type: "inbound_email_rejected",
       target_type: "conversation",
