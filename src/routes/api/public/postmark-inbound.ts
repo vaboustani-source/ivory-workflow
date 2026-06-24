@@ -159,6 +159,7 @@ export async function processInboundPayload(payload: z.infer<typeof InboundSchem
   message_id?: string;
 }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const tokens = await import("@/lib/messaging-reply-token.server");
 
   // 1. Auto-responder filter
   if (isAutoResponder(payload.Headers)) {
