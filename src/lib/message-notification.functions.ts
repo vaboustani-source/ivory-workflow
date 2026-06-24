@@ -199,6 +199,26 @@ export async function runMessageNotification(message_id: string, userId: string)
     const { buildMessageNotificationEmail } = await import("@/lib/message-notification-render.server");
     const { sendEmail, POSTMARK_DEFAULTS } = await import("@/integrations/postmark/client.server");
 
+    // Slice 2: tokened Reply-To, flag-gated. Default OFF; until the studio
+    // flips studio_settings.messaging_inbound_enabled the Reply-To stays
+    // the safe studio inbox so nothing bounces.
+    const { data: studioRow } = await supabaseAdmin
+      .from("studio_settings")
+      .select("messaging_inbound_enabled")
+      .limit(1)
+      .maybeSingle();
+    const inboundEnabled = !!(studioRow as { messaging_inbound_enabled?: boolean } | null)?.messaging_inbound_enabled;
+    let tokenedReplyTo: string | null = null;
+    if (inboundEnabled) {
+      try {
+        const { buildReplyToAddress } = await import("@/lib/messaging-reply-token.server");
+        tokenedReplyTo = buildReplyToAddress(msg.conversation_id, msg.id);
+      } catch {
+        tokenedReplyTo = null; // missing secret => fall back to studio inbox
+      }
+    }
+
+
     const sentMessageIds: string[] = [];
     const skipped: string[] = [];
 
