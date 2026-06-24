@@ -1,3 +1,7 @@
+// DEPRECATED (kept for reference / DB-webhook fallback only).
+// Active path: src/lib/message-notification.functions.ts (Postmark via TanStack).
+// This Resend-based edge function is no longer invoked from the app and will
+// be removed once any database webhook still pointing at it is unwired.
 // Supabase Edge Function: send-message-notification
 // Sends transactional emails to conversation participants (studio + couple) when a new
 // message is posted, with RFC 5322 threading headers (Message-ID/In-Reply-To/References)
