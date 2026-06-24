@@ -269,7 +269,7 @@ export async function runMessageNotification(message_id: string, userId: string)
       const logPayload: TablesInsert<"email_sends"> = {
         to_address: rec.email,
         from_address: POSTMARK_DEFAULTS.from,
-        reply_to: POSTMARK_DEFAULTS.replyTo,
+        reply_to: tokenedReplyTo ?? POSTMARK_DEFAULTS.replyTo,
         subject,
         template_key: "message_notification",
         client_id: clientId,
