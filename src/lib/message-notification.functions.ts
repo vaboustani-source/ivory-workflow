@@ -41,7 +41,17 @@ export const sendMessageNotification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => inputSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const { userId } = context;
+    return runMessageNotification(data.message_id, context.userId);
+  });
+
+/**
+ * Pure async implementation — exported so verification scripts can drive it
+ * without an HTTP request / auth-middleware. Production callers must go
+ * through `sendMessageNotification` so RLS-on-caller is gated.
+ */
+export async function runMessageNotification(message_id: string, userId: string) {
+  const data = { message_id };
+  {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Load the message + sender + conversation + couple.
