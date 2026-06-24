@@ -51,8 +51,7 @@ export const sendMessageNotification = createServerFn({ method: "POST" })
  */
 export async function runMessageNotification(message_id: string, userId: string) {
   const data = { message_id };
-  {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Load the message + sender + conversation + couple.
     const { data: msg, error: msgErr } = await supabaseAdmin
@@ -317,5 +316,4 @@ export async function runMessageNotification(message_id: string, userId: string)
       failed: skipped.length,
       message_id_header: thisMessageId,
     } as const;
-  }
 }
