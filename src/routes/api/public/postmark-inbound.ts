@@ -196,16 +196,17 @@ export async function processInboundPayload(payload: z.infer<typeof InboundSchem
     .select("id, client_id, client:clients(id, primary_email, secondary_email)")
     .eq("id", token.conversationId)
     .maybeSingle();
-  if (convErr || !conv) {
+  if (convErr || !conv || !conv.client_id) {
     await supabaseAdmin.from("activity_log").insert({
       action_type: "inbound_email_rejected",
       target_type: "conversation",
       target_id: token.conversationId,
-      description: "Inbound email rejected: conversation not found",
+      description: "Inbound email rejected: conversation not found or unlinked",
       metadata: { from: extractFromEmail(payload) } as never,
     });
     return { status: "rejected", reason: "conversation_missing" };
   }
+  const clientId: string = conv.client_id;
 
   const fromEmail = extractFromEmail(payload);
   if (!fromEmail) {
