@@ -317,4 +317,5 @@ export async function runMessageNotification(message_id: string, userId: string)
       failed: skipped.length,
       message_id_header: thisMessageId,
     } as const;
-  });
+  }
+}
