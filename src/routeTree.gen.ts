@@ -82,7 +82,6 @@ import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/
 import { Route as ApiPublicSendW9RequestRouteImport } from './routes/api/public/send-w9-request'
 import { Route as ApiPublicSendTestEmailRouteImport } from './routes/api/public/send-test-email'
 import { Route as ApiPublicGoogleOauthCallbackRouteImport } from './routes/api/public/google-oauth-callback'
-import { Route as ApiPublicEnvCheckRouteImport } from './routes/api/public/env-check'
 import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
 import { Route as ApiPublicCreateBookingRouteImport } from './routes/api/public/create-booking'
 import { Route as ApiPublicAvailabilityRouteImport } from './routes/api/public/availability'
@@ -473,11 +472,6 @@ const ApiPublicGoogleOauthCallbackRoute =
     path: '/api/public/google-oauth-callback',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicEnvCheckRoute = ApiPublicEnvCheckRouteImport.update({
-  id: '/api/public/env-check',
-  path: '/api/public/env-check',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicCreateCheckoutRoute = ApiPublicCreateCheckoutRouteImport.update({
   id: '/api/public/create-checkout',
   path: '/api/public/create-checkout',
@@ -571,7 +565,6 @@ export interface FileRoutesByFullPath {
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
-  '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
@@ -653,7 +646,6 @@ export interface FileRoutesByTo {
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
-  '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
@@ -739,7 +731,6 @@ export interface FileRoutesById {
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
-  '/api/public/env-check': typeof ApiPublicEnvCheckRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
@@ -826,7 +817,6 @@ export interface FileRouteTypes {
     | '/api/public/availability'
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
-    | '/api/public/env-check'
     | '/api/public/google-oauth-callback'
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
@@ -908,7 +898,6 @@ export interface FileRouteTypes {
     | '/api/public/availability'
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
-    | '/api/public/env-check'
     | '/api/public/google-oauth-callback'
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
@@ -993,7 +982,6 @@ export interface FileRouteTypes {
     | '/api/public/availability'
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
-    | '/api/public/env-check'
     | '/api/public/google-oauth-callback'
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
@@ -1047,7 +1035,6 @@ export interface RootRouteChildren {
   ApiPublicAvailabilityRoute: typeof ApiPublicAvailabilityRoute
   ApiPublicCreateBookingRoute: typeof ApiPublicCreateBookingRoute
   ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
-  ApiPublicEnvCheckRoute: typeof ApiPublicEnvCheckRoute
   ApiPublicGoogleOauthCallbackRoute: typeof ApiPublicGoogleOauthCallbackRoute
   ApiPublicSendTestEmailRoute: typeof ApiPublicSendTestEmailRoute
   ApiPublicSendW9RequestRoute: typeof ApiPublicSendW9RequestRoute
@@ -1571,13 +1558,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGoogleOauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/env-check': {
-      id: '/api/public/env-check'
-      path: '/api/public/env-check'
-      fullPath: '/api/public/env-check'
-      preLoaderRoute: typeof ApiPublicEnvCheckRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/create-checkout': {
       id: '/api/public/create-checkout'
       path: '/api/public/create-checkout'
@@ -1876,7 +1856,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAvailabilityRoute: ApiPublicAvailabilityRoute,
   ApiPublicCreateBookingRoute: ApiPublicCreateBookingRoute,
   ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
-  ApiPublicEnvCheckRoute: ApiPublicEnvCheckRoute,
   ApiPublicGoogleOauthCallbackRoute: ApiPublicGoogleOauthCallbackRoute,
   ApiPublicSendTestEmailRoute: ApiPublicSendTestEmailRoute,
   ApiPublicSendW9RequestRoute: ApiPublicSendW9RequestRoute,
