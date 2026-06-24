@@ -173,7 +173,7 @@ export async function processInboundPayload(payload: z.infer<typeof InboundSchem
   }
 
   // 2. Token recovery + HMAC verify
-  const token = recoverToken(payload);
+  const token = recoverToken(payload, tokens);
   if (!token) {
     await supabaseAdmin.from("activity_log").insert({
       action_type: "inbound_email_skipped",
@@ -183,7 +183,7 @@ export async function processInboundPayload(payload: z.infer<typeof InboundSchem
     });
     return { status: "skipped", reason: "missing_token" };
   }
-  if (!verifyReplyToken(token)) {
+  if (!tokens.verifyReplyToken(token)) {
     await supabaseAdmin.from("activity_log").insert({
       action_type: "inbound_email_rejected",
       target_type: "conversation",
