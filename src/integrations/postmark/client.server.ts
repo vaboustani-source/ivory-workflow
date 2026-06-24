@@ -60,6 +60,7 @@ export async function sendEmail(args: SendEmailArgs): Promise<SendEmailResult> {
   if (args.textBody) payload.TextBody = args.textBody;
   if (args.tag) payload.Tag = args.tag;
   if (args.metadata) payload.Metadata = args.metadata;
+  if (args.headers && args.headers.length > 0) payload.Headers = args.headers;
 
   try {
     const res = await fetch(POSTMARK_API, {
