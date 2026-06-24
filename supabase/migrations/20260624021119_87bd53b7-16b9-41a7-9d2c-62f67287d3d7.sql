@@ -1,0 +1,1 @@
+ALTER TABLE public.studio_settings ADD COLUMN IF NOT EXISTS messaging_inbound_enabled boolean NOT NULL DEFAULT false;

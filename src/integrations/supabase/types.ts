@@ -3738,6 +3738,7 @@ export type Database = {
           id: string
           instagram: string | null
           is_active: boolean | null
+          messaging_inbound_enabled: boolean
           overage_hourly_rate: number | null
           photographer_company: string | null
           photographer_name: string | null
@@ -3760,6 +3761,7 @@ export type Database = {
           id?: string
           instagram?: string | null
           is_active?: boolean | null
+          messaging_inbound_enabled?: boolean
           overage_hourly_rate?: number | null
           photographer_company?: string | null
           photographer_name?: string | null
@@ -3782,6 +3784,7 @@ export type Database = {
           id?: string
           instagram?: string | null
           is_active?: boolean | null
+          messaging_inbound_enabled?: boolean
           overage_hourly_rate?: number | null
           photographer_company?: string | null
           photographer_name?: string | null
