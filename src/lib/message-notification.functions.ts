@@ -212,7 +212,7 @@ export async function runMessageNotification(message_id: string, userId: string)
     if (inboundEnabled) {
       try {
         const { buildReplyToAddress } = await import("@/lib/messaging-reply-token.server");
-        tokenedReplyTo = buildReplyToAddress(msg.conversation_id, msg.id);
+        tokenedReplyTo = await buildReplyToAddress(msg.conversation_id, msg.id);
       } catch {
         tokenedReplyTo = null; // missing secret => fall back to studio inbox
       }
