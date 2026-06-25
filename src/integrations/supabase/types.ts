@@ -3774,6 +3774,8 @@ export type Database = {
           video_cancellation_fee: number | null
           w9_auto_request_enabled: boolean
           website: string | null
+          workflow_comms_auto_approve: boolean
+          workflow_comms_enabled: boolean
         }
         Insert: {
           album_credit_expiry_months?: number | null
@@ -3800,6 +3802,8 @@ export type Database = {
           video_cancellation_fee?: number | null
           w9_auto_request_enabled?: boolean
           website?: string | null
+          workflow_comms_auto_approve?: boolean
+          workflow_comms_enabled?: boolean
         }
         Update: {
           album_credit_expiry_months?: number | null
@@ -3826,6 +3830,8 @@ export type Database = {
           video_cancellation_fee?: number | null
           w9_auto_request_enabled?: boolean
           website?: string | null
+          workflow_comms_auto_approve?: boolean
+          workflow_comms_enabled?: boolean
         }
         Relationships: []
       }
