@@ -14,12 +14,16 @@ import {
   type IntegrationsList,
   type ConnectionRow,
 } from "@/lib/scheduling/integrations.functions";
+import {
+  getGmailAccount, startGmailOAuth, disconnectGmail,
+  type GmailAccountInfo,
+} from "@/lib/gmail/oauth.functions";
 
-type Search = { oauth?: "google" | "zoom"; status?: "ok" | "error"; detail?: string };
+type Search = { oauth?: "google" | "zoom" | "gmail"; status?: "ok" | "error"; detail?: string };
 
 export const Route = createFileRoute("/studio/settings/integrations")({
   validateSearch: (s: Record<string, unknown>): Search => ({
-    oauth: s.oauth === "google" || s.oauth === "zoom" ? s.oauth : undefined,
+    oauth: s.oauth === "google" || s.oauth === "zoom" || s.oauth === "gmail" ? s.oauth : undefined,
     status: s.status === "ok" || s.status === "error" ? s.status : undefined,
     detail: typeof s.detail === "string" ? s.detail : undefined,
   }),
@@ -28,6 +32,7 @@ export const Route = createFileRoute("/studio/settings/integrations")({
 
 const GOOGLE_SCOPE_BLURB = "calendar.events · calendar.readonly · email";
 const ZOOM_SCOPE_BLURB = "meeting:write · meeting:read · user:read";
+const GMAIL_SCOPE_BLURB = "gmail.modify · gmail.send · email";
 
 function IntegrationsPage() {
   const search = useSearch({ from: Route.id });
