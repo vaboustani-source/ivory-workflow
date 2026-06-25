@@ -89,6 +89,7 @@ import { Route as ApiPublicGoogleOauthCallbackRouteImport } from './routes/api/p
 import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
 import { Route as ApiPublicCreateBookingRouteImport } from './routes/api/public/create-booking'
 import { Route as ApiPublicAvailabilityRouteImport } from './routes/api/public/availability'
+import { Route as ApiPublicVerifyGoogleBusyRouteImport } from './routes/api/public/_verify-google-busy'
 import { Route as StudioSettingsEmailsIndexRouteImport } from './routes/studio.settings.emails.index'
 import { Route as StudioSettingsSchedulingIdRouteImport } from './routes/studio.settings.scheduling.$id'
 import { Route as StudioSettingsEmailsEmailTypeRouteImport } from './routes/studio.settings.emails.$emailType'
@@ -515,6 +516,12 @@ const ApiPublicAvailabilityRoute = ApiPublicAvailabilityRouteImport.update({
   path: '/api/public/availability',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicVerifyGoogleBusyRoute =
+  ApiPublicVerifyGoogleBusyRouteImport.update({
+    id: '/api/public/_verify-google-busy',
+    path: '/api/public',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const StudioSettingsEmailsIndexRoute =
   StudioSettingsEmailsIndexRouteImport.update({
     id: '/emails/',
@@ -590,6 +597,7 @@ export interface FileRoutesByFullPath {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
+  '/api/public': typeof ApiPublicVerifyGoogleBusyRoute
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
@@ -675,6 +683,7 @@ export interface FileRoutesByTo {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal': typeof PortalIndexRoute
   '/studio': typeof StudioIndexRoute
+  '/api/public': typeof ApiPublicVerifyGoogleBusyRoute
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
@@ -764,6 +773,7 @@ export interface FileRoutesById {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
+  '/api/public/_verify-google-busy': typeof ApiPublicVerifyGoogleBusyRoute
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
@@ -854,6 +864,7 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal/'
     | '/studio/'
+    | '/api/public'
     | '/api/public/availability'
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
@@ -939,6 +950,7 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal'
     | '/studio'
+    | '/api/public'
     | '/api/public/availability'
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
@@ -1027,6 +1039,7 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal/'
     | '/studio/'
+    | '/api/public/_verify-google-busy'
     | '/api/public/availability'
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
@@ -1084,6 +1097,7 @@ export interface RootRouteChildren {
   StudioRoute: typeof StudioRouteWithChildren
   BookSlugRoute: typeof BookSlugRoute
   PayTokenRoute: typeof PayTokenRoute
+  ApiPublicVerifyGoogleBusyRoute: typeof ApiPublicVerifyGoogleBusyRoute
   ApiPublicAvailabilityRoute: typeof ApiPublicAvailabilityRoute
   ApiPublicCreateBookingRoute: typeof ApiPublicCreateBookingRoute
   ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
@@ -1663,6 +1677,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAvailabilityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/_verify-google-busy': {
+      id: '/api/public/_verify-google-busy'
+      path: '/api/public'
+      fullPath: '/api/public'
+      preLoaderRoute: typeof ApiPublicVerifyGoogleBusyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/studio/settings/emails/': {
       id: '/studio/settings/emails/'
       path: '/emails'
@@ -1937,6 +1958,7 @@ const rootRouteChildren: RootRouteChildren = {
   StudioRoute: StudioRouteWithChildren,
   BookSlugRoute: BookSlugRoute,
   PayTokenRoute: PayTokenRoute,
+  ApiPublicVerifyGoogleBusyRoute: ApiPublicVerifyGoogleBusyRoute,
   ApiPublicAvailabilityRoute: ApiPublicAvailabilityRoute,
   ApiPublicCreateBookingRoute: ApiPublicCreateBookingRoute,
   ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
@@ -1956,13 +1978,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
