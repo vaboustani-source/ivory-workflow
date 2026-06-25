@@ -156,9 +156,10 @@ async function processOne(row: ScheduledComm): Promise<OneResult> {
     textBody: text,
     tag: "scheduled_communication",
     metadata: {
-      scheduled_communication_id: row.id,
+      // Postmark caps metadata keys at 20 chars and values at 80 chars.
+      sched_comm_id: row.id,
       client_id: row.client_id ?? "",
-      workflow_step_id: row.workflow_step_id ?? "",
+      wf_step_id: row.workflow_step_id ?? "",
     },
   });
 
