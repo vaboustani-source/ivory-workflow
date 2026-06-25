@@ -3374,11 +3374,13 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          attempt_count: number
           body_draft: string | null
           client_id: string | null
           created_at: string
           email_template_id: string | null
           id: string
+          last_error: string | null
           milestone_id: string | null
           recipient_emails: string[] | null
           scheduled_send_at: string | null
@@ -3390,11 +3392,13 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          attempt_count?: number
           body_draft?: string | null
           client_id?: string | null
           created_at?: string
           email_template_id?: string | null
           id?: string
+          last_error?: string | null
           milestone_id?: string | null
           recipient_emails?: string[] | null
           scheduled_send_at?: string | null
@@ -3406,11 +3410,13 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          attempt_count?: number
           body_draft?: string | null
           client_id?: string | null
           created_at?: string
           email_template_id?: string | null
           id?: string
+          last_error?: string | null
           milestone_id?: string | null
           recipient_emails?: string[] | null
           scheduled_send_at?: string | null
@@ -3744,6 +3750,7 @@ export type Database = {
           photographer_name: string | null
           portal_invite_auto_enabled: boolean
           rescheduling_fee_pct: number | null
+          scheduled_emails_enabled: boolean
           studio_address: string | null
           studio_email: string | null
           studio_mailing_address: string | null
@@ -3767,6 +3774,7 @@ export type Database = {
           photographer_name?: string | null
           portal_invite_auto_enabled?: boolean
           rescheduling_fee_pct?: number | null
+          scheduled_emails_enabled?: boolean
           studio_address?: string | null
           studio_email?: string | null
           studio_mailing_address?: string | null
@@ -3790,6 +3798,7 @@ export type Database = {
           photographer_name?: string | null
           portal_invite_auto_enabled?: boolean
           rescheduling_fee_pct?: number | null
+          scheduled_emails_enabled?: boolean
           studio_address?: string | null
           studio_email?: string | null
           studio_mailing_address?: string | null
@@ -4579,6 +4588,33 @@ export type Database = {
         Args: { p_client_id: string; p_reason: string }
         Returns: Json
       }
+      claim_due_scheduled_communications: {
+        Args: { p_limit?: number }
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          attempt_count: number
+          body_draft: string | null
+          client_id: string | null
+          created_at: string
+          email_template_id: string | null
+          id: string
+          last_error: string | null
+          milestone_id: string | null
+          recipient_emails: string[] | null
+          scheduled_send_at: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["communication_status"]
+          subject: string | null
+          workflow_step_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "scheduled_communications"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       clear_contractor_tax_id: {
         Args: { _contractor_id: string }
         Returns: undefined
@@ -4853,6 +4889,7 @@ export type Database = {
         | "sent"
         | "skipped"
         | "edited"
+        | "failed"
       contract_block_type:
         | "text_box"
         | "image"
@@ -5181,6 +5218,7 @@ export const Constants = {
         "sent",
         "skipped",
         "edited",
+        "failed",
       ],
       contract_block_type: [
         "text_box",
