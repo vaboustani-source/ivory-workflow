@@ -317,6 +317,100 @@ function IntegrationsPage() {
           )}
         </CardContent>
       </Card>
+
+      <GmailCard />
     </div>
+  );
+}
+
+function GmailCard() {
+  const qc = useQueryClient();
+  const fetchAcct = useServerFn(getGmailAccount);
+  const startFn = useServerFn(startGmailOAuth);
+  const disconnectFn = useServerFn(disconnectGmail);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["gmail-account-settings"],
+    queryFn: async (): Promise<GmailAccountInfo> => (await fetchAcct()) as GmailAccountInfo,
+  });
+
+  const connect = useMutation({
+    mutationFn: async () => {
+      setBusy("connect");
+      const { url } = await startFn();
+      window.location.href = url;
+    },
+    onError: (e: Error) => { setBusy(null); toast.error("Could not start Gmail", { description: e.message }); },
+  });
+
+  const disc = useMutation({
+    mutationFn: async () => {
+      setBusy("disconnect");
+      await disconnectFn();
+    },
+    onSuccess: () => {
+      setBusy(null); toast.success("Gmail disconnected");
+      qc.invalidateQueries({ queryKey: ["gmail-account-settings"] });
+    },
+    onError: (e: Error) => { setBusy(null); toast.error("Disconnect failed", { description: e.message }); },
+  });
+
+  const connected = !!data?.connected;
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <CardTitle className="text-base flex items-center gap-2">
+              Gmail
+              {connected ? (
+                <Badge variant="default" className="font-normal">Connected</Badge>
+              ) : (
+                <Badge variant="outline" className="font-normal">Not connected</Badge>
+              )}
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Connect your personal Gmail mailbox to read and reply inside the studio app.
+              Each user connects their own account; you only ever see your own mailbox.
+            </p>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : connected ? (
+          <>
+            <dl className="grid grid-cols-[140px_1fr] gap-y-1 text-sm">
+              <dt className="text-muted-foreground">Account</dt>
+              <dd>{data?.email ?? "—"}</dd>
+              <dt className="text-muted-foreground">Connected</dt>
+              <dd>{data?.updated_at ? new Date(data.updated_at).toLocaleString() : "—"}</dd>
+              <dt className="text-muted-foreground">Token expires</dt>
+              <dd>{data?.token_expires_at ? new Date(data.token_expires_at).toLocaleString() : "—"}</dd>
+            </dl>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Button variant="outline" size="sm" disabled={busy !== null} onClick={() => disc.mutate()}>
+                {busy === "disconnect" ? "Disconnecting…" : "Disconnect"}
+              </Button>
+              <Button variant="ghost" size="sm" disabled={busy !== null} onClick={() => connect.mutate()}>
+                Reconnect
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">
+              Scopes requested: <span className="text-xs">{GMAIL_SCOPE_BLURB}</span>
+            </p>
+            <Button size="sm" disabled={busy !== null} onClick={() => connect.mutate()}>
+              {busy === "connect" ? "Redirecting…" : "Connect Gmail"}
+            </Button>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }
