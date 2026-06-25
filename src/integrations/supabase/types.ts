@@ -3760,6 +3760,7 @@ export type Database = {
           is_active: boolean | null
           messaging_inbound_enabled: boolean
           overage_hourly_rate: number | null
+          overdue_followups_enabled: boolean
           photographer_company: string | null
           photographer_name: string | null
           portal_invite_auto_enabled: boolean
@@ -3785,6 +3786,7 @@ export type Database = {
           is_active?: boolean | null
           messaging_inbound_enabled?: boolean
           overage_hourly_rate?: number | null
+          overdue_followups_enabled?: boolean
           photographer_company?: string | null
           photographer_name?: string | null
           portal_invite_auto_enabled?: boolean
@@ -3810,6 +3812,7 @@ export type Database = {
           is_active?: boolean | null
           messaging_inbound_enabled?: boolean
           overage_hourly_rate?: number | null
+          overdue_followups_enabled?: boolean
           photographer_company?: string | null
           photographer_name?: string | null
           portal_invite_auto_enabled?: boolean
