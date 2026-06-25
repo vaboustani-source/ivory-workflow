@@ -1,0 +1,1 @@
+ALTER TYPE public.communication_status ADD VALUE IF NOT EXISTS 'failed';

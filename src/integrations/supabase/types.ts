@@ -4853,6 +4853,7 @@ export type Database = {
         | "sent"
         | "skipped"
         | "edited"
+        | "failed"
       contract_block_type:
         | "text_box"
         | "image"
@@ -5181,6 +5182,7 @@ export const Constants = {
         "sent",
         "skipped",
         "edited",
+        "failed",
       ],
       contract_block_type: [
         "text_box",
