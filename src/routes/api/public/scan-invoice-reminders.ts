@@ -88,7 +88,7 @@ export const Route = createFileRoute("/api/public/scan-invoice-reminders")({
           .select("copy")
           .eq("email_type", "invoice_reminder")
           .maybeSingle();
-        const overrides = ((copyRow?.copy ?? {}) as Record<string, string>) ?? {};
+        const overrides = (copyRow?.copy ?? {}) as Record<string, string>;
         const copy = resolveCopy(overrides);
 
         let enqueued = 0;
