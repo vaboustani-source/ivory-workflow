@@ -62,6 +62,7 @@ function SchedulingSettingsPage() {
         <TabsList>
           <TabsTrigger value="call-types">Call types</TabsTrigger>
           <TabsTrigger value="availability">Availability</TabsTrigger>
+          <TabsTrigger value="calendars">Calendars</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
         <TabsContent value="call-types" className="mt-6">
@@ -69,6 +70,9 @@ function SchedulingSettingsPage() {
         </TabsContent>
         <TabsContent value="availability" className="mt-6">
           <AvailabilityTab />
+        </TabsContent>
+        <TabsContent value="calendars" className="mt-6">
+          <CalendarsTab />
         </TabsContent>
         <TabsContent value="settings" className="mt-6">
           <SettingsTab />
