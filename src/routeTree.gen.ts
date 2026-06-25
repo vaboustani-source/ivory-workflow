@@ -81,6 +81,7 @@ import { Route as ApiPublicZoomOauthCallbackRouteImport } from './routes/api/pub
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as ApiPublicSendW9RequestRouteImport } from './routes/api/public/send-w9-request'
 import { Route as ApiPublicSendTestEmailRouteImport } from './routes/api/public/send-test-email'
+import { Route as ApiPublicScanOverdueFollowupsRouteImport } from './routes/api/public/scan-overdue-followups'
 import { Route as ApiPublicScanInvoiceRemindersRouteImport } from './routes/api/public/scan-invoice-reminders'
 import { Route as ApiPublicProcessScheduledEmailsRouteImport } from './routes/api/public/process-scheduled-emails'
 import { Route as ApiPublicPostmarkInboundRouteImport } from './routes/api/public/postmark-inbound'
@@ -469,6 +470,12 @@ const ApiPublicSendTestEmailRoute = ApiPublicSendTestEmailRouteImport.update({
   path: '/api/public/send-test-email',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicScanOverdueFollowupsRoute =
+  ApiPublicScanOverdueFollowupsRouteImport.update({
+    id: '/api/public/scan-overdue-followups',
+    path: '/api/public/scan-overdue-followups',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicScanInvoiceRemindersRoute =
   ApiPublicScanInvoiceRemindersRouteImport.update({
     id: '/api/public/scan-invoice-reminders',
@@ -590,6 +597,7 @@ export interface FileRoutesByFullPath {
   '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
   '/api/public/process-scheduled-emails': typeof ApiPublicProcessScheduledEmailsRoute
   '/api/public/scan-invoice-reminders': typeof ApiPublicScanInvoiceRemindersRoute
+  '/api/public/scan-overdue-followups': typeof ApiPublicScanOverdueFollowupsRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
@@ -674,6 +682,7 @@ export interface FileRoutesByTo {
   '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
   '/api/public/process-scheduled-emails': typeof ApiPublicProcessScheduledEmailsRoute
   '/api/public/scan-invoice-reminders': typeof ApiPublicScanInvoiceRemindersRoute
+  '/api/public/scan-overdue-followups': typeof ApiPublicScanOverdueFollowupsRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
@@ -762,6 +771,7 @@ export interface FileRoutesById {
   '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
   '/api/public/process-scheduled-emails': typeof ApiPublicProcessScheduledEmailsRoute
   '/api/public/scan-invoice-reminders': typeof ApiPublicScanInvoiceRemindersRoute
+  '/api/public/scan-overdue-followups': typeof ApiPublicScanOverdueFollowupsRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
@@ -851,6 +861,7 @@ export interface FileRouteTypes {
     | '/api/public/postmark-inbound'
     | '/api/public/process-scheduled-emails'
     | '/api/public/scan-invoice-reminders'
+    | '/api/public/scan-overdue-followups'
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
@@ -935,6 +946,7 @@ export interface FileRouteTypes {
     | '/api/public/postmark-inbound'
     | '/api/public/process-scheduled-emails'
     | '/api/public/scan-invoice-reminders'
+    | '/api/public/scan-overdue-followups'
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
@@ -1022,6 +1034,7 @@ export interface FileRouteTypes {
     | '/api/public/postmark-inbound'
     | '/api/public/process-scheduled-emails'
     | '/api/public/scan-invoice-reminders'
+    | '/api/public/scan-overdue-followups'
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
@@ -1078,6 +1091,7 @@ export interface RootRouteChildren {
   ApiPublicPostmarkInboundRoute: typeof ApiPublicPostmarkInboundRoute
   ApiPublicProcessScheduledEmailsRoute: typeof ApiPublicProcessScheduledEmailsRoute
   ApiPublicScanInvoiceRemindersRoute: typeof ApiPublicScanInvoiceRemindersRoute
+  ApiPublicScanOverdueFollowupsRoute: typeof ApiPublicScanOverdueFollowupsRoute
   ApiPublicSendTestEmailRoute: typeof ApiPublicSendTestEmailRoute
   ApiPublicSendW9RequestRoute: typeof ApiPublicSendW9RequestRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
@@ -1593,6 +1607,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSendTestEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/scan-overdue-followups': {
+      id: '/api/public/scan-overdue-followups'
+      path: '/api/public/scan-overdue-followups'
+      fullPath: '/api/public/scan-overdue-followups'
+      preLoaderRoute: typeof ApiPublicScanOverdueFollowupsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/scan-invoice-reminders': {
       id: '/api/public/scan-invoice-reminders'
       path: '/api/public/scan-invoice-reminders'
@@ -1923,6 +1944,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPostmarkInboundRoute: ApiPublicPostmarkInboundRoute,
   ApiPublicProcessScheduledEmailsRoute: ApiPublicProcessScheduledEmailsRoute,
   ApiPublicScanInvoiceRemindersRoute: ApiPublicScanInvoiceRemindersRoute,
+  ApiPublicScanOverdueFollowupsRoute: ApiPublicScanOverdueFollowupsRoute,
   ApiPublicSendTestEmailRoute: ApiPublicSendTestEmailRoute,
   ApiPublicSendW9RequestRoute: ApiPublicSendW9RequestRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
