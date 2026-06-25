@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS public._oauth_login_verify;

@@ -4853,6 +4853,7 @@ export type Database = {
         Args: { p_id: string; p_note?: string }
         Returns: Json
       }
+      resolve_oauth_login: { Args: never; Returns: Json }
       save_contractor_w9_info: {
         Args: {
           _business_type: string
