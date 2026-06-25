@@ -134,7 +134,9 @@ function InboxView({ accountEmail }: { accountEmail: string | null }) {
   });
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] -mx-6 -my-6 border-t border-border">
+    <div className="flex h-full">
+      {/* Param accountEmail is rendered by parent header; keep here as no-op so signature stays. */}
+      <span className="hidden">{accountEmail}</span>
       {/* Sidebar */}
       <aside className="w-[360px] border-r border-border flex flex-col bg-surface">
         <div className="px-4 py-3 border-b border-border flex items-center justify-between">
