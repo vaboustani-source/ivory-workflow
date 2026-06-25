@@ -1,7 +1,12 @@
 // Server-only: read a calendar_connection row, refresh tokens if needed,
 // and return a fetch wrapper that auto-retries once on 401.
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { refreshAccessToken, type Provider } from "./oauth-config.server";
+import { refreshAccessToken } from "./oauth-config.server";
+
+// Calendar provider client only handles google/zoom (calendar_connections).
+// Gmail uses its own per-user client in src/lib/gmail/client.server.ts.
+type CalendarProvider = "google" | "zoom";
+type Provider = CalendarProvider;
 
 export type ProviderClient = {
   accountEmail: string | null;
