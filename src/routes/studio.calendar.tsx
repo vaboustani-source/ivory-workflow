@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { ComingSoonPanel } from "@/components/ComingSoonPanel";
 import { useAuth } from "@/lib/auth";
 import { ChevronLeft, ChevronRight, Plus, Video } from "lucide-react";
