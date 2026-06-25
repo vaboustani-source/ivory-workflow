@@ -195,7 +195,7 @@ function EmailsPane() {
         </div>
       )}
       <p className="text-[10px] text-muted-foreground mt-6 italic text-center">
-        Approving marks the email as sent in the system. Real delivery via Resend ships in Phase 6.
+        Approving queues the email for delivery at its scheduled send time. The studio still controls when the master send switch is enabled.
       </p>
     </div>
   );
@@ -227,25 +227,30 @@ function DraftCard({ draft, expanded, onToggle, onChanged, currentUserId }: {
 
   const approve = async () => {
     setBusy(true);
+    // Approve only: flip to 'approved' so the scheduled-email engine picks it
+    // up at scheduled_send_at. Engine sending is still gated by the master
+    // studio_settings.scheduled_emails_enabled flag.
     await supabase
       .from("scheduled_communications")
       .update({
         subject, body_draft: body,
-        status: "sent",
-        sent_at: new Date().toISOString(),
+        status: "approved",
         approved_by: currentUserId,
         approved_at: new Date().toISOString(),
       })
       .eq("id", draft.id);
     await supabase.from("activity_log").insert({
       user_id: currentUserId,
-      action_type: "communication_sent",
+      action_type: "communication_approved",
       target_type: "scheduled_communication",
       target_id: draft.id,
-      description: `Approved & sent: ${subject}`,
-      metadata: { client_id: draft.client_id },
+      description: `Approved for send: ${subject}`,
+      metadata: { client_id: draft.client_id, scheduled_send_at: draft.scheduled_send_at },
     });
-    toast.success(`Sent to ${(draft.recipient_emails ?? []).join(", ") || coupleName}.`);
+    const when = draft.scheduled_send_at
+      ? `scheduled for ${new Date(draft.scheduled_send_at).toLocaleString()}`
+      : "queued for sending";
+    toast.success(`Approved. ${when}.`);
     setBusy(false);
     onChanged();
   };
@@ -311,11 +316,11 @@ function DraftCard({ draft, expanded, onToggle, onChanged, currentUserId }: {
             className="w-full bg-background-alt/40 rounded-sm p-3 text-sm text-foreground font-sans focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
           <div className="flex items-center justify-between pt-2">
-            <span className="text-xs text-muted-foreground italic">Saving keeps it as a draft. Approving marks it sent.</span>
+            <span className="text-xs text-muted-foreground italic">Saving keeps it as a draft. Approving queues it for its scheduled send time.</span>
             <div className="flex items-center gap-2">
               <button onClick={() => setSkipOpen(true)} disabled={busy} className="text-sm text-muted-foreground hover:text-magenta px-3 py-2">Skip</button>
               <button onClick={saveDraft} disabled={busy} className="text-sm text-gold border border-gold rounded-md px-4 py-2 hover:bg-gold/10">Save as draft</button>
-              <button onClick={approve} disabled={busy} className="text-sm bg-primary text-primary-foreground rounded-md px-4 py-2 hover:bg-primary/90 disabled:opacity-50">Approve & send</button>
+              <button onClick={approve} disabled={busy} className="text-sm bg-primary text-primary-foreground rounded-md px-4 py-2 hover:bg-primary/90 disabled:opacity-50">Approve</button>
             </div>
           </div>
         </div>
