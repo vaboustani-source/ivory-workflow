@@ -195,7 +195,7 @@ function EmailsPane() {
         </div>
       )}
       <p className="text-[10px] text-muted-foreground mt-6 italic text-center">
-        Approving marks the email as sent in the system. Real delivery via Resend ships in Phase 6.
+        Approving queues the email for delivery at its scheduled send time. The studio still controls when the master send switch is enabled.
       </p>
     </div>
   );
