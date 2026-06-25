@@ -227,25 +227,30 @@ function DraftCard({ draft, expanded, onToggle, onChanged, currentUserId }: {
 
   const approve = async () => {
     setBusy(true);
+    // Approve only: flip to 'approved' so the scheduled-email engine picks it
+    // up at scheduled_send_at. Engine sending is still gated by the master
+    // studio_settings.scheduled_emails_enabled flag.
     await supabase
       .from("scheduled_communications")
       .update({
         subject, body_draft: body,
-        status: "sent",
-        sent_at: new Date().toISOString(),
+        status: "approved",
         approved_by: currentUserId,
         approved_at: new Date().toISOString(),
       })
       .eq("id", draft.id);
     await supabase.from("activity_log").insert({
       user_id: currentUserId,
-      action_type: "communication_sent",
+      action_type: "communication_approved",
       target_type: "scheduled_communication",
       target_id: draft.id,
-      description: `Approved & sent: ${subject}`,
-      metadata: { client_id: draft.client_id },
+      description: `Approved for send: ${subject}`,
+      metadata: { client_id: draft.client_id, scheduled_send_at: draft.scheduled_send_at },
     });
-    toast.success(`Sent to ${(draft.recipient_emails ?? []).join(", ") || coupleName}.`);
+    const when = draft.scheduled_send_at
+      ? `scheduled for ${new Date(draft.scheduled_send_at).toLocaleString()}`
+      : "queued for sending";
+    toast.success(`Approved. ${when}.`);
     setBusy(false);
     onChanged();
   };
