@@ -106,7 +106,7 @@ export async function getProviderClient(
           refresh_token: refreshToken,
           token_expires_at: new Date(expiresAt).toISOString(),
         })
-        .eq("id", row!.id);
+        .eq("id", row!.id as string);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       if (/invalid_grant/i.test(msg)) {
