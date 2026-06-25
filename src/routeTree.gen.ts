@@ -78,6 +78,7 @@ import { Route as PortalAccountPartnerRouteImport } from './routes/portal.accoun
 import { Route as PortalAccountNotificationsRouteImport } from './routes/portal.account.notifications'
 import { Route as BookConfirmedCancel_tokenRouteImport } from './routes/book.confirmed.$cancel_token'
 import { Route as ApiPublicZoomOauthCallbackRouteImport } from './routes/api/public/zoom-oauth-callback'
+import { Route as ApiPublicVerifyGoogleBusyRouteImport } from './routes/api/public/verify-google-busy'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as ApiPublicSendW9RequestRouteImport } from './routes/api/public/send-w9-request'
 import { Route as ApiPublicSendTestEmailRouteImport } from './routes/api/public/send-test-email'
@@ -89,7 +90,6 @@ import { Route as ApiPublicGoogleOauthCallbackRouteImport } from './routes/api/p
 import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
 import { Route as ApiPublicCreateBookingRouteImport } from './routes/api/public/create-booking'
 import { Route as ApiPublicAvailabilityRouteImport } from './routes/api/public/availability'
-import { Route as ApiPublicVerifyGoogleBusyRouteImport } from './routes/api/public/_verify-google-busy'
 import { Route as StudioSettingsEmailsIndexRouteImport } from './routes/studio.settings.emails.index'
 import { Route as StudioSettingsSchedulingIdRouteImport } from './routes/studio.settings.scheduling.$id'
 import { Route as StudioSettingsEmailsEmailTypeRouteImport } from './routes/studio.settings.emails.$emailType'
@@ -456,6 +456,12 @@ const ApiPublicZoomOauthCallbackRoute =
     path: '/api/public/zoom-oauth-callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicVerifyGoogleBusyRoute =
+  ApiPublicVerifyGoogleBusyRouteImport.update({
+    id: '/api/public/verify-google-busy',
+    path: '/api/public/verify-google-busy',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   id: '/api/public/stripe-webhook',
   path: '/api/public/stripe-webhook',
@@ -516,12 +522,6 @@ const ApiPublicAvailabilityRoute = ApiPublicAvailabilityRouteImport.update({
   path: '/api/public/availability',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicVerifyGoogleBusyRoute =
-  ApiPublicVerifyGoogleBusyRouteImport.update({
-    id: '/api/public/_verify-google-busy',
-    path: '/api/public',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const StudioSettingsEmailsIndexRoute =
   StudioSettingsEmailsIndexRouteImport.update({
     id: '/emails/',
@@ -597,7 +597,6 @@ export interface FileRoutesByFullPath {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
-  '/api/public': typeof ApiPublicVerifyGoogleBusyRoute
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
@@ -609,6 +608,7 @@ export interface FileRoutesByFullPath {
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/api/public/verify-google-busy': typeof ApiPublicVerifyGoogleBusyRoute
   '/api/public/zoom-oauth-callback': typeof ApiPublicZoomOauthCallbackRoute
   '/book/confirmed/$cancel_token': typeof BookConfirmedCancel_tokenRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
@@ -683,7 +683,6 @@ export interface FileRoutesByTo {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal': typeof PortalIndexRoute
   '/studio': typeof StudioIndexRoute
-  '/api/public': typeof ApiPublicVerifyGoogleBusyRoute
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
@@ -695,6 +694,7 @@ export interface FileRoutesByTo {
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/api/public/verify-google-busy': typeof ApiPublicVerifyGoogleBusyRoute
   '/api/public/zoom-oauth-callback': typeof ApiPublicZoomOauthCallbackRoute
   '/book/confirmed/$cancel_token': typeof BookConfirmedCancel_tokenRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
@@ -773,7 +773,6 @@ export interface FileRoutesById {
   '/studio/tasks': typeof StudioTasksRoute
   '/portal/': typeof PortalIndexRoute
   '/studio/': typeof StudioIndexRoute
-  '/api/public/_verify-google-busy': typeof ApiPublicVerifyGoogleBusyRoute
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
@@ -785,6 +784,7 @@ export interface FileRoutesById {
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
+  '/api/public/verify-google-busy': typeof ApiPublicVerifyGoogleBusyRoute
   '/api/public/zoom-oauth-callback': typeof ApiPublicZoomOauthCallbackRoute
   '/book/confirmed/$cancel_token': typeof BookConfirmedCancel_tokenRoute
   '/portal/account/notifications': typeof PortalAccountNotificationsRoute
@@ -864,7 +864,6 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal/'
     | '/studio/'
-    | '/api/public'
     | '/api/public/availability'
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
@@ -876,6 +875,7 @@ export interface FileRouteTypes {
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
+    | '/api/public/verify-google-busy'
     | '/api/public/zoom-oauth-callback'
     | '/book/confirmed/$cancel_token'
     | '/portal/account/notifications'
@@ -950,7 +950,6 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal'
     | '/studio'
-    | '/api/public'
     | '/api/public/availability'
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
@@ -962,6 +961,7 @@ export interface FileRouteTypes {
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
+    | '/api/public/verify-google-busy'
     | '/api/public/zoom-oauth-callback'
     | '/book/confirmed/$cancel_token'
     | '/portal/account/notifications'
@@ -1039,7 +1039,6 @@ export interface FileRouteTypes {
     | '/studio/tasks'
     | '/portal/'
     | '/studio/'
-    | '/api/public/_verify-google-busy'
     | '/api/public/availability'
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
@@ -1051,6 +1050,7 @@ export interface FileRouteTypes {
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
+    | '/api/public/verify-google-busy'
     | '/api/public/zoom-oauth-callback'
     | '/book/confirmed/$cancel_token'
     | '/portal/account/notifications'
@@ -1097,7 +1097,6 @@ export interface RootRouteChildren {
   StudioRoute: typeof StudioRouteWithChildren
   BookSlugRoute: typeof BookSlugRoute
   PayTokenRoute: typeof PayTokenRoute
-  ApiPublicVerifyGoogleBusyRoute: typeof ApiPublicVerifyGoogleBusyRoute
   ApiPublicAvailabilityRoute: typeof ApiPublicAvailabilityRoute
   ApiPublicCreateBookingRoute: typeof ApiPublicCreateBookingRoute
   ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
@@ -1109,6 +1108,7 @@ export interface RootRouteChildren {
   ApiPublicSendTestEmailRoute: typeof ApiPublicSendTestEmailRoute
   ApiPublicSendW9RequestRoute: typeof ApiPublicSendW9RequestRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
+  ApiPublicVerifyGoogleBusyRoute: typeof ApiPublicVerifyGoogleBusyRoute
   ApiPublicZoomOauthCallbackRoute: typeof ApiPublicZoomOauthCallbackRoute
   BookConfirmedCancel_tokenRoute: typeof BookConfirmedCancel_tokenRoute
   SignContractContractIdRoute: typeof SignContractContractIdRoute
@@ -1600,6 +1600,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicZoomOauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/verify-google-busy': {
+      id: '/api/public/verify-google-busy'
+      path: '/api/public/verify-google-busy'
+      fullPath: '/api/public/verify-google-busy'
+      preLoaderRoute: typeof ApiPublicVerifyGoogleBusyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/stripe-webhook': {
       id: '/api/public/stripe-webhook'
       path: '/api/public/stripe-webhook'
@@ -1675,13 +1682,6 @@ declare module '@tanstack/react-router' {
       path: '/api/public/availability'
       fullPath: '/api/public/availability'
       preLoaderRoute: typeof ApiPublicAvailabilityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/_verify-google-busy': {
-      id: '/api/public/_verify-google-busy'
-      path: '/api/public'
-      fullPath: '/api/public'
-      preLoaderRoute: typeof ApiPublicVerifyGoogleBusyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/studio/settings/emails/': {
@@ -1958,7 +1958,6 @@ const rootRouteChildren: RootRouteChildren = {
   StudioRoute: StudioRouteWithChildren,
   BookSlugRoute: BookSlugRoute,
   PayTokenRoute: PayTokenRoute,
-  ApiPublicVerifyGoogleBusyRoute: ApiPublicVerifyGoogleBusyRoute,
   ApiPublicAvailabilityRoute: ApiPublicAvailabilityRoute,
   ApiPublicCreateBookingRoute: ApiPublicCreateBookingRoute,
   ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
@@ -1970,6 +1969,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSendTestEmailRoute: ApiPublicSendTestEmailRoute,
   ApiPublicSendW9RequestRoute: ApiPublicSendW9RequestRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
+  ApiPublicVerifyGoogleBusyRoute: ApiPublicVerifyGoogleBusyRoute,
   ApiPublicZoomOauthCallbackRoute: ApiPublicZoomOauthCallbackRoute,
   BookConfirmedCancel_tokenRoute: BookConfirmedCancel_tokenRoute,
   SignContractContractIdRoute: SignContractContractIdRoute,

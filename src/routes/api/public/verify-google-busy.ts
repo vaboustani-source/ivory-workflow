@@ -3,7 +3,7 @@
 // Returns: freeBusy success/count + availability overlap check.
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/api/public/_verify-google-busy")({
+export const Route = createFileRoute("/api/public/verify-google-busy")({
   server: {
     handlers: {
       GET: async ({ request }) => {
