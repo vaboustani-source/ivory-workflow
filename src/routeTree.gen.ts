@@ -24,6 +24,7 @@ import { Route as StudioResourcesRouteImport } from './routes/studio.resources'
 import { Route as StudioQueueRouteImport } from './routes/studio.queue'
 import { Route as StudioMessagesRouteImport } from './routes/studio.messages'
 import { Route as StudioMarginRouteImport } from './routes/studio.margin'
+import { Route as StudioMailRouteImport } from './routes/studio.mail'
 import { Route as StudioInvoicesRouteImport } from './routes/studio.invoices'
 import { Route as StudioGalleriesRouteImport } from './routes/studio.galleries'
 import { Route as StudioFormsRouteImport } from './routes/studio.forms'
@@ -171,6 +172,11 @@ const StudioMessagesRoute = StudioMessagesRouteImport.update({
 const StudioMarginRoute = StudioMarginRouteImport.update({
   id: '/margin',
   path: '/margin',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioMailRoute = StudioMailRouteImport.update({
+  id: '/mail',
+  path: '/mail',
   getParentRoute: () => StudioRoute,
 } as any)
 const StudioInvoicesRoute = StudioInvoicesRouteImport.update({
@@ -593,6 +599,7 @@ export interface FileRoutesByFullPath {
   '/studio/forms': typeof StudioFormsRoute
   '/studio/galleries': typeof StudioGalleriesRoute
   '/studio/invoices': typeof StudioInvoicesRoute
+  '/studio/mail': typeof StudioMailRoute
   '/studio/margin': typeof StudioMarginRoute
   '/studio/messages': typeof StudioMessagesRoute
   '/studio/queue': typeof StudioQueueRouteWithChildren
@@ -680,6 +687,7 @@ export interface FileRoutesByTo {
   '/studio/forms': typeof StudioFormsRoute
   '/studio/galleries': typeof StudioGalleriesRoute
   '/studio/invoices': typeof StudioInvoicesRoute
+  '/studio/mail': typeof StudioMailRoute
   '/studio/margin': typeof StudioMarginRoute
   '/studio/messages': typeof StudioMessagesRoute
   '/studio/queue': typeof StudioQueueRouteWithChildren
@@ -771,6 +779,7 @@ export interface FileRoutesById {
   '/studio/forms': typeof StudioFormsRoute
   '/studio/galleries': typeof StudioGalleriesRoute
   '/studio/invoices': typeof StudioInvoicesRoute
+  '/studio/mail': typeof StudioMailRoute
   '/studio/margin': typeof StudioMarginRoute
   '/studio/messages': typeof StudioMessagesRoute
   '/studio/queue': typeof StudioQueueRouteWithChildren
@@ -863,6 +872,7 @@ export interface FileRouteTypes {
     | '/studio/forms'
     | '/studio/galleries'
     | '/studio/invoices'
+    | '/studio/mail'
     | '/studio/margin'
     | '/studio/messages'
     | '/studio/queue'
@@ -950,6 +960,7 @@ export interface FileRouteTypes {
     | '/studio/forms'
     | '/studio/galleries'
     | '/studio/invoices'
+    | '/studio/mail'
     | '/studio/margin'
     | '/studio/messages'
     | '/studio/queue'
@@ -1040,6 +1051,7 @@ export interface FileRouteTypes {
     | '/studio/forms'
     | '/studio/galleries'
     | '/studio/invoices'
+    | '/studio/mail'
     | '/studio/margin'
     | '/studio/messages'
     | '/studio/queue'
@@ -1233,6 +1245,13 @@ declare module '@tanstack/react-router' {
       path: '/margin'
       fullPath: '/studio/margin'
       preLoaderRoute: typeof StudioMarginRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/mail': {
+      id: '/studio/mail'
+      path: '/mail'
+      fullPath: '/studio/mail'
+      preLoaderRoute: typeof StudioMailRouteImport
       parentRoute: typeof StudioRoute
     }
     '/studio/invoices': {
@@ -1925,6 +1944,7 @@ interface StudioRouteChildren {
   StudioFormsRoute: typeof StudioFormsRoute
   StudioGalleriesRoute: typeof StudioGalleriesRoute
   StudioInvoicesRoute: typeof StudioInvoicesRoute
+  StudioMailRoute: typeof StudioMailRoute
   StudioMarginRoute: typeof StudioMarginRoute
   StudioMessagesRoute: typeof StudioMessagesRoute
   StudioQueueRoute: typeof StudioQueueRouteWithChildren
@@ -1951,6 +1971,7 @@ const StudioRouteChildren: StudioRouteChildren = {
   StudioFormsRoute: StudioFormsRoute,
   StudioGalleriesRoute: StudioGalleriesRoute,
   StudioInvoicesRoute: StudioInvoicesRoute,
+  StudioMailRoute: StudioMailRoute,
   StudioMarginRoute: StudioMarginRoute,
   StudioMessagesRoute: StudioMessagesRoute,
   StudioQueueRoute: StudioQueueRouteWithChildren,
