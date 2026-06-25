@@ -428,6 +428,7 @@ export type Database = {
           provider: Database["public"]["Enums"]["calendar_provider"] | null
           refresh_token: string | null
           scopes: string[] | null
+          titled_calendar_ids: string[]
           token_expires_at: string | null
           updated_at: string
           user_id: string | null
@@ -444,6 +445,7 @@ export type Database = {
           provider?: Database["public"]["Enums"]["calendar_provider"] | null
           refresh_token?: string | null
           scopes?: string[] | null
+          titled_calendar_ids?: string[]
           token_expires_at?: string | null
           updated_at?: string
           user_id?: string | null
@@ -460,6 +462,7 @@ export type Database = {
           provider?: Database["public"]["Enums"]["calendar_provider"] | null
           refresh_token?: string | null
           scopes?: string[] | null
+          titled_calendar_ids?: string[]
           token_expires_at?: string | null
           updated_at?: string
           user_id?: string | null
