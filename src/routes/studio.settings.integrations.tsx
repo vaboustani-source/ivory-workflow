@@ -55,7 +55,9 @@ function IntegrationsPage() {
 
   useEffect(() => {
     if (!search.oauth || !search.status) return;
-    const label = search.oauth === "google" ? "Google Calendar" : "Zoom";
+    const label =
+      search.oauth === "google" ? "Google Calendar" :
+      search.oauth === "gmail" ? "Gmail" : "Zoom";
     if (search.status === "ok") {
       toast.success(`${label} connected`);
     } else {
@@ -64,6 +66,7 @@ function IntegrationsPage() {
       });
     }
     qc.invalidateQueries({ queryKey: ["integrations"] });
+    qc.invalidateQueries({ queryKey: ["gmail-account-settings"] });
     window.history.replaceState({}, "", "/studio/settings/integrations");
   }, [search.oauth, search.status, search.detail, qc]);
 
