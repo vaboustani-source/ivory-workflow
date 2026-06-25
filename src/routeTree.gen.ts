@@ -81,6 +81,7 @@ import { Route as ApiPublicZoomOauthCallbackRouteImport } from './routes/api/pub
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as ApiPublicSendW9RequestRouteImport } from './routes/api/public/send-w9-request'
 import { Route as ApiPublicSendTestEmailRouteImport } from './routes/api/public/send-test-email'
+import { Route as ApiPublicProcessScheduledEmailsRouteImport } from './routes/api/public/process-scheduled-emails'
 import { Route as ApiPublicPostmarkInboundRouteImport } from './routes/api/public/postmark-inbound'
 import { Route as ApiPublicGoogleOauthCallbackRouteImport } from './routes/api/public/google-oauth-callback'
 import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
@@ -467,6 +468,12 @@ const ApiPublicSendTestEmailRoute = ApiPublicSendTestEmailRouteImport.update({
   path: '/api/public/send-test-email',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicProcessScheduledEmailsRoute =
+  ApiPublicProcessScheduledEmailsRouteImport.update({
+    id: '/api/public/process-scheduled-emails',
+    path: '/api/public/process-scheduled-emails',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPostmarkInboundRoute =
   ApiPublicPostmarkInboundRouteImport.update({
     id: '/api/public/postmark-inbound',
@@ -574,6 +581,7 @@ export interface FileRoutesByFullPath {
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
+  '/api/public/process-scheduled-emails': typeof ApiPublicProcessScheduledEmailsRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
@@ -656,6 +664,7 @@ export interface FileRoutesByTo {
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
+  '/api/public/process-scheduled-emails': typeof ApiPublicProcessScheduledEmailsRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
@@ -742,6 +751,7 @@ export interface FileRoutesById {
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
+  '/api/public/process-scheduled-emails': typeof ApiPublicProcessScheduledEmailsRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
@@ -829,6 +839,7 @@ export interface FileRouteTypes {
     | '/api/public/create-checkout'
     | '/api/public/google-oauth-callback'
     | '/api/public/postmark-inbound'
+    | '/api/public/process-scheduled-emails'
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
@@ -911,6 +922,7 @@ export interface FileRouteTypes {
     | '/api/public/create-checkout'
     | '/api/public/google-oauth-callback'
     | '/api/public/postmark-inbound'
+    | '/api/public/process-scheduled-emails'
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
@@ -996,6 +1008,7 @@ export interface FileRouteTypes {
     | '/api/public/create-checkout'
     | '/api/public/google-oauth-callback'
     | '/api/public/postmark-inbound'
+    | '/api/public/process-scheduled-emails'
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
@@ -1050,6 +1063,7 @@ export interface RootRouteChildren {
   ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
   ApiPublicGoogleOauthCallbackRoute: typeof ApiPublicGoogleOauthCallbackRoute
   ApiPublicPostmarkInboundRoute: typeof ApiPublicPostmarkInboundRoute
+  ApiPublicProcessScheduledEmailsRoute: typeof ApiPublicProcessScheduledEmailsRoute
   ApiPublicSendTestEmailRoute: typeof ApiPublicSendTestEmailRoute
   ApiPublicSendW9RequestRoute: typeof ApiPublicSendW9RequestRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
@@ -1565,6 +1579,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSendTestEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/process-scheduled-emails': {
+      id: '/api/public/process-scheduled-emails'
+      path: '/api/public/process-scheduled-emails'
+      fullPath: '/api/public/process-scheduled-emails'
+      preLoaderRoute: typeof ApiPublicProcessScheduledEmailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/postmark-inbound': {
       id: '/api/public/postmark-inbound'
       path: '/api/public/postmark-inbound'
@@ -1879,6 +1900,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
   ApiPublicGoogleOauthCallbackRoute: ApiPublicGoogleOauthCallbackRoute,
   ApiPublicPostmarkInboundRoute: ApiPublicPostmarkInboundRoute,
+  ApiPublicProcessScheduledEmailsRoute: ApiPublicProcessScheduledEmailsRoute,
   ApiPublicSendTestEmailRoute: ApiPublicSendTestEmailRoute,
   ApiPublicSendW9RequestRoute: ApiPublicSendW9RequestRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
@@ -1890,13 +1912,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
