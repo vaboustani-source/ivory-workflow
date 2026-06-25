@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      _oauth_login_verify: {
+        Row: {
+          case_name: string | null
+          created_at: string | null
+          detail: Json | null
+          id: number
+          rpc_result: Json | null
+        }
+        Insert: {
+          case_name?: string | null
+          created_at?: string | null
+          detail?: Json | null
+          id?: number
+          rpc_result?: Json | null
+        }
+        Update: {
+          case_name?: string | null
+          created_at?: string | null
+          detail?: Json | null
+          id?: number
+          rpc_result?: Json | null
+        }
+        Relationships: []
+      }
       activity_log: {
         Row: {
           action_type: string | null
