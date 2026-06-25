@@ -372,3 +372,66 @@ export async function loadGoogleBusy(
     return [];
   }
 }
+
+// ---------------------------------------------------------------------------
+// Multi-account Google free/busy — UNION across ALL active Google connections
+// for the owner. Fail-soft PER CONNECTION: an expired/revoked/erroring account
+// returns [] but does not blank out other accounts.
+// ---------------------------------------------------------------------------
+export async function loadAllGoogleBusy(
+  ownerUserId: string,
+  fromMs: number,
+  toMs: number,
+): Promise<BusyInterval[]> {
+  let connections: Array<{ id: string; busy_calendar_ids: string[] }>;
+  try {
+    const { listActiveConnections } = await import("./provider-client.server");
+    connections = (await listActiveConnections("google", ownerUserId)).map((c) => ({
+      id: c.id,
+      busy_calendar_ids: c.busy_calendar_ids?.length ? c.busy_calendar_ids : ["primary"],
+    }));
+  } catch (e) {
+    console.warn("[availability] listActiveConnections fail-soft:", e instanceof Error ? e.message : e);
+    return [];
+  }
+  if (!connections.length) return [];
+
+  const results = await Promise.all(
+    connections.map(async (conn) => {
+      try {
+        const client = await getProviderClient("google", ownerUserId, { connectionId: conn.id });
+        const body = {
+          timeMin: new Date(fromMs).toISOString(),
+          timeMax: new Date(toMs).toISOString(),
+          items: conn.busy_calendar_ids.map((id) => ({ id })),
+        };
+        const res = await client.fetch(
+          "https://www.googleapis.com/calendar/v3/freeBusy",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          },
+        );
+        if (!res.ok) {
+          console.warn(`[availability] google freeBusy non-ok for connection ${conn.id}:`, res.status);
+          return [] as BusyInterval[];
+        }
+        const json = (await res.json()) as {
+          calendars?: Record<string, { busy?: Array<{ start: string; end: string }> }>;
+        };
+        const out: BusyInterval[] = [];
+        for (const cal of Object.values(json.calendars ?? {})) {
+          for (const b of cal.busy ?? []) {
+            out.push({ startMs: Date.parse(b.start), endMs: Date.parse(b.end) });
+          }
+        }
+        return out;
+      } catch (e) {
+        console.warn(`[availability] google freeBusy fail-soft for connection ${conn.id}:`, e instanceof Error ? e.message : e);
+        return [] as BusyInterval[];
+      }
+    }),
+  );
+  return results.flat();
+}

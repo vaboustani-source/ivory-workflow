@@ -11,7 +11,8 @@ import {
   startOAuth,
   disconnectProvider,
   refreshIntegrationToken,
-  type IntegrationStatus,
+  type IntegrationsList,
+  type ConnectionRow,
 } from "@/lib/scheduling/integrations.functions";
 
 type Search = { oauth?: "google" | "zoom"; status?: "ok" | "error"; detail?: string };
@@ -25,27 +26,8 @@ export const Route = createFileRoute("/studio/settings/integrations")({
   component: IntegrationsPage,
 });
 
-const PROVIDERS: Array<{
-  id: "google" | "zoom";
-  name: string;
-  description: string;
-  scopeBlurb: string;
-}> = [
-  {
-    id: "google",
-    name: "Google Calendar",
-    description:
-      "Read busy times to avoid double-booking, and write new meetings (with Zoom link) to your calendar.",
-    scopeBlurb: "calendar.events · calendar.readonly · email",
-  },
-  {
-    id: "zoom",
-    name: "Zoom",
-    description:
-      "Automatically create a Zoom meeting for every scheduled call and include the join link in the calendar event and confirmation email.",
-    scopeBlurb: "meeting:write · meeting:read · user:read",
-  },
-];
+const GOOGLE_SCOPE_BLURB = "calendar.events · calendar.readonly · email";
+const ZOOM_SCOPE_BLURB = "meeting:write · meeting:read · user:read";
 
 function IntegrationsPage() {
   const search = useSearch({ from: Route.id });
@@ -57,18 +39,9 @@ function IntegrationsPage() {
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["integrations"],
-    queryFn: async (): Promise<IntegrationStatus[]> => {
+    queryFn: async (): Promise<IntegrationsList> => {
       const r = (await fetchList()) as unknown;
-      // Defensive unwrap: some serverFn/middleware paths may return a wrapped
-      // envelope ({ result: [...] } / { data: [...] }) or a non-array (Response,
-      // error object). Normalize to IntegrationStatus[] so the UI never crashes.
-      if (Array.isArray(r)) return r as IntegrationStatus[];
-      if (r && typeof r === "object") {
-        const maybe =
-          (r as { result?: unknown }).result ??
-          (r as { data?: unknown }).data;
-        if (Array.isArray(maybe)) return maybe as IntegrationStatus[];
-      }
+      if (r && typeof r === "object" && "google" in r) return r as IntegrationsList;
       throw new Error("Unexpected response shape from listIntegrations");
     },
   });
@@ -86,7 +59,6 @@ function IntegrationsPage() {
       });
     }
     qc.invalidateQueries({ queryKey: ["integrations"] });
-    // Clean the URL
     window.history.replaceState({}, "", "/studio/settings/integrations");
   }, [search.oauth, search.status, search.detail, qc]);
 
@@ -103,13 +75,14 @@ function IntegrationsPage() {
   });
 
   const disconnect = useMutation({
-    mutationFn: async (provider: "google" | "zoom") => {
-      setBusy(`disconnect:${provider}`);
-      await disconnectFn({ data: { provider } });
+    mutationFn: async (args: { provider: "google" | "zoom"; connection_id?: string; label?: string }) => {
+      setBusy(`disconnect:${args.connection_id ?? args.provider}`);
+      await disconnectFn({ data: { provider: args.provider, connection_id: args.connection_id } });
+      return args;
     },
-    onSuccess: (_d, provider) => {
+    onSuccess: (args) => {
       setBusy(null);
-      toast.success(`${provider === "google" ? "Google Calendar" : "Zoom"} disconnected`);
+      toast.success(`${args.label ?? (args.provider === "google" ? "Google Calendar" : "Zoom")} disconnected`);
       qc.invalidateQueries({ queryKey: ["integrations"] });
     },
     onError: (e: Error) => {
@@ -119,9 +92,9 @@ function IntegrationsPage() {
   });
 
   const refresh = useMutation({
-    mutationFn: async (provider: "google" | "zoom") => {
-      setBusy(`refresh:${provider}`);
-      await refreshFn({ data: { provider } });
+    mutationFn: async (args: { provider: "google" | "zoom"; connection_id?: string }) => {
+      setBusy(`refresh:${args.connection_id ?? args.provider}`);
+      await refreshFn({ data: { provider: args.provider, connection_id: args.connection_id } });
     },
     onSuccess: () => {
       setBusy(null);
@@ -134,9 +107,31 @@ function IntegrationsPage() {
     },
   });
 
-  const rows: IntegrationStatus[] = Array.isArray(data) ? data : [];
-  const byProvider = new Map<string, IntegrationStatus>(
-    rows.map((r) => [r.provider, r]),
+  const list: IntegrationsList = data ?? {
+    google: [],
+    google_needs_reconnect: false,
+    zoom: null,
+    zoom_needs_reconnect: false,
+  };
+
+  const renderRow = (r: ConnectionRow) => (
+    <dl className="grid grid-cols-[140px_1fr] gap-y-1 text-sm">
+      <dt className="text-muted-foreground">Account</dt>
+      <dd className="flex items-center gap-2">
+        {r.account_email ?? "—"}
+        {r.is_booking_target && (
+          <Badge variant="outline" className="font-normal text-[10px]">
+            Booking target
+          </Badge>
+        )}
+      </dd>
+      <dt className="text-muted-foreground">Connected</dt>
+      <dd>{r.updated_at ? new Date(r.updated_at).toLocaleString() : "—"}</dd>
+      <dt className="text-muted-foreground">Token expires</dt>
+      <dd>{r.token_expires_at ? new Date(r.token_expires_at).toLocaleString() : "—"}</dd>
+      <dt className="text-muted-foreground">Busy calendars</dt>
+      <dd className="text-xs">{r.busy_calendar_ids.join(", ")}</dd>
+    </dl>
   );
 
   return (
@@ -144,7 +139,7 @@ function IntegrationsPage() {
       <header>
         <h1 className="text-2xl font-medium">Integrations</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Connect Google Calendar and Zoom so the scheduling system can read your availability,
+          Connect Google Calendar and Zoom so scheduling can read your availability,
           create meetings, and add events to your calendar.
         </p>
       </header>
@@ -161,104 +156,159 @@ function IntegrationsPage() {
         </div>
       )}
 
-      {rows.some((r) => r.needs_reconnect) && (
+      {(list.google_needs_reconnect || list.zoom_needs_reconnect) && (
         <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
-          One or more connections were revoked at the provider. Click <strong>Connect</strong> below
-          to reauthorize so scheduling keeps working.
+          A connection was revoked at the provider. Click <strong>Connect</strong> below to reauthorize.
         </div>
       )}
 
-
-      <div className="space-y-4">
-        {PROVIDERS.map((p) => {
-          const row = byProvider.get(p.id);
-          const connected = !!row?.connected;
-          return (
-            <Card key={p.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <CardTitle className="text-base flex items-center gap-2">
-                      {p.name}
-                      {connected ? (
-                        <Badge variant="default" className="font-normal">Connected</Badge>
-                      ) : (
-                        <Badge variant="outline" className="font-normal">Not connected</Badge>
-                      )}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">{p.description}</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {isLoading ? (
-                  <p className="text-sm text-muted-foreground">Loading…</p>
-                ) : connected && row ? (
-                  <dl className="grid grid-cols-[120px_1fr] gap-y-1 text-sm">
-                    <dt className="text-muted-foreground">Account</dt>
-                    <dd>{row.account_email ?? "—"}</dd>
-                    <dt className="text-muted-foreground">Connected</dt>
-                    <dd>{row.updated_at ? new Date(row.updated_at).toLocaleString() : "—"}</dd>
-                    <dt className="text-muted-foreground">Token expires</dt>
-                    <dd>
-                      {row.token_expires_at
-                        ? new Date(row.token_expires_at).toLocaleString()
-                        : "—"}
-                    </dd>
-                    <dt className="text-muted-foreground">Scopes</dt>
-                    <dd className="text-xs text-muted-foreground break-all">
-                      {row.scopes?.join(" ") ?? p.scopeBlurb}
-                    </dd>
-                  </dl>
+      {/* GOOGLE — multi-account */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                Google Calendar
+                {list.google.length > 0 ? (
+                  <Badge variant="default" className="font-normal">
+                    {list.google.length} connected
+                  </Badge>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Scopes requested: <span className="text-xs">{p.scopeBlurb}</span>
-                  </p>
+                  <Badge variant="outline" className="font-normal">Not connected</Badge>
                 )}
-
-                <div className="flex gap-2 pt-1">
-                  {connected ? (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={busy !== null}
-                        onClick={() => refresh.mutate(p.id)}
-                      >
-                        {busy === `refresh:${p.id}` ? "Refreshing…" : "Refresh token"}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={busy !== null}
-                        onClick={() => disconnect.mutate(p.id)}
-                      >
-                        {busy === `disconnect:${p.id}` ? "Disconnecting…" : "Disconnect"}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={busy !== null}
-                        onClick={() => connect.mutate(p.id)}
-                      >
-                        Reconnect
-                      </Button>
-                    </>
-                  ) : (
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Connect multiple Google accounts (e.g. personal + professional). Busy
+                time from EVERY connected account blocks call slots. New booked calls
+                are written to the account marked as the booking target.
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : list.google.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Scopes requested: <span className="text-xs">{GOOGLE_SCOPE_BLURB}</span>
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {list.google.map((r) => (
+                <div key={r.id} className="rounded-md border p-3 space-y-3">
+                  {renderRow(r)}
+                  <div className="flex flex-wrap gap-2">
                     <Button
+                      variant="outline"
                       size="sm"
                       disabled={busy !== null}
-                      onClick={() => connect.mutate(p.id)}
+                      onClick={() => refresh.mutate({ provider: "google", connection_id: r.id })}
                     >
-                      {busy === `connect:${p.id}` ? "Redirecting…" : `Connect ${p.name}`}
+                      {busy === `refresh:${r.id}` ? "Refreshing…" : "Refresh token"}
                     </Button>
-                  )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={busy !== null}
+                      onClick={() =>
+                        disconnect.mutate({
+                          provider: "google",
+                          connection_id: r.id,
+                          label: r.account_email ?? "Google account",
+                        })
+                      }
+                    >
+                      {busy === `disconnect:${r.id}` ? "Disconnecting…" : "Disconnect"}
+                    </Button>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+              ))}
+            </div>
+          )}
+          <div>
+            <Button
+              size="sm"
+              disabled={busy !== null}
+              onClick={() => connect.mutate("google")}
+            >
+              {busy === "connect:google"
+                ? "Redirecting…"
+                : list.google.length === 0
+                  ? "Connect Google Calendar"
+                  : "Connect another Google account"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ZOOM — single account */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                Zoom
+                {list.zoom ? (
+                  <Badge variant="default" className="font-normal">Connected</Badge>
+                ) : (
+                  <Badge variant="outline" className="font-normal">Not connected</Badge>
+                )}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Automatically creates a Zoom meeting for every booked call.
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : list.zoom ? (
+            <>
+              {renderRow(list.zoom)}
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={busy !== null}
+                  onClick={() => refresh.mutate({ provider: "zoom" })}
+                >
+                  {busy === "refresh:zoom" ? "Refreshing…" : "Refresh token"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={busy !== null}
+                  onClick={() => disconnect.mutate({ provider: "zoom", label: "Zoom" })}
+                >
+                  {busy === "disconnect:zoom" ? "Disconnecting…" : "Disconnect"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={busy !== null}
+                  onClick={() => connect.mutate("zoom")}
+                >
+                  Reconnect
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Scopes requested: <span className="text-xs">{ZOOM_SCOPE_BLURB}</span>
+              </p>
+              <Button
+                size="sm"
+                disabled={busy !== null}
+                onClick={() => connect.mutate("zoom")}
+              >
+                {busy === "connect:zoom" ? "Redirecting…" : "Connect Zoom"}
+              </Button>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

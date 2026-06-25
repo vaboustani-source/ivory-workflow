@@ -45,7 +45,15 @@ export class BookingProviderError extends Error {
 
 export type BookingFlowInput = {
   ownerUserId: string;
-  primaryCalendarId: string; // 'primary' if not set
+  /** Calendar to write the event to (e.g. 'primary'). Falls back to 'primary'. */
+  primaryCalendarId: string;
+  /**
+   * Which Google `calendar_connections` row to write the event to. When the
+   * owner has multiple connected Google accounts, this MUST be set to
+   * disambiguate. If null, the booking flow picks the single active Google
+   * connection; if there are multiple, it errors.
+   */
+  bookingConnectionId: string | null;
   callTypeName: string;
   startUtcIso: string;
   endUtcIso: string;
@@ -223,7 +231,9 @@ async function createGoogleEvent(
   }
   let client;
   try {
-    client = await getProviderClient("google", ownerUserId);
+    client = await getProviderClient("google", ownerUserId, {
+      connectionId: input.bookingConnectionId ?? undefined,
+    });
   } catch (e) {
     if (isRevoked(e)) {
       throw new BookingProviderError({

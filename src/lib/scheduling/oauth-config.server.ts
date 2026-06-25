@@ -40,7 +40,9 @@ export function getProviderConfig(provider: Provider): ProviderConfig {
       ],
       authorizeParams: {
         access_type: "offline",
-        prompt: "consent",
+        // "select_account" lets Victoria pick a DIFFERENT Google account on
+        // each connect; "consent" forces a refresh_token back every time.
+        prompt: "consent select_account",
         include_granted_scopes: "true",
       },
       tokenAuthStyle: "body",
