@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, useCallback } from "react";
-import { Plus, ArrowUp, ArrowDown, Copy, Eye, EyeOff, Pencil } from "lucide-react";
+import { Plus, ArrowUp, ArrowDown, Copy, Eye, EyeOff, Pencil, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -14,6 +15,13 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  listGoogleCalendars,
+  saveCalendarSelections,
+  type ListGoogleCalendarsResponse,
+  type CalendarEntry,
+} from "@/lib/scheduling/calendars.functions";
 
 export const Route = createFileRoute("/studio/settings/scheduling")({
   component: SchedulingSettingsPage,
