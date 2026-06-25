@@ -475,3 +475,186 @@ function AvailabilityTab() {
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Calendars tab — per-calendar busy + titled selection across every connected
+// Google account. Powers both the dashboard and the public booking engine.
+// ---------------------------------------------------------------------------
+
+function CalendarsTab() {
+  const list = useServerFn(listGoogleCalendars);
+  const save = useServerFn(saveCalendarSelections);
+  const [data, setData] = useState<ListGoogleCalendarsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [savingId, setSavingId] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = (await list()) as ListGoogleCalendarsResponse;
+      setData(r);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to load calendars");
+    } finally {
+      setLoading(false);
+    }
+  }, [list]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const toggleBusy = (connId: string, calId: string, next: boolean) => {
+    setData((cur) => {
+      if (!cur) return cur;
+      return {
+        ...cur,
+        connections: cur.connections.map((c) =>
+          c.connectionId !== connId
+            ? c
+            : {
+                ...c,
+                calendars: c.calendars.map((cal) =>
+                  cal.id !== calId
+                    ? cal
+                    : { ...cal, included: next, titled: next ? cal.titled : false },
+                ),
+              },
+        ),
+      };
+    });
+  };
+
+  const toggleTitled = (connId: string, calId: string, titled: boolean) => {
+    setData((cur) => {
+      if (!cur) return cur;
+      return {
+        ...cur,
+        connections: cur.connections.map((c) =>
+          c.connectionId !== connId
+            ? c
+            : {
+                ...c,
+                calendars: c.calendars.map((cal) =>
+                  cal.id !== calId ? cal : { ...cal, titled, included: titled || cal.included },
+                ),
+              },
+        ),
+      };
+    });
+  };
+
+  const persist = async (connId: string, calendars: CalendarEntry[]) => {
+    setSavingId(connId);
+    try {
+      const busy = calendars.filter((c) => c.included).map((c) => c.id);
+      const titled = calendars.filter((c) => c.titled && c.included).map((c) => c.id);
+      await save({ data: { connectionId: connId, busyCalendarIds: busy, titledCalendarIds: titled } });
+      toast.success("Calendar selections saved");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Save failed");
+      await load();
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  if (loading || !data) {
+    return <p className="text-sm text-muted-foreground">Loading calendars…</p>;
+  }
+
+  if (data.connections.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        No Google accounts connected. Connect one from Integrations first.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Check <strong>Block my availability</strong> on every calendar whose events should
+        prevent bookings. Choose <strong>Show event titles</strong> to display real event
+        names on the dashboard, or <strong>Private</strong> to show them as untitled busy.
+      </p>
+      {data.connections.map((conn) => (
+        <Card key={conn.connectionId}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-base">
+                {conn.accountEmail ?? "(unknown account)"}
+                {conn.isProfessional && (
+                  <Badge className="ml-2" variant="secondary">Booking calendar</Badge>
+                )}
+              </CardTitle>
+              {conn.error && (
+                <p className="text-xs text-destructive mt-1">{conn.error}</p>
+              )}
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => persist(conn.connectionId, conn.calendars)}
+              disabled={savingId === conn.connectionId}
+            >
+              {savingId === conn.connectionId ? "Saving…" : "Save"}
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {conn.calendars.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No calendars returned.</p>
+            ) : (
+              <ul className="divide-y">
+                {conn.calendars.map((cal) => (
+                  <li key={cal.id} className="flex items-center gap-3 py-2">
+                    <Checkbox
+                      checked={cal.included}
+                      onCheckedChange={(v) => toggleBusy(conn.connectionId, cal.id, !!v)}
+                      aria-label={`Block availability for ${cal.summary}`}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate">
+                        {cal.summary}
+                        {cal.primary && (
+                          <Badge variant="outline" className="ml-2 text-[10px]">primary</Badge>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground truncate">
+                        {cal.accessRole}
+                        {cal.timeZone ? ` · ${cal.timeZone}` : ""}
+                      </div>
+                    </div>
+                    {cal.included && (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={cal.titled ? "default" : "outline"}
+                          onClick={() => toggleTitled(conn.connectionId, cal.id, true)}
+                        >
+                          Show titles
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={!cal.titled ? "default" : "outline"}
+                          onClick={() => toggleTitled(conn.connectionId, cal.id, false)}
+                        >
+                          Private
+                        </Button>
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+      <div>
+        <Button size="sm" variant="ghost" onClick={load}>
+          <RefreshCw className="size-4 mr-1" /> Refresh from Google
+        </Button>
+      </div>
+    </div>
+  );
+}
