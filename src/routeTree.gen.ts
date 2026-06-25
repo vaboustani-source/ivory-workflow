@@ -47,6 +47,7 @@ import { Route as PortalActivityRouteImport } from './routes/portal.activity'
 import { Route as PortalAccountRouteImport } from './routes/portal.account'
 import { Route as PayTokenRouteImport } from './routes/pay.$token'
 import { Route as BookSlugRouteImport } from './routes/book.$slug'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as StudioClientsIndexRouteImport } from './routes/studio.clients.index'
 import { Route as PortalAccountIndexRouteImport } from './routes/portal.account.index'
 import { Route as StudioSettingsWorkflowRouteImport } from './routes/studio.settings.workflow'
@@ -284,6 +285,11 @@ const PayTokenRoute = PayTokenRouteImport.update({
 const BookSlugRoute = BookSlugRouteImport.update({
   id: '/book/$slug',
   path: '/book/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StudioClientsIndexRoute = StudioClientsIndexRouteImport.update({
@@ -556,6 +562,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
   '/studio': typeof StudioRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/book/$slug': typeof BookSlugRoute
   '/pay/$token': typeof PayTokenRoute
   '/portal/account': typeof PortalAccountRouteWithChildren
@@ -642,6 +649,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/book/$slug': typeof BookSlugRoute
   '/pay/$token': typeof PayTokenRoute
   '/portal/activity': typeof PortalActivityRoute
@@ -730,6 +738,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
   '/studio': typeof StudioRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/book/$slug': typeof BookSlugRoute
   '/pay/$token': typeof PayTokenRoute
   '/portal/account': typeof PortalAccountRouteWithChildren
@@ -820,6 +829,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/studio'
+    | '/auth/callback'
     | '/book/$slug'
     | '/pay/$token'
     | '/portal/account'
@@ -906,6 +916,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/auth/callback'
     | '/book/$slug'
     | '/pay/$token'
     | '/portal/activity'
@@ -993,6 +1004,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/portal'
     | '/studio'
+    | '/auth/callback'
     | '/book/$slug'
     | '/pay/$token'
     | '/portal/account'
@@ -1082,6 +1094,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PortalRoute: typeof PortalRouteWithChildren
   StudioRoute: typeof StudioRouteWithChildren
+  AuthCallbackRoute: typeof AuthCallbackRoute
   BookSlugRoute: typeof BookSlugRoute
   PayTokenRoute: typeof PayTokenRoute
   ApiPublicAvailabilityRoute: typeof ApiPublicAvailabilityRoute
@@ -1367,6 +1380,13 @@ declare module '@tanstack/react-router' {
       path: '/book/$slug'
       fullPath: '/book/$slug'
       preLoaderRoute: typeof BookSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/studio/clients/': {
@@ -1935,6 +1955,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PortalRoute: PortalRouteWithChildren,
   StudioRoute: StudioRouteWithChildren,
+  AuthCallbackRoute: AuthCallbackRoute,
   BookSlugRoute: BookSlugRoute,
   PayTokenRoute: PayTokenRoute,
   ApiPublicAvailabilityRoute: ApiPublicAvailabilityRoute,
