@@ -3380,9 +3380,11 @@ export type Database = {
           created_at: string
           email_template_id: string | null
           id: string
+          invoice_id: string | null
           last_error: string | null
           milestone_id: string | null
           recipient_emails: string[] | null
+          reminder_kind: string | null
           scheduled_send_at: string | null
           sent_at: string | null
           status: Database["public"]["Enums"]["communication_status"]
@@ -3398,9 +3400,11 @@ export type Database = {
           created_at?: string
           email_template_id?: string | null
           id?: string
+          invoice_id?: string | null
           last_error?: string | null
           milestone_id?: string | null
           recipient_emails?: string[] | null
+          reminder_kind?: string | null
           scheduled_send_at?: string | null
           sent_at?: string | null
           status?: Database["public"]["Enums"]["communication_status"]
@@ -3416,9 +3420,11 @@ export type Database = {
           created_at?: string
           email_template_id?: string | null
           id?: string
+          invoice_id?: string | null
           last_error?: string | null
           milestone_id?: string | null
           recipient_emails?: string[] | null
+          reminder_kind?: string | null
           scheduled_send_at?: string | null
           sent_at?: string | null
           status?: Database["public"]["Enums"]["communication_status"]
@@ -3445,6 +3451,13 @@ export type Database = {
             columns: ["email_template_id"]
             isOneToOne: false
             referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_communications_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -3743,6 +3756,7 @@ export type Database = {
           ein: string | null
           id: string
           instagram: string | null
+          invoice_reminders_enabled: boolean
           is_active: boolean | null
           messaging_inbound_enabled: boolean
           overage_hourly_rate: number | null
@@ -3767,6 +3781,7 @@ export type Database = {
           ein?: string | null
           id?: string
           instagram?: string | null
+          invoice_reminders_enabled?: boolean
           is_active?: boolean | null
           messaging_inbound_enabled?: boolean
           overage_hourly_rate?: number | null
@@ -3791,6 +3806,7 @@ export type Database = {
           ein?: string | null
           id?: string
           instagram?: string | null
+          invoice_reminders_enabled?: boolean
           is_active?: boolean | null
           messaging_inbound_enabled?: boolean
           overage_hourly_rate?: number | null
@@ -4599,9 +4615,11 @@ export type Database = {
           created_at: string
           email_template_id: string | null
           id: string
+          invoice_id: string | null
           last_error: string | null
           milestone_id: string | null
           recipient_emails: string[] | null
+          reminder_kind: string | null
           scheduled_send_at: string | null
           sent_at: string | null
           status: Database["public"]["Enums"]["communication_status"]

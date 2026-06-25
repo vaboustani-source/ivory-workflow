@@ -84,6 +84,27 @@ export const EMAIL_COPY_SCHEMAS: Record<string, EmailCopySchema> = {
       { key: "body_2", label: "Second paragraph", type: "long_text", defaultValue: "We've kept a copy in your portal — you can view it anytime under Documents.", supportsPlaceholders: true },
     ],
   },
+  invoice_reminder: {
+    emailType: "invoice_reminder",
+    displayName: "Invoice Reminder",
+    description: "Sent automatically about a week before an installment's due date as a friendly heads-up.",
+    availablePlaceholders: [
+      "couple_first_names",
+      "couple_full_names",
+      "studio_name",
+      "invoice_label",
+      "amount_due",
+      "due_date_long",
+      "pay_link",
+    ],
+    fields: [
+      { key: "subject", label: "Subject line", type: "subject", defaultValue: "A friendly heads-up: {invoice_label} is due {due_date_long}", supportsPlaceholders: true },
+      { key: "heading", label: "Greeting", type: "short_text", defaultValue: "Hi {couple_first_names},", supportsPlaceholders: true },
+      { key: "body_1", label: "First paragraph", type: "long_text", defaultValue: "Just a gentle reminder that your {invoice_label} of {amount_due} is coming due on {due_date_long}. There is nothing urgent to do today, only a little advance notice so it does not catch you by surprise.", supportsPlaceholders: true },
+      { key: "body_2", label: "Second paragraph", type: "long_text", defaultValue: "Whenever you are ready, you can review and pay it from your private invoice page. As always, please reach out if you have any questions at all.", supportsPlaceholders: true },
+      { key: "button_label", label: "Button text", type: "button_label", defaultValue: "Review and pay", supportsPlaceholders: false },
+    ],
+  },
 };
 
 export const EMAIL_TYPE_ORDER: string[] = [
@@ -92,4 +113,5 @@ export const EMAIL_TYPE_ORDER: string[] = [
   "contract_sent",
   "form_sent",
   "contract_receipt",
+  "invoice_reminder",
 ];

@@ -81,6 +81,7 @@ import { Route as ApiPublicZoomOauthCallbackRouteImport } from './routes/api/pub
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as ApiPublicSendW9RequestRouteImport } from './routes/api/public/send-w9-request'
 import { Route as ApiPublicSendTestEmailRouteImport } from './routes/api/public/send-test-email'
+import { Route as ApiPublicScanInvoiceRemindersRouteImport } from './routes/api/public/scan-invoice-reminders'
 import { Route as ApiPublicProcessScheduledEmailsRouteImport } from './routes/api/public/process-scheduled-emails'
 import { Route as ApiPublicPostmarkInboundRouteImport } from './routes/api/public/postmark-inbound'
 import { Route as ApiPublicGoogleOauthCallbackRouteImport } from './routes/api/public/google-oauth-callback'
@@ -468,6 +469,12 @@ const ApiPublicSendTestEmailRoute = ApiPublicSendTestEmailRouteImport.update({
   path: '/api/public/send-test-email',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicScanInvoiceRemindersRoute =
+  ApiPublicScanInvoiceRemindersRouteImport.update({
+    id: '/api/public/scan-invoice-reminders',
+    path: '/api/public/scan-invoice-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicProcessScheduledEmailsRoute =
   ApiPublicProcessScheduledEmailsRouteImport.update({
     id: '/api/public/process-scheduled-emails',
@@ -582,6 +589,7 @@ export interface FileRoutesByFullPath {
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
   '/api/public/process-scheduled-emails': typeof ApiPublicProcessScheduledEmailsRoute
+  '/api/public/scan-invoice-reminders': typeof ApiPublicScanInvoiceRemindersRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
@@ -665,6 +673,7 @@ export interface FileRoutesByTo {
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
   '/api/public/process-scheduled-emails': typeof ApiPublicProcessScheduledEmailsRoute
+  '/api/public/scan-invoice-reminders': typeof ApiPublicScanInvoiceRemindersRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
@@ -752,6 +761,7 @@ export interface FileRoutesById {
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
   '/api/public/process-scheduled-emails': typeof ApiPublicProcessScheduledEmailsRoute
+  '/api/public/scan-invoice-reminders': typeof ApiPublicScanInvoiceRemindersRoute
   '/api/public/send-test-email': typeof ApiPublicSendTestEmailRoute
   '/api/public/send-w9-request': typeof ApiPublicSendW9RequestRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
@@ -840,6 +850,7 @@ export interface FileRouteTypes {
     | '/api/public/google-oauth-callback'
     | '/api/public/postmark-inbound'
     | '/api/public/process-scheduled-emails'
+    | '/api/public/scan-invoice-reminders'
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
@@ -923,6 +934,7 @@ export interface FileRouteTypes {
     | '/api/public/google-oauth-callback'
     | '/api/public/postmark-inbound'
     | '/api/public/process-scheduled-emails'
+    | '/api/public/scan-invoice-reminders'
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
@@ -1009,6 +1021,7 @@ export interface FileRouteTypes {
     | '/api/public/google-oauth-callback'
     | '/api/public/postmark-inbound'
     | '/api/public/process-scheduled-emails'
+    | '/api/public/scan-invoice-reminders'
     | '/api/public/send-test-email'
     | '/api/public/send-w9-request'
     | '/api/public/stripe-webhook'
@@ -1064,6 +1077,7 @@ export interface RootRouteChildren {
   ApiPublicGoogleOauthCallbackRoute: typeof ApiPublicGoogleOauthCallbackRoute
   ApiPublicPostmarkInboundRoute: typeof ApiPublicPostmarkInboundRoute
   ApiPublicProcessScheduledEmailsRoute: typeof ApiPublicProcessScheduledEmailsRoute
+  ApiPublicScanInvoiceRemindersRoute: typeof ApiPublicScanInvoiceRemindersRoute
   ApiPublicSendTestEmailRoute: typeof ApiPublicSendTestEmailRoute
   ApiPublicSendW9RequestRoute: typeof ApiPublicSendW9RequestRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
@@ -1579,6 +1593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSendTestEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/scan-invoice-reminders': {
+      id: '/api/public/scan-invoice-reminders'
+      path: '/api/public/scan-invoice-reminders'
+      fullPath: '/api/public/scan-invoice-reminders'
+      preLoaderRoute: typeof ApiPublicScanInvoiceRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/process-scheduled-emails': {
       id: '/api/public/process-scheduled-emails'
       path: '/api/public/process-scheduled-emails'
@@ -1901,6 +1922,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicGoogleOauthCallbackRoute: ApiPublicGoogleOauthCallbackRoute,
   ApiPublicPostmarkInboundRoute: ApiPublicPostmarkInboundRoute,
   ApiPublicProcessScheduledEmailsRoute: ApiPublicProcessScheduledEmailsRoute,
+  ApiPublicScanInvoiceRemindersRoute: ApiPublicScanInvoiceRemindersRoute,
   ApiPublicSendTestEmailRoute: ApiPublicSendTestEmailRoute,
   ApiPublicSendW9RequestRoute: ApiPublicSendW9RequestRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
