@@ -1789,6 +1789,48 @@ export type Database = {
           },
         ]
       }
+      gmail_accounts: {
+        Row: {
+          access_token: string
+          created_at: string
+          email: string | null
+          history_id: string | null
+          id: string
+          is_active: boolean
+          refresh_token: string | null
+          scopes: string[] | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          email?: string | null
+          history_id?: string | null
+          id?: string
+          is_active?: boolean
+          refresh_token?: string | null
+          scopes?: string[] | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          email?: string | null
+          history_id?: string | null
+          id?: string
+          is_active?: boolean
+          refresh_token?: string | null
+          scopes?: string[] | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invoice_line_items: {
         Row: {
           amount_cents: number

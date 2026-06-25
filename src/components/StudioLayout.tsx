@@ -1,7 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
-  Home, Users, Inbox, KanbanSquare, Workflow, MessageCircle, Calendar,
+  Home, Users, Inbox, KanbanSquare, Workflow, MessageCircle, Calendar, Mail,
   CheckSquare, Image, Receipt, BookOpen, Settings, Search,
   LogOut, Menu, X, ChevronDown, Eye, FileText, ClipboardList, ClipboardCheck, DollarSign, Newspaper,
 } from "lucide-react";
@@ -38,6 +38,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Daily",
     items: [
       { label: "Inbox", to: "/studio/approval-queue", icon: Inbox, badgeKey: "inbox" },
+      { label: "Mail", to: "/studio/mail", icon: Mail },
       { label: "Calendar", to: "/studio/calendar", icon: Calendar },
     ],
   },

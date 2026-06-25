@@ -2,7 +2,7 @@
 // Never import this from client-reachable modules.
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
-export type Provider = "google" | "zoom";
+export type Provider = "google" | "zoom" | "gmail";
 
 export type ProviderConfig = {
   clientId: string;
@@ -48,6 +48,32 @@ export function getProviderConfig(provider: Provider): ProviderConfig {
       tokenAuthStyle: "body",
     };
   }
+  if (provider === "gmail") {
+    // Reuses the SAME Google OAuth client as calendar; Gmail scopes must be
+    // added to that client's consent screen in Google Cloud, and the Gmail
+    // callback URL must be added as an Authorized Redirect URI.
+    return {
+      clientId: getEnv("GOOGLE_OAUTH_CLIENT_ID"),
+      clientSecret: getEnv("GOOGLE_OAUTH_CLIENT_SECRET"),
+      authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
+      tokenUrl: "https://oauth2.googleapis.com/token",
+      userinfoUrl: "https://openidconnect.googleapis.com/v1/userinfo",
+      scopes: [
+        "openid",
+        "email",
+        "https://www.googleapis.com/auth/gmail.modify",
+        "https://www.googleapis.com/auth/gmail.send",
+      ],
+      authorizeParams: {
+        access_type: "offline",
+        // "consent" forces a refresh_token back every time.
+        // "select_account" lets the user pick which Gmail account.
+        prompt: "consent select_account",
+        include_granted_scopes: "true",
+      },
+      tokenAuthStyle: "body",
+    };
+  }
   return {
     clientId: getEnv("ZOOM_OAUTH_CLIENT_ID"),
     clientSecret: getEnv("ZOOM_OAUTH_CLIENT_SECRET"),
@@ -65,9 +91,9 @@ export function getProviderConfig(provider: Provider): ProviderConfig {
 }
 
 export function callbackPath(provider: Provider): string {
-  return provider === "google"
-    ? "/api/public/google-oauth-callback"
-    : "/api/public/zoom-oauth-callback";
+  if (provider === "google") return "/api/public/google-oauth-callback";
+  if (provider === "gmail") return "/api/public/gmail-oauth-callback";
+  return "/api/public/zoom-oauth-callback";
 }
 
 // ---------- Signed state ----------
@@ -205,7 +231,7 @@ export async function revokeTokens(
   provider: Provider,
   token: string,
 ): Promise<void> {
-  if (provider === "google") {
+  if (provider === "google" || provider === "gmail") {
     await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(token)}`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },

@@ -14,12 +14,16 @@ import {
   type IntegrationsList,
   type ConnectionRow,
 } from "@/lib/scheduling/integrations.functions";
+import {
+  getGmailAccount, startGmailOAuth, disconnectGmail,
+  type GmailAccountInfo,
+} from "@/lib/gmail/oauth.functions";
 
-type Search = { oauth?: "google" | "zoom"; status?: "ok" | "error"; detail?: string };
+type Search = { oauth?: "google" | "zoom" | "gmail"; status?: "ok" | "error"; detail?: string };
 
 export const Route = createFileRoute("/studio/settings/integrations")({
   validateSearch: (s: Record<string, unknown>): Search => ({
-    oauth: s.oauth === "google" || s.oauth === "zoom" ? s.oauth : undefined,
+    oauth: s.oauth === "google" || s.oauth === "zoom" || s.oauth === "gmail" ? s.oauth : undefined,
     status: s.status === "ok" || s.status === "error" ? s.status : undefined,
     detail: typeof s.detail === "string" ? s.detail : undefined,
   }),
@@ -28,6 +32,7 @@ export const Route = createFileRoute("/studio/settings/integrations")({
 
 const GOOGLE_SCOPE_BLURB = "calendar.events · calendar.readonly · email";
 const ZOOM_SCOPE_BLURB = "meeting:write · meeting:read · user:read";
+const GMAIL_SCOPE_BLURB = "gmail.modify · gmail.send · email";
 
 function IntegrationsPage() {
   const search = useSearch({ from: Route.id });
@@ -50,7 +55,9 @@ function IntegrationsPage() {
 
   useEffect(() => {
     if (!search.oauth || !search.status) return;
-    const label = search.oauth === "google" ? "Google Calendar" : "Zoom";
+    const label =
+      search.oauth === "google" ? "Google Calendar" :
+      search.oauth === "gmail" ? "Gmail" : "Zoom";
     if (search.status === "ok") {
       toast.success(`${label} connected`);
     } else {
@@ -59,6 +66,7 @@ function IntegrationsPage() {
       });
     }
     qc.invalidateQueries({ queryKey: ["integrations"] });
+    qc.invalidateQueries({ queryKey: ["gmail-account-settings"] });
     window.history.replaceState({}, "", "/studio/settings/integrations");
   }, [search.oauth, search.status, search.detail, qc]);
 
@@ -309,6 +317,100 @@ function IntegrationsPage() {
           )}
         </CardContent>
       </Card>
+
+      <GmailCard />
     </div>
+  );
+}
+
+function GmailCard() {
+  const qc = useQueryClient();
+  const fetchAcct = useServerFn(getGmailAccount);
+  const startFn = useServerFn(startGmailOAuth);
+  const disconnectFn = useServerFn(disconnectGmail);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["gmail-account-settings"],
+    queryFn: async (): Promise<GmailAccountInfo> => (await fetchAcct()) as GmailAccountInfo,
+  });
+
+  const connect = useMutation({
+    mutationFn: async () => {
+      setBusy("connect");
+      const { url } = await startFn();
+      window.location.href = url;
+    },
+    onError: (e: Error) => { setBusy(null); toast.error("Could not start Gmail", { description: e.message }); },
+  });
+
+  const disc = useMutation({
+    mutationFn: async () => {
+      setBusy("disconnect");
+      await disconnectFn();
+    },
+    onSuccess: () => {
+      setBusy(null); toast.success("Gmail disconnected");
+      qc.invalidateQueries({ queryKey: ["gmail-account-settings"] });
+    },
+    onError: (e: Error) => { setBusy(null); toast.error("Disconnect failed", { description: e.message }); },
+  });
+
+  const connected = !!data?.connected;
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <CardTitle className="text-base flex items-center gap-2">
+              Gmail
+              {connected ? (
+                <Badge variant="default" className="font-normal">Connected</Badge>
+              ) : (
+                <Badge variant="outline" className="font-normal">Not connected</Badge>
+              )}
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Connect your personal Gmail mailbox to read and reply inside the studio app.
+              Each user connects their own account; you only ever see your own mailbox.
+            </p>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : connected ? (
+          <>
+            <dl className="grid grid-cols-[140px_1fr] gap-y-1 text-sm">
+              <dt className="text-muted-foreground">Account</dt>
+              <dd>{data?.email ?? "—"}</dd>
+              <dt className="text-muted-foreground">Connected</dt>
+              <dd>{data?.updated_at ? new Date(data.updated_at).toLocaleString() : "—"}</dd>
+              <dt className="text-muted-foreground">Token expires</dt>
+              <dd>{data?.token_expires_at ? new Date(data.token_expires_at).toLocaleString() : "—"}</dd>
+            </dl>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Button variant="outline" size="sm" disabled={busy !== null} onClick={() => disc.mutate()}>
+                {busy === "disconnect" ? "Disconnecting…" : "Disconnect"}
+              </Button>
+              <Button variant="ghost" size="sm" disabled={busy !== null} onClick={() => connect.mutate()}>
+                Reconnect
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">
+              Scopes requested: <span className="text-xs">{GMAIL_SCOPE_BLURB}</span>
+            </p>
+            <Button size="sm" disabled={busy !== null} onClick={() => connect.mutate()}>
+              {busy === "connect" ? "Redirecting…" : "Connect Gmail"}
+            </Button>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }

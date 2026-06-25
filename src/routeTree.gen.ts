@@ -24,6 +24,7 @@ import { Route as StudioResourcesRouteImport } from './routes/studio.resources'
 import { Route as StudioQueueRouteImport } from './routes/studio.queue'
 import { Route as StudioMessagesRouteImport } from './routes/studio.messages'
 import { Route as StudioMarginRouteImport } from './routes/studio.margin'
+import { Route as StudioMailRouteImport } from './routes/studio.mail'
 import { Route as StudioInvoicesRouteImport } from './routes/studio.invoices'
 import { Route as StudioGalleriesRouteImport } from './routes/studio.galleries'
 import { Route as StudioFormsRouteImport } from './routes/studio.forms'
@@ -87,6 +88,7 @@ import { Route as ApiPublicScanInvoiceRemindersRouteImport } from './routes/api/
 import { Route as ApiPublicProcessScheduledEmailsRouteImport } from './routes/api/public/process-scheduled-emails'
 import { Route as ApiPublicPostmarkInboundRouteImport } from './routes/api/public/postmark-inbound'
 import { Route as ApiPublicGoogleOauthCallbackRouteImport } from './routes/api/public/google-oauth-callback'
+import { Route as ApiPublicGmailOauthCallbackRouteImport } from './routes/api/public/gmail-oauth-callback'
 import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
 import { Route as ApiPublicCreateBookingRouteImport } from './routes/api/public/create-booking'
 import { Route as ApiPublicAvailabilityRouteImport } from './routes/api/public/availability'
@@ -170,6 +172,11 @@ const StudioMessagesRoute = StudioMessagesRouteImport.update({
 const StudioMarginRoute = StudioMarginRouteImport.update({
   id: '/margin',
   path: '/margin',
+  getParentRoute: () => StudioRoute,
+} as any)
+const StudioMailRoute = StudioMailRouteImport.update({
+  id: '/mail',
+  path: '/mail',
   getParentRoute: () => StudioRoute,
 } as any)
 const StudioInvoicesRoute = StudioInvoicesRouteImport.update({
@@ -506,6 +513,12 @@ const ApiPublicGoogleOauthCallbackRoute =
     path: '/api/public/google-oauth-callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicGmailOauthCallbackRoute =
+  ApiPublicGmailOauthCallbackRouteImport.update({
+    id: '/api/public/gmail-oauth-callback',
+    path: '/api/public/gmail-oauth-callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCreateCheckoutRoute = ApiPublicCreateCheckoutRouteImport.update({
   id: '/api/public/create-checkout',
   path: '/api/public/create-checkout',
@@ -586,6 +599,7 @@ export interface FileRoutesByFullPath {
   '/studio/forms': typeof StudioFormsRoute
   '/studio/galleries': typeof StudioGalleriesRoute
   '/studio/invoices': typeof StudioInvoicesRoute
+  '/studio/mail': typeof StudioMailRoute
   '/studio/margin': typeof StudioMarginRoute
   '/studio/messages': typeof StudioMessagesRoute
   '/studio/queue': typeof StudioQueueRouteWithChildren
@@ -600,6 +614,7 @@ export interface FileRoutesByFullPath {
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
+  '/api/public/gmail-oauth-callback': typeof ApiPublicGmailOauthCallbackRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
   '/api/public/process-scheduled-emails': typeof ApiPublicProcessScheduledEmailsRoute
@@ -672,6 +687,7 @@ export interface FileRoutesByTo {
   '/studio/forms': typeof StudioFormsRoute
   '/studio/galleries': typeof StudioGalleriesRoute
   '/studio/invoices': typeof StudioInvoicesRoute
+  '/studio/mail': typeof StudioMailRoute
   '/studio/margin': typeof StudioMarginRoute
   '/studio/messages': typeof StudioMessagesRoute
   '/studio/queue': typeof StudioQueueRouteWithChildren
@@ -686,6 +702,7 @@ export interface FileRoutesByTo {
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
+  '/api/public/gmail-oauth-callback': typeof ApiPublicGmailOauthCallbackRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
   '/api/public/process-scheduled-emails': typeof ApiPublicProcessScheduledEmailsRoute
@@ -762,6 +779,7 @@ export interface FileRoutesById {
   '/studio/forms': typeof StudioFormsRoute
   '/studio/galleries': typeof StudioGalleriesRoute
   '/studio/invoices': typeof StudioInvoicesRoute
+  '/studio/mail': typeof StudioMailRoute
   '/studio/margin': typeof StudioMarginRoute
   '/studio/messages': typeof StudioMessagesRoute
   '/studio/queue': typeof StudioQueueRouteWithChildren
@@ -776,6 +794,7 @@ export interface FileRoutesById {
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
+  '/api/public/gmail-oauth-callback': typeof ApiPublicGmailOauthCallbackRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
   '/api/public/process-scheduled-emails': typeof ApiPublicProcessScheduledEmailsRoute
@@ -853,6 +872,7 @@ export interface FileRouteTypes {
     | '/studio/forms'
     | '/studio/galleries'
     | '/studio/invoices'
+    | '/studio/mail'
     | '/studio/margin'
     | '/studio/messages'
     | '/studio/queue'
@@ -867,6 +887,7 @@ export interface FileRouteTypes {
     | '/api/public/availability'
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
+    | '/api/public/gmail-oauth-callback'
     | '/api/public/google-oauth-callback'
     | '/api/public/postmark-inbound'
     | '/api/public/process-scheduled-emails'
@@ -939,6 +960,7 @@ export interface FileRouteTypes {
     | '/studio/forms'
     | '/studio/galleries'
     | '/studio/invoices'
+    | '/studio/mail'
     | '/studio/margin'
     | '/studio/messages'
     | '/studio/queue'
@@ -953,6 +975,7 @@ export interface FileRouteTypes {
     | '/api/public/availability'
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
+    | '/api/public/gmail-oauth-callback'
     | '/api/public/google-oauth-callback'
     | '/api/public/postmark-inbound'
     | '/api/public/process-scheduled-emails'
@@ -1028,6 +1051,7 @@ export interface FileRouteTypes {
     | '/studio/forms'
     | '/studio/galleries'
     | '/studio/invoices'
+    | '/studio/mail'
     | '/studio/margin'
     | '/studio/messages'
     | '/studio/queue'
@@ -1042,6 +1066,7 @@ export interface FileRouteTypes {
     | '/api/public/availability'
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
+    | '/api/public/gmail-oauth-callback'
     | '/api/public/google-oauth-callback'
     | '/api/public/postmark-inbound'
     | '/api/public/process-scheduled-emails'
@@ -1100,6 +1125,7 @@ export interface RootRouteChildren {
   ApiPublicAvailabilityRoute: typeof ApiPublicAvailabilityRoute
   ApiPublicCreateBookingRoute: typeof ApiPublicCreateBookingRoute
   ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
+  ApiPublicGmailOauthCallbackRoute: typeof ApiPublicGmailOauthCallbackRoute
   ApiPublicGoogleOauthCallbackRoute: typeof ApiPublicGoogleOauthCallbackRoute
   ApiPublicPostmarkInboundRoute: typeof ApiPublicPostmarkInboundRoute
   ApiPublicProcessScheduledEmailsRoute: typeof ApiPublicProcessScheduledEmailsRoute
@@ -1219,6 +1245,13 @@ declare module '@tanstack/react-router' {
       path: '/margin'
       fullPath: '/studio/margin'
       preLoaderRoute: typeof StudioMarginRouteImport
+      parentRoute: typeof StudioRoute
+    }
+    '/studio/mail': {
+      id: '/studio/mail'
+      path: '/mail'
+      fullPath: '/studio/mail'
+      preLoaderRoute: typeof StudioMailRouteImport
       parentRoute: typeof StudioRoute
     }
     '/studio/invoices': {
@@ -1662,6 +1695,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGoogleOauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/gmail-oauth-callback': {
+      id: '/api/public/gmail-oauth-callback'
+      path: '/api/public/gmail-oauth-callback'
+      fullPath: '/api/public/gmail-oauth-callback'
+      preLoaderRoute: typeof ApiPublicGmailOauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/create-checkout': {
       id: '/api/public/create-checkout'
       path: '/api/public/create-checkout'
@@ -1904,6 +1944,7 @@ interface StudioRouteChildren {
   StudioFormsRoute: typeof StudioFormsRoute
   StudioGalleriesRoute: typeof StudioGalleriesRoute
   StudioInvoicesRoute: typeof StudioInvoicesRoute
+  StudioMailRoute: typeof StudioMailRoute
   StudioMarginRoute: typeof StudioMarginRoute
   StudioMessagesRoute: typeof StudioMessagesRoute
   StudioQueueRoute: typeof StudioQueueRouteWithChildren
@@ -1930,6 +1971,7 @@ const StudioRouteChildren: StudioRouteChildren = {
   StudioFormsRoute: StudioFormsRoute,
   StudioGalleriesRoute: StudioGalleriesRoute,
   StudioInvoicesRoute: StudioInvoicesRoute,
+  StudioMailRoute: StudioMailRoute,
   StudioMarginRoute: StudioMarginRoute,
   StudioMessagesRoute: StudioMessagesRoute,
   StudioQueueRoute: StudioQueueRouteWithChildren,
@@ -1961,6 +2003,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAvailabilityRoute: ApiPublicAvailabilityRoute,
   ApiPublicCreateBookingRoute: ApiPublicCreateBookingRoute,
   ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
+  ApiPublicGmailOauthCallbackRoute: ApiPublicGmailOauthCallbackRoute,
   ApiPublicGoogleOauthCallbackRoute: ApiPublicGoogleOauthCallbackRoute,
   ApiPublicPostmarkInboundRoute: ApiPublicPostmarkInboundRoute,
   ApiPublicProcessScheduledEmailsRoute: ApiPublicProcessScheduledEmailsRoute,
