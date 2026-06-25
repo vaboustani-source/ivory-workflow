@@ -452,7 +452,11 @@ export const updateActionItem = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      ai_draft?: string;
+      status?: ActionItemStatus;
+      snoozed_until?: string | null;
+    } = {};
     if (data.ai_draft !== undefined) {
       patch.ai_draft = data.ai_draft;
       if (!data.status) patch.status = "edited";
