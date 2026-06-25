@@ -72,7 +72,7 @@ export const Route = createFileRoute("/api/public/scan-invoice-reminders")({
           .gte("due_date", windowStart)
           .lte("due_date", windowEnd)
           .is("paid_at", null)
-          .in("status", OPEN_STATUSES as unknown as string[]);
+          .in("status", OPEN_STATUSES as unknown as never[]);
         if (invErr) {
           console.error("[scan-invoice-reminders] invoices load failed", invErr);
           return json({ error: "invoices_load_failed", message: invErr.message }, 500);
