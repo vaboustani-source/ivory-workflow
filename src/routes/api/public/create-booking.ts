@@ -129,7 +129,7 @@ export const Route = createFileRoute("/api/public/create-booking")({
         const [{ data: settings }, { data: callType }] = await Promise.all([
           supabaseAdmin
             .from("scheduling_settings")
-            .select("owner_user_id, timezone, primary_calendar_id")
+            .select("owner_user_id, timezone, primary_calendar_id, booking_calendar_connection_id, booking_calendar_id")
             .limit(1)
             .maybeSingle(),
           supabaseAdmin
@@ -146,11 +146,35 @@ export const Route = createFileRoute("/api/public/create-booking")({
 
         const ownerUserId = settings.owner_user_id as string;
 
+        // Resolve which Google connection (and calendar within it) gets the
+        // new event. Order:
+        //   1. scheduling_settings.booking_calendar_connection_id (explicit)
+        //   2. The single active Google connection (back-compat default)
+        //   3. null → booking provider will error if multiple active Google
+        let bookingConnectionId: string | null =
+          (settings as { booking_calendar_connection_id?: string | null }).booking_calendar_connection_id ?? null;
+        if (!bookingConnectionId) {
+          const { data: activeGoogle } = await supabaseAdmin
+            .from("calendar_connections")
+            .select("id")
+            .eq("user_id", ownerUserId)
+            .eq("provider", "google")
+            .eq("is_active", true);
+          if ((activeGoogle ?? []).length === 1) {
+            bookingConnectionId = activeGoogle![0].id as string;
+          }
+        }
+        const bookingCalendarId =
+          ((settings as { booking_calendar_id?: string | null }).booking_calendar_id ?? null) ||
+          settings.primary_calendar_id ||
+          "primary";
+
         // ---- Step 3: provider flow with compensation ----
         try {
           const providers = await runBookingProviderFlow(supabaseAdmin, {
             ownerUserId,
-            primaryCalendarId: settings.primary_calendar_id || "primary",
+            primaryCalendarId: bookingCalendarId,
+            bookingConnectionId,
             callTypeName: callType.name,
             startUtcIso: startsAtIso,
             endUtcIso: endsAtIso,

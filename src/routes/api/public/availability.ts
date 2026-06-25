@@ -41,7 +41,7 @@ export const Route = createFileRoute("/api/public/availability")({
         const {
           loadInputsForSlug,
           loadBookingBusy,
-          loadGoogleBusy,
+          loadAllGoogleBusy,
           generateSlots,
         } = await import("@/lib/scheduling/availability.server");
 
@@ -53,14 +53,17 @@ export const Route = createFileRoute("/api/public/availability")({
         const horizon = nowMs + settings.lookahead_days * 86_400_000;
         const clampedTo = Math.min(toMs, horizon);
 
-        const calendarIds = [
-          settings.primary_calendar_id,
-          ...(settings.also_busy_from_calendar_ids ?? []),
-        ].filter((x): x is string => !!x);
-
+        // Busy intervals come from:
+        //   - Confirmed in-app bookings
+        //   - UNION of free/busy across ALL active Google connections for the
+        //     owner (multi-account). Each connection contributes its own
+        //     busy_calendar_ids (default ['primary']).
+        // scheduling_settings.primary_calendar_id / also_busy_from_calendar_ids
+        // are no longer read here — busy_calendar_ids on each connection is
+        // now the source of truth.
         const [bookingBusy, googleBusy] = await Promise.all([
           loadBookingBusy(fromMs, clampedTo),
-          loadGoogleBusy(ownerUserId, calendarIds, fromMs, clampedTo),
+          loadAllGoogleBusy(ownerUserId, fromMs, clampedTo),
         ]);
 
         const slots = generateSlots({

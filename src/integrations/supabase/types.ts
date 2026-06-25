@@ -419,6 +419,7 @@ export type Database = {
         Row: {
           access_token: string | null
           account_email: string | null
+          busy_calendar_ids: string[]
           calendar_id: string | null
           created_at: string
           id: string
@@ -434,6 +435,7 @@ export type Database = {
         Insert: {
           access_token?: string | null
           account_email?: string | null
+          busy_calendar_ids?: string[]
           calendar_id?: string | null
           created_at?: string
           id?: string
@@ -449,6 +451,7 @@ export type Database = {
         Update: {
           access_token?: string | null
           account_email?: string | null
+          busy_calendar_ids?: string[]
           calendar_id?: string | null
           created_at?: string
           id?: string
@@ -3465,6 +3468,8 @@ export type Database = {
       scheduling_settings: {
         Row: {
           also_busy_from_calendar_ids: string[]
+          booking_calendar_connection_id: string | null
+          booking_calendar_id: string | null
           buffer_minutes: number
           created_at: string
           id: string
@@ -3478,6 +3483,8 @@ export type Database = {
         }
         Insert: {
           also_busy_from_calendar_ids?: string[]
+          booking_calendar_connection_id?: string | null
+          booking_calendar_id?: string | null
           buffer_minutes?: number
           created_at?: string
           id?: string
@@ -3491,6 +3498,8 @@ export type Database = {
         }
         Update: {
           also_busy_from_calendar_ids?: string[]
+          booking_calendar_connection_id?: string | null
+          booking_calendar_id?: string | null
           buffer_minutes?: number
           created_at?: string
           id?: string
@@ -3502,7 +3511,15 @@ export type Database = {
           timezone?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "scheduling_settings_booking_calendar_connection_id_fkey"
+            columns: ["booking_calendar_connection_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_connections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_item_costs: {
         Row: {

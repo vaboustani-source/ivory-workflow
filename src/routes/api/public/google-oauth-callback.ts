@@ -45,13 +45,36 @@ async function handleCallback(provider: "google" | "zoom", request: Request) {
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // Deactivate any existing active rows for this (user, provider) before inserting
-    await supabaseAdmin
-      .from("calendar_connections")
-      .update({ is_active: false })
-      .eq("user_id", verified.u)
-      .eq("provider", provider)
-      .eq("is_active", true);
+    if (provider === "google") {
+      // Multi-account model: deactivate only the SAME-account active row
+      // (re-connect of the same Google account replaces in place). Other
+      // active Google accounts for this user remain untouched.
+      if (accountEmail) {
+        await supabaseAdmin
+          .from("calendar_connections")
+          .update({ is_active: false })
+          .eq("user_id", verified.u)
+          .eq("provider", "google")
+          .eq("account_email", accountEmail)
+          .eq("is_active", true);
+      } else {
+        // Fallback: no email returned → behave like the legacy single-account flow
+        await supabaseAdmin
+          .from("calendar_connections")
+          .update({ is_active: false })
+          .eq("user_id", verified.u)
+          .eq("provider", "google")
+          .eq("is_active", true);
+      }
+    } else {
+      // Zoom: single-active enforced by partial unique index; replace.
+      await supabaseAdmin
+        .from("calendar_connections")
+        .update({ is_active: false })
+        .eq("user_id", verified.u)
+        .eq("provider", provider)
+        .eq("is_active", true);
+    }
 
     const { error: insertErr } = await supabaseAdmin
       .from("calendar_connections")

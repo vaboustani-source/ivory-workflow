@@ -10,19 +10,42 @@ export type ProviderClient = {
 
 const REFRESH_SAFETY_WINDOW_MS = 60_000;
 
+/**
+ * Get a fetch-wrapper bound to a calendar connection.
+ *
+ * For Zoom: there is at most one active connection per user — passing
+ * `connectionId` is optional.
+ * For Google: a user can have MULTIPLE active connections (one per Google
+ * account). Callers SHOULD pass `connectionId` to pick one. If omitted
+ * and exactly one active row exists, that one is used; if multiple exist
+ * we throw — callers must disambiguate.
+ */
 export async function getProviderClient(
   provider: Provider,
   userId: string,
+  opts: { connectionId?: string } = {},
 ): Promise<ProviderClient> {
-  const { data: row, error } = await supabaseAdmin
+  let query = supabaseAdmin
     .from("calendar_connections")
     .select("*")
     .eq("user_id", userId)
     .eq("provider", provider)
-    .eq("is_active", true)
-    .maybeSingle();
+    .eq("is_active", true);
+  if (opts.connectionId) {
+    query = query.eq("id", opts.connectionId);
+  }
+  const { data: rows, error } = await query;
   if (error) throw error;
-  if (!row) throw new Error(`No active ${provider} connection for user ${userId}`);
+  const list = rows ?? [];
+  if (list.length === 0) {
+    throw new Error(`No active ${provider} connection for user ${userId}`);
+  }
+  if (list.length > 1) {
+    throw new Error(
+      `Ambiguous ${provider} connection for user ${userId} (${list.length} active); pass connectionId`,
+    );
+  }
+  const row = list[0];
 
   let accessToken: string = row.access_token as string;
   let refreshToken: string | null = (row.refresh_token as string | null) ?? null;
@@ -99,4 +122,40 @@ export async function getProviderClient(
     accountEmail: (row.account_email as string | null) ?? null,
     fetch: wrappedFetch,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Active-connection listing (multi-account aware). Use for Google fan-out.
+// ---------------------------------------------------------------------------
+export type ActiveConnectionRow = {
+  id: string;
+  provider: Provider;
+  account_email: string | null;
+  busy_calendar_ids: string[];
+  calendar_id: string | null;
+  updated_at: string | null;
+  token_expires_at: string | null;
+};
+
+export async function listActiveConnections(
+  provider: Provider,
+  userId: string,
+): Promise<ActiveConnectionRow[]> {
+  const { data, error } = await supabaseAdmin
+    .from("calendar_connections")
+    .select("id, provider, account_email, busy_calendar_ids, calendar_id, updated_at, token_expires_at")
+    .eq("user_id", userId)
+    .eq("provider", provider)
+    .eq("is_active", true)
+    .order("updated_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map((r) => ({
+    id: r.id as string,
+    provider: r.provider as Provider,
+    account_email: (r.account_email as string | null) ?? null,
+    busy_calendar_ids: (r.busy_calendar_ids as string[] | null) ?? ["primary"],
+    calendar_id: (r.calendar_id as string | null) ?? null,
+    updated_at: (r.updated_at as string | null) ?? null,
+    token_expires_at: (r.token_expires_at as string | null) ?? null,
+  }));
 }
