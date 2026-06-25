@@ -1,13 +1,13 @@
 // Server-only: getOwnerAvailability — read-only feed for the studio availability
 // dashboard.
 //
-// Account designation:
-//   - PROFESSIONAL = the calendar_connections row whose id equals
-//     scheduling_settings.booking_calendar_connection_id. For this account we
-//     fetch real events via Google events.list and return their summaries —
-//     Victoria wants to see her actual appointments.
-//   - PERSONAL = every OTHER active Google connection for the same owner.
-//     We only fetch freeBusy and return UNTITLED busy blocks (privacy).
+// Per-calendar model (drives both this dashboard and the public booking
+// availability engine):
+//   busy_calendar_ids   = every calendar that should COUNT as busy
+//   titled_calendar_ids = subset of busy whose events show WITH titles.
+//                         A calendar in busy but NOT titled is fetched via
+//                         freeBusy and rendered as an untitled "Busy (private)"
+//                         block.
 //
 // System bookings remain first-class (couple + call type + Zoom join).
 
@@ -36,6 +36,7 @@ export type DashboardEvent = {
   endUtc: string;
   location: string | null;
   htmlLink: string | null;
+  allDay: boolean;
 };
 
 export type DashboardBooking = {
@@ -52,15 +53,23 @@ export type OwnerAvailabilityResponse = {
   studioTimezone: string;
   windows: DashboardWindow[];
   holidays: string[];
-  /** Untitled busy from PERSONAL Google connections + booked calls. */
-  busy: DashboardBusy[];
-  /** Titled events from the PROFESSIONAL Google connection. */
-  professionalEvents: DashboardEvent[];
+  /** Untitled busy blocks from any calendar in busy but NOT in titled. */
+  privateBusy: DashboardBusy[];
+  /** Titled events from calendars in titled_calendar_ids. */
+  titledEvents: DashboardEvent[];
   bookings: DashboardBooking[];
-  professional: {
-    connectionId: string | null;
-    accountEmail: string | null;
-  };
+  /** Connected Google accounts (for diagnostics in UI). */
+  accountEmails: string[];
+  professionalAccountEmail: string | null;
+  professionalConnectionId: string | null;
+  // ----- Back-compat aliases (deprecated, will be removed) -----
+  /** @deprecated use privateBusy */
+  busy: DashboardBusy[];
+  /** @deprecated use titledEvents */
+  professionalEvents: DashboardEvent[];
+  /** @deprecated use professionalConnectionId / professionalAccountEmail */
+  professional: { connectionId: string | null; accountEmail: string | null };
+  /** @deprecated */
   personalAccountEmails: string[];
 };
 
@@ -74,6 +83,76 @@ async function assertOwnerOrManager(userId: string): Promise<void> {
   if (!roleSet.has("owner") && !roleSet.has("studio_manager")) {
     throw new Error("forbidden");
   }
+}
+
+// --- Date helpers (local-midnight interpretation for all-day events) -------
+
+// Minutes east of UTC for a given UTC instant in the given IANA timezone.
+function tzOffsetMinutes(utcMs: number, tz: string): number {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  const parts = Object.fromEntries(
+    dtf
+      .formatToParts(new Date(utcMs))
+      .filter((p) => p.type !== "literal")
+      .map((p) => [p.type, p.value]),
+  ) as Record<string, string>;
+  const asUTC = Date.UTC(
+    +parts.year,
+    +parts.month - 1,
+    +parts.day,
+    +parts.hour,
+    +parts.minute,
+    +parts.second,
+  );
+  return Math.round((asUTC - utcMs) / 60_000);
+}
+
+/**
+ * Convert an all-day "YYYY-MM-DD" boundary to a UTC instant representing
+ * local midnight in the studio timezone. Used so an all-day Jul 4 event
+ * spans Jul 4 00:00 → Jul 5 00:00 local, not UTC.
+ */
+function dateOnlyToLocalMidnightUtc(dateOnly: string, tz: string): string {
+  const [y, m, d] = dateOnly.split("-").map((x) => parseInt(x, 10));
+  let guess = Date.UTC(y, m - 1, d, 0, 0, 0);
+  const off1 = tzOffsetMinutes(guess, tz);
+  let ms = guess - off1 * 60_000;
+  const off2 = tzOffsetMinutes(ms, tz);
+  if (off2 !== off1) ms += (off1 - off2) * 60_000;
+  return new Date(ms).toISOString();
+}
+
+function normalizeEventBound(
+  bound: { dateTime?: string; date?: string } | undefined,
+  tz: string,
+): { iso: string; allDay: boolean } | null {
+  if (!bound) return null;
+  if (bound.dateTime) {
+    return { iso: new Date(bound.dateTime).toISOString(), allDay: false };
+  }
+  if (bound.date) {
+    return { iso: dateOnlyToLocalMidnightUtc(bound.date, tz), allDay: true };
+  }
+  return null;
+}
+
+// Filter out events the owner has declined (self attendee responseStatus).
+function selfDeclined(ev: {
+  attendees?: Array<{ self?: boolean; responseStatus?: string; email?: string }>;
+}): boolean {
+  if (!ev.attendees?.length) return false;
+  return ev.attendees.some(
+    (a) => a.self === true && a.responseStatus === "declined",
+  );
 }
 
 export const getOwnerAvailability = createServerFn({ method: "POST" })
@@ -127,15 +206,13 @@ export const getOwnerAvailability = createServerFn({ method: "POST" })
           .gt("ends_at", new Date(fromMs).toISOString()),
         supabaseAdmin
           .from("calendar_connections")
-          .select("id, account_email, busy_calendar_ids")
+          .select("id, account_email, busy_calendar_ids, titled_calendar_ids")
           .eq("user_id", ownerUserId)
           .eq("provider", "google")
           .eq("is_active", true),
       ]);
 
-    const { normalizeWindowsFromRows, loadGoogleBusy } = await import(
-      "./availability.server"
-    );
+    const { normalizeWindowsFromRows } = await import("./availability.server");
     const { getProviderClient } = await import("./provider-client.server");
 
     const windows = normalizeWindowsFromRows(
@@ -145,117 +222,131 @@ export const getOwnerAvailability = createServerFn({ method: "POST" })
       .filter((h: { is_observed: boolean | null }) => h.is_observed !== false)
       .map((h: { holiday_date: string }) => h.holiday_date);
 
-    const connections = (connRows ?? []) as Array<{
+    type Conn = {
+      id: string;
+      account_email: string | null;
+      busy_calendar_ids: string[];
+      titled_calendar_ids: string[];
+    };
+    const connections: Conn[] = ((connRows ?? []) as Array<{
       id: string;
       account_email: string | null;
       busy_calendar_ids: string[] | null;
-    }>;
-    const professionalConn =
-      connections.find((c) => c.id === professionalConnectionId) ?? null;
-    const personalConns = connections.filter(
-      (c) => c.id !== professionalConnectionId,
-    );
+      titled_calendar_ids: string[] | null;
+    }>).map((c) => ({
+      id: c.id,
+      account_email: c.account_email,
+      busy_calendar_ids: c.busy_calendar_ids?.length ? c.busy_calendar_ids : [],
+      titled_calendar_ids: c.titled_calendar_ids ?? [],
+    }));
 
-    // --- Professional: real events with titles (fail-soft) ---
-    const professionalEvents: DashboardEvent[] = [];
-    if (professionalConn) {
-      const calendarIds = professionalConn.busy_calendar_ids?.length
-        ? professionalConn.busy_calendar_ids
-        : ["primary"];
-      try {
-        const client = await getProviderClient("google", ownerUserId, {
-          connectionId: professionalConn.id,
-        });
-        for (const calId of calendarIds) {
-          try {
-            const url =
-              `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events` +
-              `?singleEvents=true&orderBy=startTime` +
-              `&timeMin=${encodeURIComponent(new Date(fromMs).toISOString())}` +
-              `&timeMax=${encodeURIComponent(new Date(toMs).toISOString())}` +
-              `&maxResults=250`;
-            const res = await client.fetch(url);
-            if (!res.ok) {
-              console.warn("[dashboard] events.list non-ok", calId, res.status);
-              continue;
-            }
-            const json = (await res.json()) as {
-              items?: Array<{
-                id: string;
-                summary?: string;
-                location?: string;
-                htmlLink?: string;
-                status?: string;
-                transparency?: string;
-                start?: { dateTime?: string; date?: string };
-                end?: { dateTime?: string; date?: string };
-              }>;
-            };
-            for (const ev of json.items ?? []) {
-              if (ev.status === "cancelled") continue;
-              if (ev.transparency === "transparent") continue; // free/non-blocking
-              const startIso = ev.start?.dateTime ?? ev.start?.date;
-              const endIso = ev.end?.dateTime ?? ev.end?.date;
-              if (!startIso || !endIso) continue;
-              professionalEvents.push({
-                id: ev.id,
-                title: ev.summary?.trim() || "(Untitled event)",
-                startUtc: new Date(startIso).toISOString(),
-                endUtc: new Date(endIso).toISOString(),
-                location: ev.location ?? null,
-                htmlLink: ev.htmlLink ?? null,
-              });
-            }
-          } catch (e) {
-            console.warn("[dashboard] events.list fail-soft", calId, e);
-          }
-        }
-      } catch (e) {
-        console.warn("[dashboard] professional client fail-soft", e);
-      }
-    }
+    const titledEvents: DashboardEvent[] = [];
+    const privateBusy: DashboardBusy[] = [];
 
-    // --- Personal: untitled busy blocks (fail-soft per connection) ---
-    const personalBusyResults = await Promise.all(
-      personalConns.map(async (c) => {
-        const ids = c.busy_calendar_ids?.length ? c.busy_calendar_ids : ["primary"];
+    // Per connection, per calendar fan-out (fail-soft at every level).
+    await Promise.all(
+      connections.map(async (conn) => {
+        if (!conn.busy_calendar_ids.length) return;
+        let client;
         try {
-          const client = await getProviderClient("google", ownerUserId, {
-            connectionId: c.id,
+          client = await getProviderClient("google", ownerUserId, {
+            connectionId: conn.id,
           });
-          // Reuse loadGoogleBusy's body inline via a one-off freeBusy call.
-          const res = await client.fetch(
-            "https://www.googleapis.com/calendar/v3/freeBusy",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                timeMin: new Date(fromMs).toISOString(),
-                timeMax: new Date(toMs).toISOString(),
-                items: ids.map((id) => ({ id })),
-              }),
-            },
-          );
-          if (!res.ok) return [] as DashboardBusy[];
-          const json = (await res.json()) as {
-            calendars?: Record<string, { busy?: Array<{ start: string; end: string }> }>;
-          };
-          const out: DashboardBusy[] = [];
-          for (const cal of Object.values(json.calendars ?? {})) {
-            for (const b of cal.busy ?? []) {
-              out.push({ startUtc: b.start, endUtc: b.end });
-            }
-          }
-          return out;
         } catch (e) {
-          console.warn("[dashboard] personal busy fail-soft", c.account_email, e);
-          return [] as DashboardBusy[];
+          console.warn("[dashboard] provider client fail-soft", conn.account_email, e);
+          return;
         }
+        const titledSet = new Set(conn.titled_calendar_ids);
+
+        await Promise.all(
+          conn.busy_calendar_ids.map(async (calId) => {
+            if (titledSet.has(calId)) {
+              // events.list → titled
+              try {
+                const url =
+                  `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events` +
+                  `?singleEvents=true&orderBy=startTime` +
+                  `&timeMin=${encodeURIComponent(new Date(fromMs).toISOString())}` +
+                  `&timeMax=${encodeURIComponent(new Date(toMs).toISOString())}` +
+                  `&maxResults=250`;
+                const res = await client.fetch(url);
+                if (!res.ok) {
+                  console.warn("[dashboard] events.list non-ok", calId, res.status);
+                  return;
+                }
+                const json = (await res.json()) as {
+                  items?: Array<{
+                    id: string;
+                    summary?: string;
+                    location?: string;
+                    htmlLink?: string;
+                    status?: string;
+                    transparency?: string;
+                    start?: { dateTime?: string; date?: string };
+                    end?: { dateTime?: string; date?: string };
+                    attendees?: Array<{
+                      self?: boolean;
+                      responseStatus?: string;
+                      email?: string;
+                    }>;
+                  }>;
+                };
+                for (const ev of json.items ?? []) {
+                  if (ev.status === "cancelled") continue;
+                  if (ev.transparency === "transparent") continue;
+                  if (selfDeclined(ev)) continue;
+                  const start = normalizeEventBound(ev.start, tz);
+                  const end = normalizeEventBound(ev.end, tz);
+                  if (!start || !end) continue;
+                  titledEvents.push({
+                    id: `${conn.id}:${ev.id}`,
+                    title: ev.summary?.trim() || "(Untitled event)",
+                    startUtc: start.iso,
+                    endUtc: end.iso,
+                    location: ev.location ?? null,
+                    htmlLink: ev.htmlLink ?? null,
+                    allDay: start.allDay,
+                  });
+                }
+              } catch (e) {
+                console.warn("[dashboard] events.list fail-soft", calId, e);
+              }
+            } else {
+              // freeBusy → untitled busy
+              try {
+                const res = await client.fetch(
+                  "https://www.googleapis.com/calendar/v3/freeBusy",
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      timeMin: new Date(fromMs).toISOString(),
+                      timeMax: new Date(toMs).toISOString(),
+                      items: [{ id: calId }],
+                    }),
+                  },
+                );
+                if (!res.ok) return;
+                const json = (await res.json()) as {
+                  calendars?: Record<
+                    string,
+                    { busy?: Array<{ start: string; end: string }> }
+                  >;
+                };
+                for (const cal of Object.values(json.calendars ?? {})) {
+                  for (const b of cal.busy ?? []) {
+                    privateBusy.push({ startUtc: b.start, endUtc: b.end });
+                  }
+                }
+              } catch (e) {
+                console.warn("[dashboard] freeBusy fail-soft", calId, e);
+              }
+            }
+          }),
+        );
       }),
     );
-    void loadGoogleBusy; // keep import used if tree-shaker complains
 
-    // System bookings → first-class + also contribute to busy for consistency.
     const bookings: DashboardBooking[] = (bookingRows ?? []).map((b) => {
       const coupleName = b.couple_name_2
         ? `${b.couple_name_1} & ${b.couple_name_2}`
@@ -271,26 +362,33 @@ export const getOwnerAvailability = createServerFn({ method: "POST" })
       };
     });
 
-    const busy: DashboardBusy[] = [
-      ...personalBusyResults.flat(),
-      ...bookings.map((b) => ({ startUtc: b.startUtc, endUtc: b.endUtc })),
-    ];
+    const professionalConn =
+      connections.find((c) => c.id === professionalConnectionId) ?? null;
+    const accountEmails = connections
+      .map((c) => c.account_email)
+      .filter((e): e is string => !!e);
 
     return {
       ownerUserId,
       studioTimezone: tz,
       windows,
       holidays,
-      busy,
-      professionalEvents,
+      privateBusy,
+      titledEvents,
       bookings,
+      accountEmails,
+      professionalAccountEmail: professionalConn?.account_email ?? null,
+      professionalConnectionId: professionalConn?.id ?? null,
+      // back-compat
+      busy: privateBusy,
+      professionalEvents: titledEvents,
       professional: {
         connectionId: professionalConn?.id ?? null,
         accountEmail: professionalConn?.account_email ?? null,
       },
-      personalAccountEmails: personalConns
-        .map((c) => c.account_email)
-        .filter((e): e is string => !!e),
+      personalAccountEmails: accountEmails.filter(
+        (e) => e !== professionalConn?.account_email,
+      ),
     };
   });
 
@@ -346,7 +444,6 @@ export const createOwnerCalendarEvent = createServerFn({ method: "POST" })
       );
     }
 
-    // Verify the designated connection is active + Google. Refuse any other.
     const { data: conn } = await supabaseAdmin
       .from("calendar_connections")
       .select("id, account_email, is_active, provider")
@@ -411,7 +508,6 @@ export const createOwnerCalendarEvent = createServerFn({ method: "POST" })
     };
   });
 
-// Optional delete helper (used for test cleanup; safe to expose to owner/manager).
 const deleteEventInput = z.object({
   eventId: z.string().min(1),
   calendarId: z.string().min(1).optional(),
