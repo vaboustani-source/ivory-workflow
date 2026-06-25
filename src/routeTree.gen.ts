@@ -87,6 +87,7 @@ import { Route as ApiPublicScanInvoiceRemindersRouteImport } from './routes/api/
 import { Route as ApiPublicProcessScheduledEmailsRouteImport } from './routes/api/public/process-scheduled-emails'
 import { Route as ApiPublicPostmarkInboundRouteImport } from './routes/api/public/postmark-inbound'
 import { Route as ApiPublicGoogleOauthCallbackRouteImport } from './routes/api/public/google-oauth-callback'
+import { Route as ApiPublicGmailOauthCallbackRouteImport } from './routes/api/public/gmail-oauth-callback'
 import { Route as ApiPublicCreateCheckoutRouteImport } from './routes/api/public/create-checkout'
 import { Route as ApiPublicCreateBookingRouteImport } from './routes/api/public/create-booking'
 import { Route as ApiPublicAvailabilityRouteImport } from './routes/api/public/availability'
@@ -506,6 +507,12 @@ const ApiPublicGoogleOauthCallbackRoute =
     path: '/api/public/google-oauth-callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicGmailOauthCallbackRoute =
+  ApiPublicGmailOauthCallbackRouteImport.update({
+    id: '/api/public/gmail-oauth-callback',
+    path: '/api/public/gmail-oauth-callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCreateCheckoutRoute = ApiPublicCreateCheckoutRouteImport.update({
   id: '/api/public/create-checkout',
   path: '/api/public/create-checkout',
@@ -600,6 +607,7 @@ export interface FileRoutesByFullPath {
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
+  '/api/public/gmail-oauth-callback': typeof ApiPublicGmailOauthCallbackRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
   '/api/public/process-scheduled-emails': typeof ApiPublicProcessScheduledEmailsRoute
@@ -686,6 +694,7 @@ export interface FileRoutesByTo {
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
+  '/api/public/gmail-oauth-callback': typeof ApiPublicGmailOauthCallbackRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
   '/api/public/process-scheduled-emails': typeof ApiPublicProcessScheduledEmailsRoute
@@ -776,6 +785,7 @@ export interface FileRoutesById {
   '/api/public/availability': typeof ApiPublicAvailabilityRoute
   '/api/public/create-booking': typeof ApiPublicCreateBookingRoute
   '/api/public/create-checkout': typeof ApiPublicCreateCheckoutRoute
+  '/api/public/gmail-oauth-callback': typeof ApiPublicGmailOauthCallbackRoute
   '/api/public/google-oauth-callback': typeof ApiPublicGoogleOauthCallbackRoute
   '/api/public/postmark-inbound': typeof ApiPublicPostmarkInboundRoute
   '/api/public/process-scheduled-emails': typeof ApiPublicProcessScheduledEmailsRoute
@@ -867,6 +877,7 @@ export interface FileRouteTypes {
     | '/api/public/availability'
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
+    | '/api/public/gmail-oauth-callback'
     | '/api/public/google-oauth-callback'
     | '/api/public/postmark-inbound'
     | '/api/public/process-scheduled-emails'
@@ -953,6 +964,7 @@ export interface FileRouteTypes {
     | '/api/public/availability'
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
+    | '/api/public/gmail-oauth-callback'
     | '/api/public/google-oauth-callback'
     | '/api/public/postmark-inbound'
     | '/api/public/process-scheduled-emails'
@@ -1042,6 +1054,7 @@ export interface FileRouteTypes {
     | '/api/public/availability'
     | '/api/public/create-booking'
     | '/api/public/create-checkout'
+    | '/api/public/gmail-oauth-callback'
     | '/api/public/google-oauth-callback'
     | '/api/public/postmark-inbound'
     | '/api/public/process-scheduled-emails'
@@ -1100,6 +1113,7 @@ export interface RootRouteChildren {
   ApiPublicAvailabilityRoute: typeof ApiPublicAvailabilityRoute
   ApiPublicCreateBookingRoute: typeof ApiPublicCreateBookingRoute
   ApiPublicCreateCheckoutRoute: typeof ApiPublicCreateCheckoutRoute
+  ApiPublicGmailOauthCallbackRoute: typeof ApiPublicGmailOauthCallbackRoute
   ApiPublicGoogleOauthCallbackRoute: typeof ApiPublicGoogleOauthCallbackRoute
   ApiPublicPostmarkInboundRoute: typeof ApiPublicPostmarkInboundRoute
   ApiPublicProcessScheduledEmailsRoute: typeof ApiPublicProcessScheduledEmailsRoute
@@ -1662,6 +1676,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGoogleOauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/gmail-oauth-callback': {
+      id: '/api/public/gmail-oauth-callback'
+      path: '/api/public/gmail-oauth-callback'
+      fullPath: '/api/public/gmail-oauth-callback'
+      preLoaderRoute: typeof ApiPublicGmailOauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/create-checkout': {
       id: '/api/public/create-checkout'
       path: '/api/public/create-checkout'
@@ -1961,6 +1982,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAvailabilityRoute: ApiPublicAvailabilityRoute,
   ApiPublicCreateBookingRoute: ApiPublicCreateBookingRoute,
   ApiPublicCreateCheckoutRoute: ApiPublicCreateCheckoutRoute,
+  ApiPublicGmailOauthCallbackRoute: ApiPublicGmailOauthCallbackRoute,
   ApiPublicGoogleOauthCallbackRoute: ApiPublicGoogleOauthCallbackRoute,
   ApiPublicPostmarkInboundRoute: ApiPublicPostmarkInboundRoute,
   ApiPublicProcessScheduledEmailsRoute: ApiPublicProcessScheduledEmailsRoute,
