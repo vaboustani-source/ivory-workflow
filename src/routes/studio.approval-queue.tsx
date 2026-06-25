@@ -316,11 +316,11 @@ function DraftCard({ draft, expanded, onToggle, onChanged, currentUserId }: {
             className="w-full bg-background-alt/40 rounded-sm p-3 text-sm text-foreground font-sans focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
           <div className="flex items-center justify-between pt-2">
-            <span className="text-xs text-muted-foreground italic">Saving keeps it as a draft. Approving marks it sent.</span>
+            <span className="text-xs text-muted-foreground italic">Saving keeps it as a draft. Approving queues it for its scheduled send time.</span>
             <div className="flex items-center gap-2">
               <button onClick={() => setSkipOpen(true)} disabled={busy} className="text-sm text-muted-foreground hover:text-magenta px-3 py-2">Skip</button>
               <button onClick={saveDraft} disabled={busy} className="text-sm text-gold border border-gold rounded-md px-4 py-2 hover:bg-gold/10">Save as draft</button>
-              <button onClick={approve} disabled={busy} className="text-sm bg-primary text-primary-foreground rounded-md px-4 py-2 hover:bg-primary/90 disabled:opacity-50">Approve & send</button>
+              <button onClick={approve} disabled={busy} className="text-sm bg-primary text-primary-foreground rounded-md px-4 py-2 hover:bg-primary/90 disabled:opacity-50">Approve</button>
             </div>
           </div>
         </div>
