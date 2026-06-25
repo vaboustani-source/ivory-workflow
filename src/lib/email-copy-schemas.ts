@@ -105,6 +105,28 @@ export const EMAIL_COPY_SCHEMAS: Record<string, EmailCopySchema> = {
       { key: "button_label", label: "Button text", type: "button_label", defaultValue: "Review and pay", supportsPlaceholders: false },
     ],
   },
+  invoice_overdue: {
+    emailType: "invoice_overdue",
+    displayName: "Invoice Overdue Follow-up",
+    description: "Sent automatically at +3, +10, and +21 days past due. One template; the days-overdue value updates per stage. Auto-sends stop after the +21 day notice.",
+    availablePlaceholders: [
+      "couple_first_names",
+      "couple_full_names",
+      "studio_name",
+      "invoice_label",
+      "amount_due",
+      "due_date_long",
+      "days_overdue",
+      "pay_link",
+    ],
+    fields: [
+      { key: "subject", label: "Subject line", type: "subject", defaultValue: "A quick follow-up on {invoice_label}", supportsPlaceholders: true },
+      { key: "heading", label: "Greeting", type: "short_text", defaultValue: "Hi {couple_first_names},", supportsPlaceholders: true },
+      { key: "body_1", label: "First paragraph", type: "long_text", defaultValue: "I wanted to follow up on your {invoice_label} of {amount_due}, which was due on {due_date_long} and is now {days_overdue} days past due. It is very possible this simply slipped past in the busy season of planning, so please consider this a friendly nudge rather than anything more.", supportsPlaceholders: true },
+      { key: "body_2", label: "Second paragraph", type: "long_text", defaultValue: "Whenever you have a moment, you can settle it directly from your private invoice page. If something on our end is in the way, or if you would like to chat about the schedule, please just reply to this note and we will sort it out together.", supportsPlaceholders: true },
+      { key: "button_label", label: "Button text", type: "button_label", defaultValue: "Review and pay", supportsPlaceholders: false },
+    ],
+  },
 };
 
 export const EMAIL_TYPE_ORDER: string[] = [
@@ -114,4 +136,5 @@ export const EMAIL_TYPE_ORDER: string[] = [
   "form_sent",
   "contract_receipt",
   "invoice_reminder",
+  "invoice_overdue",
 ];
