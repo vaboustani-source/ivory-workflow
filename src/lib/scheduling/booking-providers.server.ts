@@ -298,9 +298,11 @@ export async function runBookingProviderFlow(
   supabaseAdmin: SupabaseClient,
   input: BookingFlowInput,
 ): Promise<BookingFlowResult> {
-  // Step 1: pre-check both connections.
+  // Step 1: pre-check both connections (Google scoped to the chosen account).
   await assertConnectionActive(supabaseAdmin, "zoom", input.ownerUserId);
-  await assertConnectionActive(supabaseAdmin, "google", input.ownerUserId);
+  await assertConnectionActive(supabaseAdmin, "google", input.ownerUserId, {
+    connectionId: input.bookingConnectionId,
+  });
 
   // Step 2: Zoom.
   const zoom = await createZoomMeeting(input.ownerUserId, input);
