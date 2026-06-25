@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
-import { Mail, Inbox as InboxIcon, RefreshCw, Send, X, Loader2 } from "lucide-react";
+import { Mail, Inbox as InboxIcon, RefreshCw, Send, X, Loader2, Sparkles, Check, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getGmailAccount, type GmailAccountInfo } from "@/lib/gmail/oauth.functions";
@@ -14,6 +14,12 @@ import {
   type ThreadDetail,
   type ParsedMessage,
 } from "@/lib/gmail/messages.functions";
+import {
+  listActionQueue,
+  refreshActionQueue,
+  updateActionItem,
+  type ActionItem,
+} from "@/lib/gmail/action-queue.functions";
 
 export const Route = createFileRoute("/studio/mail")({
   component: MailPage,
