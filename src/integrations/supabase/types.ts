@@ -1831,6 +1831,65 @@ export type Database = {
         }
         Relationships: []
       }
+      gmail_action_items: {
+        Row: {
+          ai_draft: string
+          ai_summary: string | null
+          category: string
+          created_at: string
+          generated_at: string
+          gmail_account_id: string
+          id: string
+          last_message_at: string | null
+          model: string | null
+          snoozed_until: string | null
+          status: string
+          thread_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_draft?: string
+          ai_summary?: string | null
+          category: string
+          created_at?: string
+          generated_at?: string
+          gmail_account_id: string
+          id?: string
+          last_message_at?: string | null
+          model?: string | null
+          snoozed_until?: string | null
+          status?: string
+          thread_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_draft?: string
+          ai_summary?: string | null
+          category?: string
+          created_at?: string
+          generated_at?: string
+          gmail_account_id?: string
+          id?: string
+          last_message_at?: string | null
+          model?: string | null
+          snoozed_until?: string | null
+          status?: string
+          thread_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gmail_action_items_gmail_account_id_fkey"
+            columns: ["gmail_account_id"]
+            isOneToOne: false
+            referencedRelation: "gmail_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_line_items: {
         Row: {
           amount_cents: number

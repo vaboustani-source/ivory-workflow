@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
-import { Mail, Inbox as InboxIcon, RefreshCw, Send, X, Loader2 } from "lucide-react";
+import { Mail, Inbox as InboxIcon, RefreshCw, Send, X, Loader2, Sparkles, Check, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getGmailAccount, type GmailAccountInfo } from "@/lib/gmail/oauth.functions";
@@ -14,6 +14,12 @@ import {
   type ThreadDetail,
   type ParsedMessage,
 } from "@/lib/gmail/messages.functions";
+import {
+  listActionQueue,
+  refreshActionQueue,
+  updateActionItem,
+  type ActionItem,
+} from "@/lib/gmail/action-queue.functions";
 
 export const Route = createFileRoute("/studio/mail")({
   component: MailPage,
@@ -47,7 +53,52 @@ function MailPage() {
   if (!account?.connected) {
     return <DisconnectedState />;
   }
-  return <InboxView accountEmail={account.email} />;
+  return <MailContainer accountEmail={account.email} />;
+}
+
+function MailContainer({ accountEmail }: { accountEmail: string | null }) {
+  const [tab, setTab] = useState<"inbox" | "queue">("queue");
+  return (
+    <div className="flex flex-col h-[calc(100vh-4rem)] -mx-6 -my-6">
+      <div className="flex items-center gap-1 px-4 border-b border-border bg-surface">
+        <TabBtn active={tab === "queue"} onClick={() => setTab("queue")}>
+          <Sparkles size={14} /> Action Queue
+        </TabBtn>
+        <TabBtn active={tab === "inbox"} onClick={() => setTab("inbox")}>
+          <InboxIcon size={14} /> Inbox
+        </TabBtn>
+        <div className="ml-auto text-[11px] text-muted-foreground pr-3 truncate max-w-[260px]">
+          {accountEmail ?? "—"}
+        </div>
+      </div>
+      <div className="flex-1 min-h-0 overflow-hidden">
+        {tab === "inbox" ? <InboxView accountEmail={accountEmail} /> : <ActionQueueView />}
+      </div>
+    </div>
+  );
+}
+
+function TabBtn({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-sm border-b-2 transition-colors ${
+        active
+          ? "border-primary text-primary font-medium"
+          : "border-transparent text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {children}
+    </button>
+  );
 }
 
 function DisconnectedState() {
@@ -83,7 +134,9 @@ function InboxView({ accountEmail }: { accountEmail: string | null }) {
   });
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] -mx-6 -my-6 border-t border-border">
+    <div className="flex h-full">
+      {/* Param accountEmail is rendered by parent header; keep here as no-op so signature stays. */}
+      <span className="hidden">{accountEmail}</span>
       {/* Sidebar */}
       <aside className="w-[360px] border-r border-border flex flex-col bg-surface">
         <div className="px-4 py-3 border-b border-border flex items-center justify-between">
@@ -391,5 +444,241 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1">{label}</div>
       {children}
     </label>
+  );
+}
+
+// =================== Action Queue ===================
+
+const CATEGORY_LABEL: Record<string, string> = {
+  new_inquiry: "New inquiry",
+  active_client: "Active client",
+  vendor: "Vendor",
+  booking_scheduling: "Scheduling",
+  admin_logistics: "Admin",
+  personal: "Personal",
+  promo_newsletter: "Newsletter",
+  other: "Other",
+};
+const CATEGORY_TONE: Record<string, string> = {
+  new_inquiry: "bg-gold/15 text-gold-foreground border-gold/40",
+  active_client: "bg-primary/10 text-primary border-primary/30",
+  vendor: "bg-blue-100 text-blue-900 border-blue-300",
+  booking_scheduling: "bg-purple-100 text-purple-900 border-purple-300",
+  admin_logistics: "bg-amber-100 text-amber-900 border-amber-300",
+  personal: "bg-pink-100 text-pink-900 border-pink-300",
+  promo_newsletter: "bg-muted text-muted-foreground border-border",
+  other: "bg-muted text-muted-foreground border-border",
+};
+
+function ActionQueueView() {
+  const qc = useQueryClient();
+  const list = useServerFn(listActionQueue);
+  const refresh = useServerFn(refreshActionQueue);
+
+  const q = useQuery({
+    queryKey: ["gmail-action-queue"],
+    queryFn: async () => (await list({ data: {} })) as { items: ActionItem[] },
+  });
+
+  const refreshMut = useMutation({
+    mutationFn: async () => (await refresh({ data: { limit: 15 } })) as {
+      scanned: number; generated: number;
+    },
+    onSuccess: (r) => {
+      toast.success(`Scanned ${r.scanned} threads`, {
+        description: r.generated > 0 ? `Generated ${r.generated} new drafts` : "All up to date",
+      });
+      qc.invalidateQueries({ queryKey: ["gmail-action-queue"] });
+    },
+    onError: (e: Error) => toast.error("Refresh failed", { description: e.message }),
+  });
+
+  return (
+    <div className="h-full overflow-y-auto bg-background">
+      <div className="max-w-4xl mx-auto p-8">
+        <div className="flex items-end justify-between mb-6">
+          <div>
+            <h1 className="font-serif italic text-[26px] text-primary leading-tight">Action Queue</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              AI-categorized incoming threads with on-brand draft replies. Review, edit, and send.
+            </p>
+          </div>
+          <Button
+            onClick={() => refreshMut.mutate()}
+            disabled={refreshMut.isPending}
+            className="gap-2"
+          >
+            {refreshMut.isPending ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+            {refreshMut.isPending ? "Generating…" : "Generate drafts"}
+          </Button>
+        </div>
+
+        {q.isLoading && (
+          <div className="text-sm text-muted-foreground flex items-center gap-2">
+            <Loader2 size={14} className="animate-spin" /> Loading…
+          </div>
+        )}
+        {q.isError && (
+          <div className="text-sm text-magenta">{(q.error as Error)?.message ?? "Failed to load"}</div>
+        )}
+        {q.data && q.data.items.length === 0 && (
+          <div className="bg-surface border border-border rounded-md p-10 text-center">
+            <Sparkles size={22} className="mx-auto mb-2 text-primary opacity-60" />
+            <p className="font-serif italic text-lg text-primary">Queue is empty</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Click "Generate drafts" to scan your most recent inbox threads.
+            </p>
+          </div>
+        )}
+        <div className="space-y-3">
+          {q.data?.items.map((item) => (
+            <ActionItemCard key={item.id} item={item} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ActionItemCard({ item }: { item: ActionItem }) {
+  const qc = useQueryClient();
+  const [expanded, setExpanded] = useState(false);
+  const [draft, setDraft] = useState(item.ai_draft);
+  const updateFn = useServerFn(updateActionItem);
+  const sendFn = useServerFn(sendGmail);
+  const getThreadFn = useServerFn(getGmailThread);
+
+  const saveMut = useMutation({
+    mutationFn: async (patch: { ai_draft?: string; status?: ActionItem["status"] }) =>
+      updateFn({ data: { id: item.id, ...patch } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["gmail-action-queue"] }),
+  });
+
+  const sendMut = useMutation({
+    mutationFn: async () => {
+      // Need last message metadata to build a proper reply.
+      const td = (await getThreadFn({ data: { threadId: item.thread_id } })) as ThreadDetail;
+      const last = td.messages[td.messages.length - 1];
+      if (!last) throw new Error("Thread empty");
+      const m = last.from.match(/<([^>]+)>/);
+      const to = m ? [m[1]] : [last.from];
+      const subj = /^re:/i.test(last.subject) ? last.subject : `Re: ${last.subject || "(no subject)"}`;
+      await sendFn({
+        data: {
+          threadId: item.thread_id,
+          to,
+          subject: subj,
+          text: draft,
+          inReplyToMessageId: last.rfc822MessageId ?? undefined,
+          references:
+            [last.references, last.rfc822MessageId].filter(Boolean).join(" ") || undefined,
+        },
+      } as Parameters<typeof sendFn>[0]);
+      await updateFn({ data: { id: item.id, status: "sent", ai_draft: draft } });
+    },
+    onSuccess: () => {
+      toast.success("Sent");
+      qc.invalidateQueries({ queryKey: ["gmail-action-queue"] });
+    },
+    onError: (e: Error) => toast.error("Send failed", { description: e.message }),
+  });
+
+  const tone = CATEGORY_TONE[item.category] ?? CATEGORY_TONE.other;
+  const label = CATEGORY_LABEL[item.category] ?? item.category;
+  const when = item.last_message_at
+    ? new Date(item.last_message_at).toLocaleDateString([], { month: "short", day: "numeric" })
+    : "";
+
+  return (
+    <div className="border border-border rounded-md bg-surface overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full text-left px-4 py-3 hover:bg-background-alt/40 transition-colors"
+      >
+        <div className="flex items-start gap-3">
+          <span className={`shrink-0 inline-flex items-center text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-sm border ${tone}`}>
+            {label}
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-baseline gap-2">
+              <span className="text-sm font-medium text-foreground truncate">
+                {item.fromName || item.from || "(unknown)"}
+              </span>
+              <span className="text-[11px] text-muted-foreground shrink-0">{when}</span>
+            </div>
+            <div className="text-sm text-foreground truncate">{item.subject || "(no subject)"}</div>
+            {item.ai_summary && (
+              <div className="text-xs text-muted-foreground italic mt-0.5 truncate">
+                {item.ai_summary}
+              </div>
+            )}
+          </div>
+          <span className="text-[10px] text-muted-foreground shrink-0 mt-1">
+            {item.status === "sent" ? (
+              <span className="inline-flex items-center gap-1 text-primary"><Check size={11} /> sent</span>
+            ) : item.status === "dismissed" ? "dismissed" : item.status === "snoozed" ? (
+              <span className="inline-flex items-center gap-1"><Clock size={11} /> snoozed</span>
+            ) : item.status}
+          </span>
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="border-t border-border px-4 py-4 bg-background-alt/30">
+          {item.ai_draft || item.status === "needs_review" ? (
+            <>
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
+                Suggested reply
+              </div>
+              <textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                rows={Math.min(14, Math.max(6, draft.split("\n").length + 2))}
+                placeholder="No draft generated. Write a reply…"
+                className="w-full bg-surface border border-border rounded-sm px-3 py-2 text-sm font-sans"
+              />
+              <div className="flex flex-wrap gap-2 mt-3 justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => saveMut.mutate({ status: "snoozed" })}
+                  disabled={saveMut.isPending}
+                >
+                  Snooze
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => saveMut.mutate({ status: "dismissed" })}
+                  disabled={saveMut.isPending}
+                >
+                  Dismiss
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => saveMut.mutate({ ai_draft: draft })}
+                  disabled={saveMut.isPending || draft === item.ai_draft}
+                >
+                  Save edits
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => sendMut.mutate()}
+                  disabled={sendMut.isPending || !draft.trim()}
+                  className="gap-1"
+                >
+                  {sendMut.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+                  {draft === item.ai_draft ? "Approve & Send" : "Send"}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">No draft. Use the inbox tab to reply manually.</p>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
