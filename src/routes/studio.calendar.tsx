@@ -161,20 +161,14 @@ function AvailabilityDashboardPage() {
         <div>
           <h1 className="text-2xl font-medium">Availability</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Professional calendar shows events with titles. Personal calendar shows
-            untitled busy blocks only.
+            Calendars you mark "show titles" appear with their event names. Calendars
+            marked private show as untitled "Busy (private)" blocks. Manage which
+            calendars feed availability in Scheduling settings → Calendars.
           </p>
-          {data && (
+          {data && data.accountEmails.length > 0 && (
             <p className="text-xs text-muted-foreground mt-1">
-              Professional: <span className="font-mono">{data.professional.accountEmail ?? "(not set)"}</span>
-              {data.personalAccountEmails.length > 0 && (
-                <>
-                  {" · "}Personal:{" "}
-                  <span className="font-mono">
-                    {data.personalAccountEmails.join(", ")}
-                  </span>
-                </>
-              )}
+              Connected accounts:{" "}
+              <span className="font-mono">{data.accountEmails.join(", ")}</span>
             </p>
           )}
         </div>
@@ -355,11 +349,11 @@ function AvailabilityDashboardPage() {
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <span className="inline-block w-3 h-3 rounded-sm bg-sky-600/85" />
-                  Professional event
+                  Calendar event
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <span className="inline-block w-3 h-3 rounded-sm bg-slate-400/70" />
-                  Personal busy (private)
+                  Busy (private)
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <span className="inline-block w-3 h-3 rounded-sm bg-emerald-700/85" />
