@@ -116,10 +116,9 @@ export const Route = createFileRoute("/api/public/scan-invoice-reminders")({
               .select("email, view_token, role")
               .eq("invoice_id", inv.id);
 
-            const recipientList: RecipientRow[] = (recipients ?? []).filter(
-              (r): r is RecipientRow =>
-                !!r.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r.email),
-            );
+            const recipientList: RecipientRow[] = (recipients ?? [])
+              .filter((r) => !!r.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r.email))
+              .map((r) => ({ email: r.email, view_token: r.view_token, role: String(r.role) }));
 
             let emails: string[] = recipientList.map((r) => r.email);
             let viewToken: string | null =
