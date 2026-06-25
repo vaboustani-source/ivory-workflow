@@ -86,14 +86,16 @@ async function assertConnectionActive(
   supabaseAdmin: SupabaseClient,
   provider: "google" | "zoom",
   ownerUserId: string,
+  opts: { connectionId?: string | null } = {},
 ): Promise<void> {
-  const { data, error } = await supabaseAdmin
+  let q = supabaseAdmin
     .from("calendar_connections")
-    .select("id, is_active, refresh_token")
+    .select("id")
     .eq("user_id", ownerUserId)
     .eq("provider", provider)
-    .eq("is_active", true)
-    .maybeSingle();
+    .eq("is_active", true);
+  if (opts.connectionId) q = q.eq("id", opts.connectionId);
+  const { data, error } = await q;
   if (error) {
     throw new BookingProviderError({
       provider,
@@ -101,7 +103,7 @@ async function assertConnectionActive(
       detail: `connection lookup failed: ${error.message}`,
     });
   }
-  if (!data) {
+  if (!data || data.length === 0) {
     throw new BookingProviderError({
       provider,
       reason: "no_connection",
@@ -296,9 +298,11 @@ export async function runBookingProviderFlow(
   supabaseAdmin: SupabaseClient,
   input: BookingFlowInput,
 ): Promise<BookingFlowResult> {
-  // Step 1: pre-check both connections.
+  // Step 1: pre-check both connections (Google scoped to the chosen account).
   await assertConnectionActive(supabaseAdmin, "zoom", input.ownerUserId);
-  await assertConnectionActive(supabaseAdmin, "google", input.ownerUserId);
+  await assertConnectionActive(supabaseAdmin, "google", input.ownerUserId, {
+    connectionId: input.bookingConnectionId,
+  });
 
   // Step 2: Zoom.
   const zoom = await createZoomMeeting(input.ownerUserId, input);
