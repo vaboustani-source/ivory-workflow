@@ -13,12 +13,12 @@ const REFRESH_SAFETY_WINDOW_MS = 60_000;
 /**
  * Get a fetch-wrapper bound to a calendar connection.
  *
- * For Zoom: there is at most one active connection per user — passing
- * `connectionId` is optional.
+ * For Zoom: at most one active connection per user — `connectionId` optional.
  * For Google: a user can have MULTIPLE active connections (one per Google
- * account). Callers SHOULD pass `connectionId` to pick one. If omitted
- * and exactly one active row exists, that one is used; if multiple exist
- * we throw — callers must disambiguate.
+ * account). Callers SHOULD pass `connectionId`. If omitted and multiple
+ * active rows exist, we pick deterministically — preferring
+ * `scheduling_settings.booking_calendar_connection_id`, else the most
+ * recently updated — instead of throwing.
  */
 export async function getProviderClient(
   provider: Provider,
