@@ -119,7 +119,7 @@ export async function getProviderClient(
             scopes: null,
             token_expires_at: null,
           })
-          .eq("id", row!.id);
+          .eq("id", row!.id as string);
         await supabaseAdmin.from("activity_log").insert({
           user_id: userId,
           action_type: "integration.revoked",
