@@ -25,27 +25,61 @@ export async function getProviderClient(
   userId: string,
   opts: { connectionId?: string } = {},
 ): Promise<ProviderClient> {
-  let query = supabaseAdmin
-    .from("calendar_connections")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("provider", provider)
-    .eq("is_active", true);
+  let row: Record<string, unknown> | null = null;
+
   if (opts.connectionId) {
-    query = query.eq("id", opts.connectionId);
+    // Explicit pick — id is unique, safe.
+    const { data, error } = await supabaseAdmin
+      .from("calendar_connections")
+      .select("*")
+      .eq("id", opts.connectionId)
+      .eq("user_id", userId)
+      .eq("provider", provider)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) {
+      throw new Error(
+        `No active ${provider} connection ${opts.connectionId} for user ${userId}`,
+      );
+    }
+    row = data as Record<string, unknown>;
+  } else {
+    // Legacy 2-arg path. Multiple active rows are LEGAL (multi-account
+    // Google). Never crash; pick deterministically:
+    //   1) the row whose id == scheduling_settings.booking_calendar_connection_id
+    //      (the professional / write target), if it's in the set
+    //   2) otherwise the most-recently-updated active row
+    const { data: rows, error } = await supabaseAdmin
+      .from("calendar_connections")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("provider", provider)
+      .eq("is_active", true)
+      .order("updated_at", { ascending: false });
+    if (error) throw error;
+    const list = (rows ?? []) as Array<Record<string, unknown>>;
+    if (list.length === 0) {
+      throw new Error(`No active ${provider} connection for user ${userId}`);
+    }
+    if (list.length === 1) {
+      row = list[0];
+    } else {
+      let preferredId: string | null = null;
+      if (provider === "google") {
+        const { data: s } = await supabaseAdmin
+          .from("scheduling_settings")
+          .select("booking_calendar_connection_id")
+          .limit(1)
+          .maybeSingle();
+        preferredId =
+          (s as { booking_calendar_connection_id?: string | null } | null)
+            ?.booking_calendar_connection_id ?? null;
+      }
+      row =
+        (preferredId && list.find((r) => r.id === preferredId)) || list[0];
+    }
   }
-  const { data: rows, error } = await query;
-  if (error) throw error;
-  const list = rows ?? [];
-  if (list.length === 0) {
-    throw new Error(`No active ${provider} connection for user ${userId}`);
-  }
-  if (list.length > 1) {
-    throw new Error(
-      `Ambiguous ${provider} connection for user ${userId} (${list.length} active); pass connectionId`,
-    );
-  }
-  const row = list[0];
 
   let accessToken: string = row.access_token as string;
   let refreshToken: string | null = (row.refresh_token as string | null) ?? null;
