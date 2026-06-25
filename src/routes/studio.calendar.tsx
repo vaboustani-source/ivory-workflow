@@ -349,11 +349,11 @@ function AvailabilityDashboardPage() {
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <span className="inline-block w-3 h-3 rounded-sm bg-sky-600/85" />
-                  Professional event
+                  Calendar event
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <span className="inline-block w-3 h-3 rounded-sm bg-slate-400/70" />
-                  Personal busy (private)
+                  Busy (private)
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <span className="inline-block w-3 h-3 rounded-sm bg-emerald-700/85" />
