@@ -99,6 +99,15 @@ function LoginPage() {
           </div>
         ) : (
           <>
+            <div className="space-y-3 mb-5">
+              <GoogleButton side="studio" label="Sign in with Google" />
+              <div className="flex items-center gap-3 text-[10px] uppercase tracking-wider text-muted-foreground">
+                <div className="h-px flex-1 bg-border" />
+                <span>or</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+            </div>
+
             <form onSubmit={handleMagicLink} className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1.5">
