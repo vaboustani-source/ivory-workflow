@@ -53,7 +53,52 @@ function MailPage() {
   if (!account?.connected) {
     return <DisconnectedState />;
   }
-  return <InboxView accountEmail={account.email} />;
+  return <MailContainer accountEmail={account.email} />;
+}
+
+function MailContainer({ accountEmail }: { accountEmail: string | null }) {
+  const [tab, setTab] = useState<"inbox" | "queue">("queue");
+  return (
+    <div className="flex flex-col h-[calc(100vh-4rem)] -mx-6 -my-6">
+      <div className="flex items-center gap-1 px-4 border-b border-border bg-surface">
+        <TabBtn active={tab === "queue"} onClick={() => setTab("queue")}>
+          <Sparkles size={14} /> Action Queue
+        </TabBtn>
+        <TabBtn active={tab === "inbox"} onClick={() => setTab("inbox")}>
+          <InboxIcon size={14} /> Inbox
+        </TabBtn>
+        <div className="ml-auto text-[11px] text-muted-foreground pr-3 truncate max-w-[260px]">
+          {accountEmail ?? "—"}
+        </div>
+      </div>
+      <div className="flex-1 min-h-0 overflow-hidden">
+        {tab === "inbox" ? <InboxView accountEmail={accountEmail} /> : <ActionQueueView />}
+      </div>
+    </div>
+  );
+}
+
+function TabBtn({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-sm border-b-2 transition-colors ${
+        active
+          ? "border-primary text-primary font-medium"
+          : "border-transparent text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {children}
+    </button>
+  );
 }
 
 function DisconnectedState() {
