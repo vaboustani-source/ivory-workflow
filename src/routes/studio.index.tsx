@@ -51,7 +51,7 @@ function Dashboard() {
     };
 
     // KPIs
-    const active = await scopeClients(supabase.from("clients").select("id", { count: "exact", head: true }).eq("status", "active"));
+    const active = await scopeClients(supabase.from("clients").select("id", { count: "exact", head: true }).in("status", ["active", "booked"]));
     const weddings = await scopeClients(supabase.from("clients").select("id", { count: "exact", head: true }).gte("wedding_date", monthStart).lte("wedding_date", monthEnd));
     const overdueCount = await supabase.from("tasks").select("id", { count: "exact", head: true }).eq("assignee_id", effectiveUserId).eq("status", "pending").lt("due_date", todayISO);
     const approvalQ = await scopeClients(supabase.from("scheduled_communications").select("id", { count: "exact", head: true }).eq("status", "awaiting_approval"), "client_id");
