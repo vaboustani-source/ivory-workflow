@@ -25,6 +25,7 @@ interface Contractor {
   homebase_lng: number | null;
   preferred_min_hourly_rate: number | null;
   preferred_max_hourly_rate: number | null;
+  default_hourly_rate: number | null;
   is_active: boolean;
   jobs_count: number;
   last_worked_with_at: string | null;
