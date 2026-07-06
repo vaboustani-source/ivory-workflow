@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Pencil, Plus, Check, X, Loader2 } from "lucide-react";
+import { Pencil, Plus, Check, X, Loader2, RotateCcw } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { computeGetReadyNotes, to12Hour, type GetReadyKey } from "@/lib/getReadyNotes";
 
 export interface TimelineBlock {
   start: string;
@@ -15,7 +17,7 @@ interface PhotographyTimeline {
   id: string;
   client_id: string;
   blocks: TimelineBlock[];
-  manual_overrides: Record<string, Partial<TimelineBlock>>;
+  manual_overrides: Record<string, any>;
   notes_for_photographer: string | null;
   generated_at: string;
   sunset_time: string | null;
@@ -24,6 +26,9 @@ interface PhotographyTimeline {
   generated_coverage_hours: number | null;
   coverage_overage_hours: number | null;
   coverage_status: string | null;
+  ceremony_start_time: string | null;
+  has_first_look: boolean | null;
+  has_wedding_party: boolean | null;
 }
 
 const TYPE_PILL: Record<TimelineBlock["type"], string> = {
@@ -58,6 +63,8 @@ function applyOverride(block: TimelineBlock, idx: number, overrides: Record<stri
 }
 
 export function TimelineDisplay({ clientId, editable = false }: { clientId: string; editable?: boolean }) {
+  const { profile } = useAuth();
+  const canEditCheatSheet = editable && (profile?.role === "owner" || profile?.role === "studio_manager");
   const [timeline, setTimeline] = useState<PhotographyTimeline | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
@@ -260,6 +267,13 @@ export function TimelineDisplay({ clientId, editable = false }: { clientId: stri
           <Plus size={14} /> Add manual block
         </button>
       )}
+      <GetReadyCheatSheet
+        timeline={timeline}
+        editable={canEditCheatSheet}
+        coupleView={!editable}
+        onOverridesChange={(next) => setTimeline({ ...timeline, manual_overrides: next })}
+      />
+
 
       {editable && (
         <div className="bg-surface rounded-md p-4 border border-border">
@@ -325,3 +339,191 @@ function BlockEditor({
     </div>
   );
 }
+
+// ---------- Getting-Ready Cheat Sheet ---------------------------------------
+
+const COUPLE_COPY: Record<GetReadyKey, (t: string) => string> = {
+  glam: (t) => `Tell hair & makeup to be finished by ${t}.`,
+  dressed: (t) => `Be fully dressed by ${t}.`,
+  helper: (t) => `Whoever's helping you into your dress should be ready by ${t}.`,
+  wedding_party: (t) => `Wedding party ready by ${t}.`,
+  family: (t) => `Family ready by ${t}.`,
+};
+
+function GetReadyCheatSheet({
+  timeline,
+  editable,
+  coupleView,
+  onOverridesChange,
+}: {
+  timeline: PhotographyTimeline;
+  editable: boolean;
+  coupleView: boolean;
+  onOverridesChange: (next: Record<string, any>) => void;
+}) {
+  const overridesAll = (timeline.manual_overrides ?? {}) as Record<string, any>;
+  const grOverrides = (overridesAll.get_ready ?? {}) as Record<string, string>;
+  const [editingKey, setEditingKey] = useState<GetReadyKey | null>(null);
+  const [draft, setDraft] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
+  const result = computeGetReadyNotes({
+    timeline: {
+      blocks: timeline.blocks ?? [],
+      ceremony_start_time: timeline.ceremony_start_time,
+      has_first_look: timeline.has_first_look,
+      has_wedding_party: timeline.has_wedding_party,
+    },
+    overrides: grOverrides,
+  });
+
+  const persist = async (nextGr: Record<string, string>) => {
+    setSaving(true);
+    const nextAll = { ...overridesAll, get_ready: nextGr };
+    await supabase.from("photography_timelines").update({ manual_overrides: nextAll as any }).eq("id", timeline.id);
+    onOverridesChange(nextAll);
+    setSaving(false);
+  };
+
+  const setOverride = async (key: GetReadyKey, hhmm: string) => {
+    const nextGr = { ...grOverrides, [key]: hhmm };
+    await persist(nextGr);
+    setEditingKey(null);
+  };
+
+  const resetOverride = async (key: GetReadyKey) => {
+    const nextGr = { ...grOverrides };
+    delete nextGr[key];
+    await persist(nextGr);
+  };
+
+  // Missing anchor state
+  if (result.anchorMode === "missing") {
+    if (coupleView) return null;
+    return (
+      <div className="bg-surface rounded-md p-4 border border-border">
+        <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1">Getting-Ready Cheat Sheet</p>
+        <p className="text-sm text-muted-foreground italic">
+          {result.guidance ?? "Set the ceremony time or a first look to generate these notes."}
+        </p>
+      </div>
+    );
+  }
+
+  const visibleLines = result.lines.filter((l) => l.applies);
+
+  // Couple portal view — Stories-by-Victoria voice
+  if (coupleView) {
+    if (visibleLines.length === 0) return null;
+    return (
+      <div className="bg-surface rounded-md p-5 border-t-2 border-gold shadow-soft">
+        <p className="font-serif italic text-xl text-primary mb-1">Quick notes for your morning</p>
+        <p className="text-xs text-muted-foreground mb-3">A few small anchors so the morning stays calm.</p>
+        <ul className="space-y-2">
+          {visibleLines.map((l) => (
+            <li key={l.key} className="text-sm text-foreground leading-relaxed">
+              {COUPLE_COPY[l.key](l.time12 ?? "—").split(/(\*\*[^*]+\*\*)/).map((seg, i) =>
+                seg.startsWith("**") && seg.endsWith("**") ? (
+                  <strong key={i} className="text-primary">{seg.slice(2, -2)}</strong>
+                ) : (
+                  <span key={i}>{seg}</span>
+                )
+              )}
+              {" "}
+              <span className="text-primary font-medium">{l.time12}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  // Studio editable view
+  return (
+    <div className="bg-surface rounded-md p-4 border border-border">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Getting-Ready Cheat Sheet</p>
+          <p className="text-xs text-muted-foreground italic">
+            Anchored to {result.anchorMode === "first_look" ? "first look" : "camera-ready (ceremony − 2h)"} at {to12Hour(result.anchorTime)}.
+            {result.guidance && <> {result.guidance}</>}
+          </p>
+        </div>
+        {saving && <Loader2 size={12} className="animate-spin text-muted-foreground" />}
+      </div>
+      {editable ? (
+        <ul className="space-y-1.5">
+          {result.lines.filter((l) => l.applies).map((l) => {
+            const isEditing = editingKey === l.key;
+            return (
+              <li key={l.key} className="flex items-center gap-2 text-sm">
+                <span className="flex-1 text-foreground">{l.label}</span>
+                {isEditing ? (
+                  <>
+                    <input
+                      type="time"
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
+                      className="px-2 py-1 border border-border rounded-md text-sm w-[110px]"
+                    />
+                    <button
+                      onClick={() => setOverride(l.key, draft)}
+                      className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded-md inline-flex items-center gap-1"
+                    >
+                      <Check size={12} /> Save
+                    </button>
+                    <button
+                      onClick={() => setEditingKey(null)}
+                      className="px-2 py-1 text-xs border border-border rounded-md inline-flex items-center gap-1"
+                    >
+                      <X size={12} /> Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className={`font-serif italic ${l.isOverridden ? "text-magenta" : "text-primary"}`}>
+                      {l.time12}
+                    </span>
+                    {l.isOverridden && (
+                      <span className="text-[10px] uppercase tracking-wider text-magenta">override</span>
+                    )}
+                    <button
+                      onClick={() => { setEditingKey(l.key); setDraft(l.time ?? ""); }}
+                      className="text-muted-foreground hover:text-primary"
+                      aria-label="Edit"
+                    >
+                      <Pencil size={12} />
+                    </button>
+                    {l.isOverridden && (
+                      <button
+                        onClick={() => resetOverride(l.key)}
+                        className="text-muted-foreground hover:text-primary"
+                        aria-label="Reset to computed"
+                        title="Reset to computed"
+                      >
+                        <RotateCcw size={12} />
+                      </button>
+                    )}
+                  </>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <ul className="space-y-1.5">
+          {result.lines.filter((l) => l.applies).map((l) => (
+            <li key={l.key} className="flex items-center gap-2 text-sm">
+              <span className="flex-1 text-foreground">{l.label}</span>
+              <span className="font-serif italic text-primary">{l.time12}</span>
+              {l.isOverridden && (
+                <span className="text-[10px] uppercase tracking-wider text-magenta">override</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
