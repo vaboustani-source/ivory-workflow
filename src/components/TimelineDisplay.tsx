@@ -267,6 +267,13 @@ export function TimelineDisplay({ clientId, editable = false }: { clientId: stri
           <Plus size={14} /> Add manual block
         </button>
       )}
+      <GetReadyCheatSheet
+        timeline={timeline}
+        editable={canEditCheatSheet}
+        coupleView={!editable}
+        onOverridesChange={(next) => setTimeline({ ...timeline, manual_overrides: next })}
+      />
+
 
       {editable && (
         <div className="bg-surface rounded-md p-4 border border-border">
