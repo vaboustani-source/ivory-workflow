@@ -73,6 +73,7 @@ export function ContractorEditorModal({ existing, onClose, onSaved }: Props) {
     rate_notes: existing?.rate_notes ?? "",
     preferred_min_hourly_rate: existing?.preferred_min_hourly_rate?.toString() ?? "",
     preferred_max_hourly_rate: existing?.preferred_max_hourly_rate?.toString() ?? "",
+    default_hourly_rate: existing?.default_hourly_rate?.toString() ?? "",
     instagram: existing?.instagram ?? "",
     portfolio_url: existing?.portfolio_url ?? "",
     bio: existing?.bio ?? "",
