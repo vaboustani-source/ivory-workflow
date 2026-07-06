@@ -19,6 +19,7 @@ export interface ContractorRow {
   rate_notes: string | null;
   preferred_min_hourly_rate: number | null;
   preferred_max_hourly_rate: number | null;
+  default_hourly_rate: number | null;
   instagram: string | null;
   portfolio_url: string | null;
   bio: string | null;
