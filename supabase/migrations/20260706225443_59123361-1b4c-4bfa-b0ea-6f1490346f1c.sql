@@ -1,0 +1,1 @@
+ALTER TABLE public.contractors ADD COLUMN IF NOT EXISTS default_hourly_rate integer;
