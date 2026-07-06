@@ -243,7 +243,12 @@ function SourcingScreen() {
         />
       )}
       {logRespFor && (
-        <LogResponseModal request={logRespFor} onClose={() => setLogRespFor(null)} onSaved={() => { setLogRespFor(null); load(); }} />
+        <LogResponseModal
+          request={logRespFor}
+          contractor={contractors.find((c) => c.id === logRespFor.contractor_id) ?? null}
+          onClose={() => setLogRespFor(null)}
+          onSaved={() => { setLogRespFor(null); load(); }}
+        />
       )}
       {sendContractFor && client && (
         <SendContractModal request={sendContractFor} client={client} onClose={() => setSendContractFor(null)} onSent={() => { setSendContractFor(null); load(); }} />
