@@ -133,6 +133,7 @@ export function ContractorEditorModal({ existing, onClose, onSaved }: Props) {
       rate_notes: form.rate_notes.trim() || null,
       preferred_min_hourly_rate: form.preferred_min_hourly_rate ? Number(form.preferred_min_hourly_rate) : null,
       preferred_max_hourly_rate: form.preferred_max_hourly_rate ? Number(form.preferred_max_hourly_rate) : null,
+      default_hourly_rate: form.default_hourly_rate ? Number(form.default_hourly_rate) : null,
       instagram: form.instagram.trim() || null,
       portfolio_url: form.portfolio_url.trim() || null,
       bio: form.bio.trim() || null,
