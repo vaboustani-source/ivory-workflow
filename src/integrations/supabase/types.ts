@@ -1284,6 +1284,7 @@ export type Database = {
           bio: string | null
           business_type: string | null
           created_at: string
+          default_hourly_rate: number | null
           email: string
           full_name: string
           homebase_address: string | null
@@ -1316,6 +1317,7 @@ export type Database = {
           bio?: string | null
           business_type?: string | null
           created_at?: string
+          default_hourly_rate?: number | null
           email: string
           full_name: string
           homebase_address?: string | null
@@ -1348,6 +1350,7 @@ export type Database = {
           bio?: string | null
           business_type?: string | null
           created_at?: string
+          default_hourly_rate?: number | null
           email?: string
           full_name?: string
           homebase_address?: string | null

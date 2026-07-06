@@ -19,6 +19,7 @@ export interface ContractorRow {
   rate_notes: string | null;
   preferred_min_hourly_rate: number | null;
   preferred_max_hourly_rate: number | null;
+  default_hourly_rate: number | null;
   instagram: string | null;
   portfolio_url: string | null;
   bio: string | null;
@@ -72,6 +73,7 @@ export function ContractorEditorModal({ existing, onClose, onSaved }: Props) {
     rate_notes: existing?.rate_notes ?? "",
     preferred_min_hourly_rate: existing?.preferred_min_hourly_rate?.toString() ?? "",
     preferred_max_hourly_rate: existing?.preferred_max_hourly_rate?.toString() ?? "",
+    default_hourly_rate: existing?.default_hourly_rate?.toString() ?? "",
     instagram: existing?.instagram ?? "",
     portfolio_url: existing?.portfolio_url ?? "",
     bio: existing?.bio ?? "",
@@ -131,6 +133,7 @@ export function ContractorEditorModal({ existing, onClose, onSaved }: Props) {
       rate_notes: form.rate_notes.trim() || null,
       preferred_min_hourly_rate: form.preferred_min_hourly_rate ? Number(form.preferred_min_hourly_rate) : null,
       preferred_max_hourly_rate: form.preferred_max_hourly_rate ? Number(form.preferred_max_hourly_rate) : null,
+      default_hourly_rate: form.default_hourly_rate ? Number(form.default_hourly_rate) : null,
       instagram: form.instagram.trim() || null,
       portfolio_url: form.portfolio_url.trim() || null,
       bio: form.bio.trim() || null,
@@ -192,11 +195,25 @@ export function ContractorEditorModal({ existing, onClose, onSaved }: Props) {
             <input value={form.homebase_address} onChange={(e) => setForm({ ...form, homebase_address: e.target.value })} placeholder="123 Main St, Brooklyn, NY 11201" className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </Field>
 
+          <Field label="Default hourly rate ($)">
+            <input
+              type="number"
+              min="0"
+              value={form.default_hourly_rate}
+              onChange={(e) => setForm({ ...form, default_hourly_rate: e.target.value })}
+              placeholder="e.g. 120"
+              className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <p className="text-[11px] text-muted-foreground mt-1 italic">
+              Prefills the per-event rate on new service requests. Can be overridden per event.
+            </p>
+          </Field>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="Min hourly rate ($)">
+            <Field label="Preferred min hourly rate ($)">
               <input type="number" min="0" value={form.preferred_min_hourly_rate} onChange={(e) => setForm({ ...form, preferred_min_hourly_rate: e.target.value })} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
             </Field>
-            <Field label="Max hourly rate ($)">
+            <Field label="Preferred max hourly rate ($)">
               <input type="number" min="0" value={form.preferred_max_hourly_rate} onChange={(e) => setForm({ ...form, preferred_max_hourly_rate: e.target.value })} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
             </Field>
           </div>
