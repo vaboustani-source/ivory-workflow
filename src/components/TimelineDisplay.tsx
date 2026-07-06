@@ -343,11 +343,11 @@ function BlockEditor({
 // ---------- Getting-Ready Cheat Sheet ---------------------------------------
 
 const COUPLE_COPY: Record<GetReadyKey, (t: string) => string> = {
-  glam: (t) => `Tell hair & makeup to be finished by ${t}.`,
-  dressed: (t) => `Be fully dressed by ${t}.`,
-  helper: (t) => `Whoever's helping you into your dress should be ready by ${t}.`,
-  wedding_party: (t) => `Wedding party ready by ${t}.`,
-  family: (t) => `Family ready by ${t}.`,
+  glam: (t) => `Tell hair & makeup to be finished by **${t}**.`,
+  dressed: (t) => `Be fully dressed by **${t}**.`,
+  helper: (t) => `Whoever's helping you into your dress should be ready by **${t}**.`,
+  wedding_party: (t) => `Wedding party ready by **${t}**.`,
+  family: (t) => `Family ready by **${t}**.`,
 };
 
 function GetReadyCheatSheet({
@@ -429,8 +429,6 @@ function GetReadyCheatSheet({
                   <span key={i}>{seg}</span>
                 )
               )}
-              {" "}
-              <span className="text-primary font-medium">{l.time12}</span>
             </li>
           ))}
         </ul>
