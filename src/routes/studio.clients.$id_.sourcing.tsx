@@ -407,7 +407,7 @@ function LogResponseModal({ request, contractor, onClose, onSaved }: { request: 
 }
 
 function SendContractModal({ request, client, onClose, onSent }: { request: ServiceRequest; client: Client; onClose: () => void; onSent: () => void }) {
-  const [templates, setTemplates] = useState<{ id: string; name: string; content: string }[]>([]);
+  const [templates, setTemplates] = useState<{ id: string; name: string; content: string; is_block_based: boolean }[]>([]);
   const [templateId, setTemplateId] = useState<string>("blank");
   const [title, setTitle] = useState(`Contractor agreement — ${client.couple_name_1}`);
   const [content, setContent] = useState("");
@@ -421,7 +421,7 @@ function SendContractModal({ request, client, onClose, onSent }: { request: Serv
       const [{ data: tpls }, { data: c }, { data: tl }, { data: studio }] = await Promise.all([
         supabase
           .from("contract_templates")
-          .select("id, name, content, template_type")
+          .select("id, name, content, template_type, is_block_based")
           .eq("is_archived", false)
           .order("name"),
         supabase.from("contractors").select("full_name, email").eq("id", request.contractor_id).maybeSingle(),
@@ -436,11 +436,41 @@ function SendContractModal({ request, client, onClose, onSent }: { request: Serv
     })();
   }, [request.contractor_id, client.id]);
 
-  const applyTpl = (id: string) => {
+  const applyTpl = async (id: string) => {
     setTemplateId(id);
     if (id === "blank") return;
     const t = templates.find((x) => x.id === id);
     if (!t) return;
+    if (t.is_block_based) {
+      // Flatten block-based template into HTML so it can flow through the
+      // existing single-string contractor contract sign path. Merge tokens
+      // (e.g. {contractor_rate}) will be resolved on send() below.
+      const { data: blocks } = await supabase
+        .from("contract_template_blocks")
+        .select("block_type, config, content, position")
+        .eq("template_id", id)
+        .order("position");
+      const html = (blocks ?? []).map((b: any) => {
+        const cfg = b.config ?? {};
+        switch (b.block_type) {
+          case "text_box":
+            return b.content || cfg.content || "";
+          case "divider": return "<hr />";
+          case "spacer": return "<br />";
+          case "initials":
+            return `<p><em>Initials (${cfg.signer_role ?? "signer"}): ______</em></p>`;
+          case "signature":
+            return `<p><em>Signature (${cfg.signer_role ?? "signer"}): ______________________</em></p>`;
+          case "short_answer":
+          case "free_response":
+          case "date_select":
+            return `<p><strong>${cfg.label ?? ""}:</strong> ______</p>`;
+          default: return "";
+        }
+      }).join("\n");
+      setContent(html);
+      return;
+    }
     setContent(t.content);
   };
 
