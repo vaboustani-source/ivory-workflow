@@ -195,11 +195,25 @@ export function ContractorEditorModal({ existing, onClose, onSaved }: Props) {
             <input value={form.homebase_address} onChange={(e) => setForm({ ...form, homebase_address: e.target.value })} placeholder="123 Main St, Brooklyn, NY 11201" className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </Field>
 
+          <Field label="Default hourly rate ($)">
+            <input
+              type="number"
+              min="0"
+              value={form.default_hourly_rate}
+              onChange={(e) => setForm({ ...form, default_hourly_rate: e.target.value })}
+              placeholder="e.g. 120"
+              className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <p className="text-[11px] text-muted-foreground mt-1 italic">
+              Prefills the per-event rate on new service requests. Can be overridden per event.
+            </p>
+          </Field>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="Min hourly rate ($)">
+            <Field label="Preferred min hourly rate ($)">
               <input type="number" min="0" value={form.preferred_min_hourly_rate} onChange={(e) => setForm({ ...form, preferred_min_hourly_rate: e.target.value })} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
             </Field>
-            <Field label="Max hourly rate ($)">
+            <Field label="Preferred max hourly rate ($)">
               <input type="number" min="0" value={form.preferred_max_hourly_rate} onChange={(e) => setForm({ ...form, preferred_max_hourly_rate: e.target.value })} className="w-full px-3 py-2 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20" />
             </Field>
           </div>
