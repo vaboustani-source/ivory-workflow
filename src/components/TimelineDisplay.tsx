@@ -63,6 +63,8 @@ function applyOverride(block: TimelineBlock, idx: number, overrides: Record<stri
 }
 
 export function TimelineDisplay({ clientId, editable = false }: { clientId: string; editable?: boolean }) {
+  const { profile } = useAuth();
+  const canEditCheatSheet = editable && (profile?.role === "owner" || profile?.role === "studio_manager");
   const [timeline, setTimeline] = useState<PhotographyTimeline | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
