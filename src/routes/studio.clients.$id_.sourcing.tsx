@@ -333,10 +333,14 @@ function ComposeRequestModal({ client, contractor, role, venueAddress, distanceM
   );
 }
 
-function LogResponseModal({ request, onClose, onSaved }: { request: ServiceRequest; onClose: () => void; onSaved: () => void }) {
+function LogResponseModal({ request, contractor, onClose, onSaved }: { request: ServiceRequest; contractor: Contractor | null; onClose: () => void; onSaved: () => void }) {
   const [outcome, setOutcome] = useState<"accepted" | "declined" | "no_response">("accepted");
-  const [rate, setRate] = useState("");
-  const [hours, setHours] = useState("");
+  const [rate, setRate] = useState(() => {
+    if (request.agreed_hourly_rate != null) return String(request.agreed_hourly_rate);
+    if (contractor?.default_hourly_rate != null) return String(contractor.default_hourly_rate);
+    return "";
+  });
+  const [hours, setHours] = useState(() => request.agreed_hours != null ? String(request.agreed_hours) : "");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
 
