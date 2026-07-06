@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Pencil, Plus, Check, X, Loader2 } from "lucide-react";
+import { Pencil, Plus, Check, X, Loader2, RotateCcw } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { computeGetReadyNotes, to12Hour, type GetReadyKey } from "@/lib/getReadyNotes";
 
 export interface TimelineBlock {
   start: string;
@@ -15,7 +17,7 @@ interface PhotographyTimeline {
   id: string;
   client_id: string;
   blocks: TimelineBlock[];
-  manual_overrides: Record<string, Partial<TimelineBlock>>;
+  manual_overrides: Record<string, any>;
   notes_for_photographer: string | null;
   generated_at: string;
   sunset_time: string | null;
@@ -24,6 +26,9 @@ interface PhotographyTimeline {
   generated_coverage_hours: number | null;
   coverage_overage_hours: number | null;
   coverage_status: string | null;
+  ceremony_start_time: string | null;
+  has_first_look: boolean | null;
+  has_wedding_party: boolean | null;
 }
 
 const TYPE_PILL: Record<TimelineBlock["type"], string> = {
