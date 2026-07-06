@@ -54,9 +54,12 @@ export const PLACEHOLDERS: PlaceholderDef[] = [
   { key: "contractor_name", token: "{contractor_name}", label: "Contractor full name", description: "Contractor's full name", category: "contractor" },
   { key: "contractor_first_name", token: "{contractor_first_name}", label: "Contractor first name", description: "First word of contractor name", category: "contractor" },
   { key: "contractor_role", token: "{contractor_role}", label: "Contractor role", description: 'e.g., "Second Shooter"', category: "contractor" },
-  { key: "hourly_rate", token: "{hourly_rate}", label: "Hourly rate", description: "e.g., $75/hr", category: "contractor" },
-  { key: "agreed_hours", token: "{agreed_hours}", label: "Agreed hours", description: "e.g., 8 hours", category: "contractor" },
-  { key: "total_compensation", token: "{total_compensation}", label: "Total compensation", description: "e.g., $600", category: "contractor" },
+  { key: "contractor_rate", token: "{contractor_rate}", label: "Contractor hourly rate", description: 'Agreed hourly rate for this event, e.g., "$120"', category: "contractor" },
+  { key: "contractor_hours", token: "{contractor_hours}", label: "Contractor hours", description: 'Agreed hours for this event, e.g., "10"', category: "contractor" },
+  { key: "contractor_total", token: "{contractor_total}", label: "Contractor total pay", description: 'Agreed total pay for this event, e.g., "$1,200"', category: "contractor" },
+  { key: "hourly_rate", token: "{hourly_rate}", label: "Hourly rate (legacy)", description: "e.g., $75/hr", category: "contractor" },
+  { key: "agreed_hours", token: "{agreed_hours}", label: "Agreed hours (legacy)", description: "e.g., 8 hours", category: "contractor" },
+  { key: "total_compensation", token: "{total_compensation}", label: "Total compensation (legacy)", description: "e.g., $600", category: "contractor" },
 
   // Studio
   { key: "studio_name", token: "{studio_name}", label: "Studio name", description: '"Stories by Victoria"', category: "studio" },
