@@ -93,7 +93,7 @@ function SourcingScreen() {
     setLoading(true);
     const [{ data: cl }, { data: ctr }, { data: reqs }] = await Promise.all([
       supabase.from("clients").select("id, couple_name_1, couple_name_2, wedding_date, venue_name, venue_address, venue_street, venue_city, venue_state, venue_postal_code, primary_email, secondary_email, primary_client_last_name, alternate_client_last_name, primary_client_phone, alternate_client_phone, shared_street_address, shared_city, shared_state, shared_zipcode").eq("id", id).maybeSingle(),
-      supabase.from("contractors").select("id, full_name, email, roles, homebase_address, homebase_lat, homebase_lng, preferred_min_hourly_rate, preferred_max_hourly_rate, is_active, jobs_count, last_worked_with_at").eq("is_active", true),
+      supabase.from("contractors").select("id, full_name, email, roles, homebase_address, homebase_lat, homebase_lng, preferred_min_hourly_rate, preferred_max_hourly_rate, default_hourly_rate, is_active, jobs_count, last_worked_with_at").eq("is_active", true),
       supabase.from("contractor_service_requests").select("id, contractor_id, role, status, sent_at, responded_at, agreed_hourly_rate, agreed_hours, agreed_total, contract_id, travel_distance_miles").eq("client_id", id),
     ]);
     setClient(cl as any);
