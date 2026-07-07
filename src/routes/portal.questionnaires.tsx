@@ -15,7 +15,7 @@ export const Route = createFileRoute("/portal/questionnaires")({
   component: () => <PortalGate>{({ clientId }) => <PortalQuestionnaires clientId={clientId} />}</PortalGate>,
 });
 
-interface QuestionDef {
+export interface QuestionDef {
   id: string;
   type:
     | "short_text" | "long_text" | "single_select" | "multi_select"
