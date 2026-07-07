@@ -24,7 +24,7 @@ function SettingsLayout() {
     { label: "Workflow", to: "/studio/settings/workflow", visible: isOwner },
     { label: "Email Templates", to: "/studio/settings/email-templates", visible: true },
     { label: "Email copy", to: "/studio/settings/emails", visible: isOwner },
-    { label: "Resources", to: "/studio/settings/resources", visible: true },
+    { label: "Resources", to: "/studio/resources", visible: true },
     { label: "Calendar", to: "/studio/settings/calendar", visible: true },
     { label: "Scheduling", to: "/studio/settings/scheduling", visible: isOwner },
     { label: "Integrations", to: "/studio/settings/integrations", visible: true },
