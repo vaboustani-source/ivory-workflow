@@ -254,7 +254,7 @@ function EditorView({ row, onClose, onSaved }: { row: TplRow | null; onClose: ()
     setSaving(true);
     if (!createdId) {
       const { data, error } = await supabase.from("contract_templates").insert({
-        name: name.trim(), content, template_type: type, is_block_based: isBlockBased && isCoupleTemplate, created_by: user?.id ?? null,
+        name: name.trim(), content, template_type: type, is_block_based: isBlockBased, created_by: user?.id ?? null,
       }).select("id").single();
       setSaving(false);
       if (error || !data) return toast.error(error?.message ?? "Save failed");
@@ -263,7 +263,7 @@ function EditorView({ row, onClose, onSaved }: { row: TplRow | null; onClose: ()
       if (!isBlockBased) onSaved();
     } else {
       const { error } = await supabase.from("contract_templates").update({
-        name: name.trim(), content, template_type: type, is_block_based: isBlockBased && isCoupleTemplate,
+        name: name.trim(), content, template_type: type, is_block_based: isBlockBased,
       }).eq("id", createdId);
       setSaving(false);
       if (error) return toast.error(error.message);
@@ -304,14 +304,12 @@ function EditorView({ row, onClose, onSaved }: { row: TplRow | null; onClose: ()
         </div>
       </div>
 
-      {isCoupleTemplate && (
-        <label className="flex items-center gap-2 text-sm text-foreground bg-background-alt border border-border rounded-md px-3 py-2">
-          <input type="checkbox" checked={isBlockBased} onChange={(e) => setIsBlockBased(e.target.checked)} />
-          <span>Use block builder (interactive blocks, multi-signer)</span>
-        </label>
-      )}
+      <label className="flex items-center gap-2 text-sm text-foreground bg-background-alt border border-border rounded-md px-3 py-2">
+        <input type="checkbox" checked={isBlockBased} onChange={(e) => setIsBlockBased(e.target.checked)} />
+        <span>Use block builder (interactive blocks, multi-signer)</span>
+      </label>
 
-      {isBlockBased && isCoupleTemplate ? (
+      {isBlockBased ? (
         createdId ? (
           <BlockBuilder templateId={createdId} />
         ) : (
