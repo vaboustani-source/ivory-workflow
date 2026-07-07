@@ -84,7 +84,7 @@ function progress(r: Row) {
   return { answered, total };
 }
 
-function StudioForms() {
+function SentFormsView() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
