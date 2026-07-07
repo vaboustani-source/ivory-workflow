@@ -15,7 +15,7 @@ export const Route = createFileRoute("/portal/questionnaires")({
   component: () => <PortalGate>{({ clientId }) => <PortalQuestionnaires clientId={clientId} />}</PortalGate>,
 });
 
-interface QuestionDef {
+export interface QuestionDef {
   id: string;
   type:
     | "short_text" | "long_text" | "single_select" | "multi_select"
@@ -418,7 +418,7 @@ function relTime(d: Date): string {
   return d.toLocaleTimeString();
 }
 
-class FieldErrorBoundary extends Component<{ questionId: string; questionType: string; children: ReactNode }, { err: Error | null }> {
+export class FieldErrorBoundary extends Component<{ questionId: string; questionType: string; children: ReactNode }, { err: Error | null }> {
   state = { err: null as Error | null };
   static getDerivedStateFromError(err: Error) { return { err }; }
   componentDidCatch(err: Error) {
@@ -436,7 +436,7 @@ class FieldErrorBoundary extends Component<{ questionId: string; questionType: s
   }
 }
 
-function FieldRow({
+export function FieldRow({
   q, value, error, readOnly, onChange, registerRef,
 }: {
   q: QuestionDef;

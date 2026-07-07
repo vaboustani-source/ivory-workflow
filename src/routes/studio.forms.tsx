@@ -3,10 +3,49 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { relativeTime } from "@/lib/dates";
 import { Search } from "lucide-react";
+import { FormTemplatesTab } from "@/components/studio/FormTemplatesTab";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/studio/forms")({
   component: StudioForms,
 });
+
+function StudioForms() {
+  const { profile, roles } = useAuth();
+  const canManageTemplates = profile?.role === "owner" || roles.includes("studio_manager") || roles.includes("owner");
+  const [tab, setTab] = useState<"sent" | "templates">("sent");
+
+  return (
+    <div className="space-y-6">
+      <header className="flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="font-serif italic text-[28px] text-primary leading-tight">Forms</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {tab === "sent" ? "What couples have shared with us." : "Manage the master questionnaire templates."}
+          </p>
+        </div>
+        <div className="inline-flex rounded-md border border-border overflow-hidden">
+          <button
+            onClick={() => setTab("sent")}
+            className={`px-4 py-2 text-sm ${tab === "sent" ? "bg-primary text-primary-foreground" : "bg-surface text-foreground hover:bg-background-alt"}`}
+          >
+            Sent forms
+          </button>
+          {canManageTemplates && (
+            <button
+              onClick={() => setTab("templates")}
+              className={`px-4 py-2 text-sm border-l border-border ${tab === "templates" ? "bg-primary text-primary-foreground" : "bg-surface text-foreground hover:bg-background-alt"}`}
+            >
+              Templates
+            </button>
+          )}
+        </div>
+      </header>
+      {tab === "sent" ? <SentFormsView /> : <FormTemplatesTab />}
+    </div>
+  );
+}
+
 
 interface Row {
   id: string;
@@ -45,7 +84,7 @@ function progress(r: Row) {
   return { answered, total };
 }
 
-function StudioForms() {
+function SentFormsView() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
@@ -113,10 +152,7 @@ function StudioForms() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="font-serif italic text-[28px] text-primary leading-tight">Forms</h1>
-        <p className="text-sm text-muted-foreground mt-1">What couples have shared with us.</p>
-      </header>
+
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Kpi label="Total forms" value={String(kpis.total)} />
