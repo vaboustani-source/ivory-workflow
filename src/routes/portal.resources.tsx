@@ -150,7 +150,7 @@ function PortalResources({ status }: { status: string | null }) {
                         />
                       </div>
                     )}
-                    <div className="p-5">
+                    <div className="p-6">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-[10px] uppercase tracking-[0.15em] text-gold">
                           {CATEGORY_LABELS[r.category ?? ""] ?? r.category ?? ""}
