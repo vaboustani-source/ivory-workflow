@@ -254,7 +254,7 @@ function EditorView({ row, onClose, onSaved }: { row: TplRow | null; onClose: ()
     setSaving(true);
     if (!createdId) {
       const { data, error } = await supabase.from("contract_templates").insert({
-        name: name.trim(), content, template_type: type, is_block_based: isBlockBased && isCoupleTemplate, created_by: user?.id ?? null,
+        name: name.trim(), content, template_type: type, is_block_based: isBlockBased, created_by: user?.id ?? null,
       }).select("id").single();
       setSaving(false);
       if (error || !data) return toast.error(error?.message ?? "Save failed");
