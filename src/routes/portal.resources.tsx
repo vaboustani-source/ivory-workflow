@@ -127,7 +127,7 @@ function PortalResources({ status }: { status: string | null }) {
           <p className="font-serif italic text-xl text-primary">No resources yet.</p>
         </div>
       ) : (
-        <div className="space-y-10">
+        <div className="space-y-14">
           {grouped.map(({ category, items }) => (
             <section key={category}>
               <h2 className="font-serif italic text-[22px] text-primary mb-4">
