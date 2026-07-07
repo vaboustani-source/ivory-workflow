@@ -152,10 +152,7 @@ function SentFormsView() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="font-serif italic text-[28px] text-primary leading-tight">Forms</h1>
-        <p className="text-sm text-muted-foreground mt-1">What couples have shared with us.</p>
-      </header>
+
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Kpi label="Total forms" value={String(kpis.total)} />
