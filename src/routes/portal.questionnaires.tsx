@@ -436,7 +436,7 @@ export class FieldErrorBoundary extends Component<{ questionId: string; question
   }
 }
 
-function FieldRow({
+export function FieldRow({
   q, value, error, readOnly, onChange, registerRef,
 }: {
   q: QuestionDef;
