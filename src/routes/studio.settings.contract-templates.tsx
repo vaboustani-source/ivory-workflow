@@ -263,7 +263,7 @@ function EditorView({ row, onClose, onSaved }: { row: TplRow | null; onClose: ()
       if (!isBlockBased) onSaved();
     } else {
       const { error } = await supabase.from("contract_templates").update({
-        name: name.trim(), content, template_type: type, is_block_based: isBlockBased && isCoupleTemplate,
+        name: name.trim(), content, template_type: type, is_block_based: isBlockBased,
       }).eq("id", createdId);
       setSaving(false);
       if (error) return toast.error(error.message);
