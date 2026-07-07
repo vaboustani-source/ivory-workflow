@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   Home, Users, Inbox, KanbanSquare, Workflow, MessageCircle, Calendar, Mail,
   CheckSquare, Image, Receipt, BookOpen, Settings, Search,
-  LogOut, Menu, X, ChevronDown, Eye, FileText, ClipboardList, ClipboardCheck, DollarSign, Newspaper,
+  LogOut, Menu, X, ChevronDown, Eye, FileText, ClipboardList, ClipboardCheck, DollarSign, Newspaper, FileQuestion,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useViewAs } from "@/lib/view-as";
@@ -56,6 +56,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Galleries", to: "/studio/galleries", icon: Image },
       { label: "Documents", to: "/studio/contracts", icon: FileText, matchPrefix: "/studio/contracts", badgeKey: "contracts", badgeStyle: "dot" },
+      { label: "Forms", to: "/studio/forms", icon: FileQuestion, badgeKey: "forms", badgeStyle: "dot" },
       { label: "Briefings", to: "/studio/briefings", icon: Newspaper },
       { label: "Rolodex", to: "/studio/rolodex", icon: BookOpen },
       { label: "Resources", to: "/studio/resources", icon: BookOpen },
