@@ -418,7 +418,7 @@ function relTime(d: Date): string {
   return d.toLocaleTimeString();
 }
 
-class FieldErrorBoundary extends Component<{ questionId: string; questionType: string; children: ReactNode }, { err: Error | null }> {
+export class FieldErrorBoundary extends Component<{ questionId: string; questionType: string; children: ReactNode }, { err: Error | null }> {
   state = { err: null as Error | null };
   static getDerivedStateFromError(err: Error) { return { err }; }
   componentDidCatch(err: Error) {
