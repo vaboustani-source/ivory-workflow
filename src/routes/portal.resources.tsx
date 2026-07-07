@@ -181,7 +181,7 @@ function PortalResources({ status }: { status: string | null }) {
 
 function ResourceReader({ resource, onBack }: { resource: Resource; onBack: () => void }) {
   return (
-    <article className="max-w-[720px] mx-auto">
+    <article className="max-w-[720px] mx-auto py-10">
       <button
         onClick={onBack}
         className="inline-flex items-center gap-2 text-sm text-primary/70 hover:text-magenta mb-6"
