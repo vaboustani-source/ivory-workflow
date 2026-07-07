@@ -133,7 +133,7 @@ function PortalResources({ status }: { status: string | null }) {
               <h2 className="font-serif italic text-[22px] text-primary mb-6">
                 {CATEGORY_LABELS[category] ?? category}
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {items.map((r) => (
                   <button
                     key={r.id}
