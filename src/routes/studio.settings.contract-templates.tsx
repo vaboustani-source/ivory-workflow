@@ -304,14 +304,12 @@ function EditorView({ row, onClose, onSaved }: { row: TplRow | null; onClose: ()
         </div>
       </div>
 
-      {isCoupleTemplate && (
-        <label className="flex items-center gap-2 text-sm text-foreground bg-background-alt border border-border rounded-md px-3 py-2">
-          <input type="checkbox" checked={isBlockBased} onChange={(e) => setIsBlockBased(e.target.checked)} />
-          <span>Use block builder (interactive blocks, multi-signer)</span>
-        </label>
-      )}
+      <label className="flex items-center gap-2 text-sm text-foreground bg-background-alt border border-border rounded-md px-3 py-2">
+        <input type="checkbox" checked={isBlockBased} onChange={(e) => setIsBlockBased(e.target.checked)} />
+        <span>Use block builder (interactive blocks, multi-signer)</span>
+      </label>
 
-      {isBlockBased && isCoupleTemplate ? (
+      {isBlockBased ? (
         createdId ? (
           <BlockBuilder templateId={createdId} />
         ) : (
