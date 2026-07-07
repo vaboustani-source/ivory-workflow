@@ -248,48 +248,48 @@ function ResourceReader({ resource, onBack }: { resource: Resource; onBack: () =
       <style>{`
         .resource-prose {
           color: hsl(var(--foreground));
-          font-size: 16px;
-          line-height: 1.75;
+          font-size: 17px;
+          line-height: 1.85;
         }
-        .resource-prose > * + * { margin-top: 1.1em; }
+        .resource-prose > * + * { margin-top: 1.6em; }
         .resource-prose h1, .resource-prose h2, .resource-prose h3, .resource-prose h4 {
           font-family: 'Playfair Display', Georgia, serif;
           color: hsl(var(--primary));
           line-height: 1.25;
-          margin-top: 2em;
-          margin-bottom: 0.5em;
+          margin-top: 2.75em;
+          margin-bottom: 0.75em;
           font-style: italic;
         }
         .resource-prose h1 { font-size: 28px; }
         .resource-prose h2 { font-size: 24px; }
         .resource-prose h3 { font-size: 20px; }
         .resource-prose h4 { font-size: 18px; }
-        .resource-prose p { margin: 0.9em 0; }
+        .resource-prose p { margin: 1.1em 0; }
         .resource-prose strong { color: hsl(var(--primary)); font-weight: 600; }
         .resource-prose a { color: hsl(var(--magenta, 320 45% 45%)); text-decoration: underline; text-underline-offset: 3px; }
         .resource-prose ul, .resource-prose ol {
-          margin: 1em 0;
+          margin: 1.5em 0;
           padding-left: 1.4em;
         }
-        .resource-prose li { margin: 0.55em 0; padding-left: 0.25em; }
+        .resource-prose li { margin: 0.8em 0; padding-left: 0.25em; line-height: 1.65; }
         .resource-prose ul li::marker { color: #d4a437; }
         .resource-prose ol li::marker { color: #d4a437; font-weight: 600; }
         .resource-prose blockquote {
-          margin: 1.6em 0;
-          padding: 1.1em 1.3em;
+          margin: 2.2em 0;
+          padding: 1.5em 1.7em;
           background: #F5EDE6;
           border-left: 3px solid #d4a437;
           border-radius: 6px;
           font-style: normal;
           color: hsl(var(--foreground));
         }
-        .resource-prose blockquote p { margin: 0.4em 0; }
+        .resource-prose blockquote p { margin: 0.6em 0; }
         .resource-prose blockquote p:first-child { margin-top: 0; }
         .resource-prose blockquote p:last-child { margin-bottom: 0; }
         .resource-prose hr {
           border: none;
           border-top: 1px solid rgba(212, 164, 55, 0.35);
-          margin: 2.5em auto;
+          margin: 3.25em auto;
           width: 60%;
         }
         .resource-prose img { border-radius: 8px; margin: 1.5em 0; max-width: 100%; height: auto; }
