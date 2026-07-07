@@ -130,7 +130,7 @@ function PortalResources({ status }: { status: string | null }) {
         <div className="space-y-14">
           {grouped.map(({ category, items }) => (
             <section key={category}>
-              <h2 className="font-serif italic text-[22px] text-primary mb-4">
+              <h2 className="font-serif italic text-[22px] text-primary mb-6">
                 {CATEGORY_LABELS[category] ?? category}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
