@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowUpDown } from "lucide-react";
-import { shortDate } from "@/lib/dates";
+import { shortDate, parseDateFlexible } from "@/lib/dates";
 import { supabase } from "@/integrations/supabase/client";
 import { getStudioFinancials, fmtMoney, fmtMargin, type FinancialSnapshot, type ClientLite } from "@/lib/financials";
 
