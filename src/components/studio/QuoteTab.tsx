@@ -411,7 +411,7 @@ export function QuoteTab({ clientId }: { clientId: string }) {
         </div>
         {quote.status === "sent" && quote.valid_until && (
           <p className="text-xs" style={{ color: "var(--sbv-purple)" }}>
-            Valid until {new Date(quote.valid_until).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+            Valid until {shortDate(quote.valid_until)}
           </p>
         )}
       </div>
