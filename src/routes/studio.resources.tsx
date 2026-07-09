@@ -7,6 +7,7 @@ import { relativeTime } from "@/lib/dates";
 import { ContractTemplateEditor } from "@/components/studio/ContractTemplateEditor";
 import { Plus, Search, ArrowLeft, Eye, Trash2, Pencil } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { RESOURCE_PROSE_CSS } from "@/lib/resourceProseStyles";
 
 export const Route = createFileRoute("/studio/resources")({
   component: StudioResources,
@@ -380,7 +381,8 @@ function ResourceEditor({
           {fileUrl && contentType === "pdf" && (
             <p className="mb-4"><a href={fileUrl} target="_blank" rel="noreferrer" className="text-magenta underline">Download PDF</a></p>
           )}
-          <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: content || "" }} />
+          <div className="resource-prose" dangerouslySetInnerHTML={{ __html: content || "" }} />
+          <style>{RESOURCE_PROSE_CSS}</style>
         </div>
       )}
     </div>
