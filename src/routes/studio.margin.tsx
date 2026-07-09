@@ -4,6 +4,7 @@ import { ArrowUpDown, Plus, Trash2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsOwner, useAuth } from "@/lib/auth";
 import { getStudioFinancials, fmtMoney, type FinancialSnapshot, type ClientLite, type OverheadModel } from "@/lib/financials";
+import { parseDateFlexible } from "@/lib/dates";
 
 export const Route = createFileRoute("/studio/margin")({
   component: MarginPage,
