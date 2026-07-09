@@ -52,7 +52,7 @@ function ClientsList() {
 
   const years = useMemo(() => {
     const set = new Set<string>();
-    rows.forEach((r) => { if (r.wedding_date) set.add(new Date(r.wedding_date).getFullYear().toString()); });
+    rows.forEach((r) => { if (r.wedding_date) set.add(parseDateFlexible(r.wedding_date).getFullYear().toString()); });
     return Array.from(set).sort();
   }, [rows]);
 
