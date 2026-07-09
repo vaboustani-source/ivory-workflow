@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useIsOwner } from "@/lib/auth";
 import { logActivity } from "@/lib/activityLog";
 import type { Database } from "@/integrations/supabase/types";
+import { shortDate } from "@/lib/dates";
 
 type QuoteInclusion = { id: string; quote_item_id: string; text: string; display_order: number };
 
