@@ -7,6 +7,7 @@ import { relativeTime } from "@/lib/dates";
 import { ContractTemplateEditor } from "@/components/studio/ContractTemplateEditor";
 import { Plus, Search, ArrowLeft, Eye, Trash2, Pencil } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { RESOURCE_PROSE_CSS } from "@/lib/resourceProseStyles";
 
 export const Route = createFileRoute("/studio/resources")({
   component: StudioResources,
