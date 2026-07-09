@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PortalGate } from "@/components/PortalLayout";
 import { ArrowLeft, ExternalLink, Download, BookOpen } from "lucide-react";
+import { RESOURCE_PROSE_CSS } from "@/lib/resourceProseStyles";
 
 type SearchSchema = { slug?: string };
 
