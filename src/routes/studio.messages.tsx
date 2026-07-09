@@ -353,7 +353,7 @@ function MessagesPage() {
                 </Link>
                 {selectedConv.client?.wedding_date && (
                   <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mt-0.5">
-                    Wedding {new Date(selectedConv.client.wedding_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    Wedding {shortDate(selectedConv.client.wedding_date)}
                   </p>
                 )}
               </div>
