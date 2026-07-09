@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronRight, Plus, Search } from "lucide-react";
-import { shortDate, relativeTime } from "@/lib/dates";
+import { shortDate, relativeTime, parseDateFlexible } from "@/lib/dates";
 import { NewClientModal } from "@/components/NewClientModal";
 
 export const Route = createFileRoute("/studio/clients/")({
