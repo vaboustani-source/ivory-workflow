@@ -1,7 +1,9 @@
+import { parseDateFlexible } from "./dates";
+
 /** Convert a due date into a friendly "when" framing. */
 export function whenLabel(dueDate: string | null | undefined): string {
   if (!dueDate) return "Soon";
-  const d = new Date(dueDate);
+  const d = parseDateFlexible(dueDate);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const target = new Date(d.getFullYear(), d.getMonth(), d.getDate());
