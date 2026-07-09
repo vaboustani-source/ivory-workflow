@@ -766,7 +766,7 @@ export function QuoteTab({ clientId }: { clientId: string }) {
                         </p>
                         {inv.due_date && (
                           <p className="text-[11px] opacity-70" style={{ color: "var(--sbv-purple)" }}>
-                            {new Date(inv.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                            {shortDate(inv.due_date)}
                           </p>
                         )}
                       </div>
