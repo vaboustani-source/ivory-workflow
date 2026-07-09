@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useViewAs } from "@/lib/view-as";
-import { editorialDate, relativeTime, shortDate } from "@/lib/dates";
+import { editorialDate, relativeTime, shortDate, parseDateFlexible } from "@/lib/dates";
 import { toast } from "sonner";
 import {
   RefreshCw, MessageCircle, FileText, ClipboardList, AlertCircle,
@@ -269,7 +269,7 @@ function QueuePage() {
           id: `ms:${m.id}`,
           type: "milestone_overdue",
           priority: PRIORITY.milestone_overdue,
-          ageMs: Date.now() - new Date(m.due_date).getTime(),
+          ageMs: Date.now() - parseDateFlexible(m.due_date).getTime(),
           client_id: m.client_id,
           couple_names: coupleName(m.client),
           wedding_date: m.client?.wedding_date ?? null,
@@ -527,7 +527,7 @@ function greeting(name?: string | null): string {
 // =====================================================================
 function urgencyForWedding(wedding_date: string | null): { label: string; tone: "magenta" | "gold" | "muted" } | null {
   if (!wedding_date) return null;
-  const ms = new Date(wedding_date).getTime() - Date.now();
+  const ms = parseDateFlexible(wedding_date).getTime() - Date.now();
   const days = Math.ceil(ms / (24 * 60 * 60 * 1000));
   if (days < 0) return { label: "Past", tone: "muted" };
   if (days <= 7) return { label: "Today", tone: "magenta" };
@@ -537,7 +537,7 @@ function urgencyForWedding(wedding_date: string | null): { label: string; tone: 
 
 function countdownLabel(wedding_date: string | null): string | null {
   if (!wedding_date) return null;
-  const ms = new Date(wedding_date).getTime() - Date.now();
+  const ms = parseDateFlexible(wedding_date).getTime() - Date.now();
   const days = Math.ceil(ms / (24 * 60 * 60 * 1000));
   if (days < 0) return `${Math.abs(days)} days ago`;
   if (days === 0) return "today";
@@ -741,7 +741,7 @@ function QueueCard({ item, onRemove }: { item: QueueItem; onRemove: () => void }
           )}
           {item.wedding_date && (
             <span className="text-[11px] text-muted-foreground">
-              · wedding {editorialDate(new Date(item.wedding_date))}
+              · wedding {editorialDate(parseDateFlexible(item.wedding_date))}
             </span>
           )}
         </div>
@@ -1103,7 +1103,7 @@ function MilestoneCard({ item, onDone }: { item: QueueItem; onDone: () => void }
     setBusy(true);
     try {
       // Push due_date by 3 calendar days (approximation of business days without server fn)
-      const current = new Date(ctx.due_date);
+      const current = parseDateFlexible(ctx.due_date);
       const next = new Date(current);
       let added = 0;
       while (added < 3) {
@@ -1111,10 +1111,10 @@ function MilestoneCard({ item, onDone }: { item: QueueItem; onDone: () => void }
         const day = next.getDay();
         if (day !== 0 && day !== 6) added += 1;
       }
-      const newDate = next.toISOString().slice(0, 10);
+      const newDate = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-${String(next.getDate()).padStart(2, "0")}`;
       const { error } = await supabase.from("timeline_milestones").update({ due_date: newDate }).eq("id", ctx.milestone_id);
       if (error) throw error;
-      toast.success(`Snoozed until ${editorialDate(new Date(newDate))}`);
+      toast.success(`Snoozed until ${editorialDate(parseDateFlexible(newDate))}`);
       onDone();
     } catch (err: any) {
       toast.error(err.message ?? "Could not snooze");
@@ -1127,7 +1127,7 @@ function MilestoneCard({ item, onDone }: { item: QueueItem; onDone: () => void }
     <div className="space-y-3">
       <div className="text-sm text-foreground">
         <strong className="font-serif text-base">{ctx.title}</strong>
-        <span className="ml-2 text-xs text-magenta">due {editorialDate(new Date(ctx.due_date))} · overdue</span>
+        <span className="ml-2 text-xs text-magenta">due {editorialDate(parseDateFlexible(ctx.due_date))} · overdue</span>
       </div>
       <div className="flex items-center justify-end gap-2">
         <button onClick={onDone} className="px-3 py-1.5 text-xs text-muted-foreground hover:text-magenta inline-flex items-center gap-1.5"><X size={12} /> Dismiss</button>

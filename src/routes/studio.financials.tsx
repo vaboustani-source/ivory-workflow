@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowUpDown } from "lucide-react";
-import { shortDate } from "@/lib/dates";
+import { shortDate, parseDateFlexible } from "@/lib/dates";
 import { supabase } from "@/integrations/supabase/client";
 import { getStudioFinancials, fmtMoney, fmtMargin, type FinancialSnapshot, type ClientLite } from "@/lib/financials";
 
@@ -32,7 +32,7 @@ function FinancialsPage() {
   useEffect(() => {
     supabase.from("clients").select("wedding_date").not("wedding_date", "is", null).then(({ data }) => {
       const set = new Set<number>();
-      (data ?? []).forEach((r: any) => { if (r.wedding_date) set.add(new Date(r.wedding_date).getFullYear()); });
+      (data ?? []).forEach((r: any) => { if (r.wedding_date) set.add(parseDateFlexible(r.wedding_date).getFullYear()); });
       set.add(currentYear);
       setYears(Array.from(set).sort());
     });

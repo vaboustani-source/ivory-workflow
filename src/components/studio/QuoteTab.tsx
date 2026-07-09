@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useIsOwner } from "@/lib/auth";
 import { logActivity } from "@/lib/activityLog";
 import type { Database } from "@/integrations/supabase/types";
+import { shortDate } from "@/lib/dates";
 
 type QuoteInclusion = { id: string; quote_item_id: string; text: string; display_order: number };
 
@@ -410,7 +411,7 @@ export function QuoteTab({ clientId }: { clientId: string }) {
         </div>
         {quote.status === "sent" && quote.valid_until && (
           <p className="text-xs" style={{ color: "var(--sbv-purple)" }}>
-            Valid until {new Date(quote.valid_until).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+            Valid until {shortDate(quote.valid_until)}
           </p>
         )}
       </div>
@@ -765,7 +766,7 @@ export function QuoteTab({ clientId }: { clientId: string }) {
                         </p>
                         {inv.due_date && (
                           <p className="text-[11px] opacity-70" style={{ color: "var(--sbv-purple)" }}>
-                            {new Date(inv.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                            {shortDate(inv.due_date)}
                           </p>
                         )}
                       </div>

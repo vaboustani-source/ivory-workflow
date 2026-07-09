@@ -4,6 +4,7 @@ import { ArrowUpDown, Plus, Trash2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsOwner, useAuth } from "@/lib/auth";
 import { getStudioFinancials, fmtMoney, type FinancialSnapshot, type ClientLite, type OverheadModel } from "@/lib/financials";
+import { parseDateFlexible } from "@/lib/dates";
 
 export const Route = createFileRoute("/studio/margin")({
   component: MarginPage,
@@ -64,7 +65,7 @@ function MarginInner() {
   useEffect(() => {
     supabase.from("clients").select("wedding_date").not("wedding_date", "is", null).then(({ data }) => {
       const set = new Set<number>([currentYear]);
-      (data ?? []).forEach((r: any) => { if (r.wedding_date) set.add(new Date(r.wedding_date).getFullYear()); });
+      (data ?? []).forEach((r: any) => { if (r.wedding_date) set.add(parseDateFlexible(r.wedding_date).getFullYear()); });
       setYears(Array.from(set).sort());
     });
   }, [currentYear]);

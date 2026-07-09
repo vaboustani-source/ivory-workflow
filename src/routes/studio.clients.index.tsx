@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronRight, Plus, Search } from "lucide-react";
-import { shortDate, relativeTime } from "@/lib/dates";
+import { shortDate, relativeTime, parseDateFlexible } from "@/lib/dates";
 import { NewClientModal } from "@/components/NewClientModal";
 
 export const Route = createFileRoute("/studio/clients/")({
@@ -52,13 +52,13 @@ function ClientsList() {
 
   const years = useMemo(() => {
     const set = new Set<string>();
-    rows.forEach((r) => { if (r.wedding_date) set.add(new Date(r.wedding_date).getFullYear().toString()); });
+    rows.forEach((r) => { if (r.wedding_date) set.add(parseDateFlexible(r.wedding_date).getFullYear().toString()); });
     return Array.from(set).sort();
   }, [rows]);
 
   const filtered = rows.filter((r) => {
     if (statusFilter !== "all" && r.status !== statusFilter) return false;
-    if (yearFilter !== "all" && (!r.wedding_date || new Date(r.wedding_date).getFullYear().toString() !== yearFilter)) return false;
+    if (yearFilter !== "all" && (!r.wedding_date || parseDateFlexible(r.wedding_date).getFullYear().toString() !== yearFilter)) return false;
     if (search) {
       const q = search.toLowerCase();
       const name = `${r.couple_name_1} ${r.couple_name_2 ?? ""}`.toLowerCase();
