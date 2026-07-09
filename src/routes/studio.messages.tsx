@@ -4,7 +4,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useEffectiveScope } from "@/lib/view-as";
-import { relativeTime } from "@/lib/dates";
+import { relativeTime, shortDate } from "@/lib/dates";
 import { Search, Lock, X } from "lucide-react";
 import { MessageThread } from "@/components/messages/MessageThread";
 
