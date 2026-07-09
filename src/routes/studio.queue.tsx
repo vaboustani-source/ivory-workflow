@@ -1103,7 +1103,7 @@ function MilestoneCard({ item, onDone }: { item: QueueItem; onDone: () => void }
     setBusy(true);
     try {
       // Push due_date by 3 calendar days (approximation of business days without server fn)
-      const current = new Date(ctx.due_date);
+      const current = parseDateFlexible(ctx.due_date);
       const next = new Date(current);
       let added = 0;
       while (added < 3) {
