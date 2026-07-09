@@ -527,7 +527,7 @@ function greeting(name?: string | null): string {
 // =====================================================================
 function urgencyForWedding(wedding_date: string | null): { label: string; tone: "magenta" | "gold" | "muted" } | null {
   if (!wedding_date) return null;
-  const ms = new Date(wedding_date).getTime() - Date.now();
+  const ms = parseDateFlexible(wedding_date).getTime() - Date.now();
   const days = Math.ceil(ms / (24 * 60 * 60 * 1000));
   if (days < 0) return { label: "Past", tone: "muted" };
   if (days <= 7) return { label: "Today", tone: "magenta" };
