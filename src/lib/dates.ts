@@ -18,10 +18,26 @@ export function editorialDate(d: Date = new Date()): string {
   return `${WEEKDAYS[d.getDay()]}, the ${ordinal(d.getDate())} of ${MONTHS[d.getMonth()]}.`;
 }
 
+/**
+ * Parse a date input in a timezone-safe way.
+ * A bare "YYYY-MM-DD" (Postgres `date` column) is parsed as LOCAL midnight so
+ * the calendar day is preserved regardless of the browser's timezone.
+ * Full ISO timestamps (with a "T" and time, e.g. timestamptz) fall through to
+ * the standard `new Date()` behavior.
+ */
+export function parseDateFlexible(input: string | Date): Date {
+  if (input instanceof Date) return input;
+  if (typeof input === "string" && /^\d{4}-\d{2}-\d{2}$/.test(input)) {
+    const [y, m, d] = input.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+  return new Date(input);
+}
+
 /** "Jun 14, 2026" */
 export function shortDate(input: string | Date | null | undefined): string {
   if (!input) return "—";
-  const d = typeof input === "string" ? new Date(input) : input;
+  const d = parseDateFlexible(input);
   if (isNaN(d.getTime())) return "—";
   const m = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   return `${m[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
