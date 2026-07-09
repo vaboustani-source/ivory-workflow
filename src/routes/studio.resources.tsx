@@ -381,7 +381,8 @@ function ResourceEditor({
           {fileUrl && contentType === "pdf" && (
             <p className="mb-4"><a href={fileUrl} target="_blank" rel="noreferrer" className="text-magenta underline">Download PDF</a></p>
           )}
-          <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: content || "" }} />
+          <div className="resource-prose" dangerouslySetInnerHTML={{ __html: content || "" }} />
+          <style>{RESOURCE_PROSE_CSS}</style>
         </div>
       )}
     </div>
