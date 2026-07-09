@@ -70,7 +70,7 @@ export function relativeTime(input: string | Date | null | undefined): string {
 
 export function daysBetween(target: string | Date | null | undefined): number | null {
   if (!target) return null;
-  const d = typeof target === "string" ? new Date(target) : target;
+  const d = parseDateFlexible(target);
   if (isNaN(d.getTime())) return null;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
