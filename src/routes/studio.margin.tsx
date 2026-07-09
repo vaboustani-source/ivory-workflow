@@ -65,7 +65,7 @@ function MarginInner() {
   useEffect(() => {
     supabase.from("clients").select("wedding_date").not("wedding_date", "is", null).then(({ data }) => {
       const set = new Set<number>([currentYear]);
-      (data ?? []).forEach((r: any) => { if (r.wedding_date) set.add(new Date(r.wedding_date).getFullYear()); });
+      (data ?? []).forEach((r: any) => { if (r.wedding_date) set.add(parseDateFlexible(r.wedding_date).getFullYear()); });
       setYears(Array.from(set).sort());
     });
   }, [currentYear]);
