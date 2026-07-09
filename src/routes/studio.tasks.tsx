@@ -101,7 +101,7 @@ function TasksPage() {
     const later: TaskRow[] = [];
     filtered.forEach((t) => {
       if (!t.due_date) { later.push(t); return; }
-      const d = new Date(t.due_date); d.setHours(0, 0, 0, 0);
+      const d = parseDateFlexible(t.due_date); d.setHours(0, 0, 0, 0);
       if (d < today) overdue.push(t);
       else if (d.getTime() === today.getTime()) todayList.push(t);
       else if (d <= weekEnd) week.push(t);
