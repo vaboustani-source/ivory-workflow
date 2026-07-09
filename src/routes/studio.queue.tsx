@@ -1111,10 +1111,10 @@ function MilestoneCard({ item, onDone }: { item: QueueItem; onDone: () => void }
         const day = next.getDay();
         if (day !== 0 && day !== 6) added += 1;
       }
-      const newDate = next.toISOString().slice(0, 10);
+      const newDate = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-${String(next.getDate()).padStart(2, "0")}`;
       const { error } = await supabase.from("timeline_milestones").update({ due_date: newDate }).eq("id", ctx.milestone_id);
       if (error) throw error;
-      toast.success(`Snoozed until ${editorialDate(new Date(newDate))}`);
+      toast.success(`Snoozed until ${editorialDate(parseDateFlexible(newDate))}`);
       onDone();
     } catch (err: any) {
       toast.error(err.message ?? "Could not snooze");
