@@ -4,7 +4,7 @@ import { ChevronRight, Plus, Search, X, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useEffectiveScope, useViewAs } from "@/lib/view-as";
-import { shortDate, relativeTime } from "@/lib/dates";
+import { shortDate, relativeTime, parseDateFlexible } from "@/lib/dates";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/studio/tasks")({
