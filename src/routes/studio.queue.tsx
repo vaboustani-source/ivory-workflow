@@ -269,7 +269,7 @@ function QueuePage() {
           id: `ms:${m.id}`,
           type: "milestone_overdue",
           priority: PRIORITY.milestone_overdue,
-          ageMs: Date.now() - new Date(m.due_date).getTime(),
+          ageMs: Date.now() - parseDateFlexible(m.due_date).getTime(),
           client_id: m.client_id,
           couple_names: coupleName(m.client),
           wedding_date: m.client?.wedding_date ?? null,
