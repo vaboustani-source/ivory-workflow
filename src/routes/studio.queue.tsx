@@ -741,7 +741,7 @@ function QueueCard({ item, onRemove }: { item: QueueItem; onRemove: () => void }
           )}
           {item.wedding_date && (
             <span className="text-[11px] text-muted-foreground">
-              · wedding {editorialDate(new Date(item.wedding_date))}
+              · wedding {editorialDate(parseDateFlexible(item.wedding_date))}
             </span>
           )}
         </div>
