@@ -73,7 +73,7 @@ function HiddenQueuePage() {
                 <p className="text-sm text-foreground truncate">{it.title}</p>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
                   {it.client ? `${it.client.couple_name_1}${it.client.couple_name_2 ? " & " + it.client.couple_name_2 : ""}` : "—"}
-                  {" · "}due {editorialDate(new Date(it.due_date))}
+                  {" · "}due {editorialDate(parseDateFlexible(it.due_date))}
                   {it.action_type ? ` · ${it.action_type}` : ""}
                 </p>
               </div>
