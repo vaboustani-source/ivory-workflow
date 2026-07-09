@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useViewAs } from "@/lib/view-as";
-import { editorialDate, relativeTime, shortDate } from "@/lib/dates";
+import { editorialDate, relativeTime, shortDate, parseDateFlexible } from "@/lib/dates";
 import { toast } from "sonner";
 import {
   RefreshCw, MessageCircle, FileText, ClipboardList, AlertCircle,
