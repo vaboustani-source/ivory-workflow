@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft } from "lucide-react";
-import { editorialDate } from "@/lib/dates";
+import { editorialDate, parseDateFlexible } from "@/lib/dates";
 
 export const Route = createFileRoute("/studio/queue/hidden")({
   component: HiddenQueuePage,
