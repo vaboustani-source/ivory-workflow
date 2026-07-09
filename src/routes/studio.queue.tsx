@@ -1127,7 +1127,7 @@ function MilestoneCard({ item, onDone }: { item: QueueItem; onDone: () => void }
     <div className="space-y-3">
       <div className="text-sm text-foreground">
         <strong className="font-serif text-base">{ctx.title}</strong>
-        <span className="ml-2 text-xs text-magenta">due {editorialDate(new Date(ctx.due_date))} · overdue</span>
+        <span className="ml-2 text-xs text-magenta">due {editorialDate(parseDateFlexible(ctx.due_date))} · overdue</span>
       </div>
       <div className="flex items-center justify-end gap-2">
         <button onClick={onDone} className="px-3 py-1.5 text-xs text-muted-foreground hover:text-magenta inline-flex items-center gap-1.5"><X size={12} /> Dismiss</button>
