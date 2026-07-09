@@ -58,7 +58,7 @@ function ClientsList() {
 
   const filtered = rows.filter((r) => {
     if (statusFilter !== "all" && r.status !== statusFilter) return false;
-    if (yearFilter !== "all" && (!r.wedding_date || new Date(r.wedding_date).getFullYear().toString() !== yearFilter)) return false;
+    if (yearFilter !== "all" && (!r.wedding_date || parseDateFlexible(r.wedding_date).getFullYear().toString() !== yearFilter)) return false;
     if (search) {
       const q = search.toLowerCase();
       const name = `${r.couple_name_1} ${r.couple_name_2 ?? ""}`.toLowerCase();
