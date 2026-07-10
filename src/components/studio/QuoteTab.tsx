@@ -712,7 +712,7 @@ export function QuoteTab({ clientId, clientStatus }: { clientId: string; clientS
           rows={3}
           className="w-full rounded-sm px-3 py-2 text-sm outline-none"
           style={{ background: "var(--sbv-pink-soft)", color: "var(--sbv-purple)" }}
-          placeholder="Internal or client-facing notes for this quote…"
+          placeholder={`Internal or client-facing notes for this ${docLabelLower}…`}
         />
       </div>
 
