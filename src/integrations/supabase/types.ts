@@ -4727,6 +4727,7 @@ export type Database = {
         Args: { p_force?: boolean; p_id: string }
         Returns: Json
       }
+      assign_default_forms: { Args: { _client_id: string }; Returns: number }
       backfill_vendors_from_questionnaires: { Args: never; Returns: Json }
       calculate_production_stage: {
         Args: { _client_id: string }
@@ -4771,6 +4772,7 @@ export type Database = {
         Returns: undefined
       }
       clear_w9: { Args: { _contractor_id: string }; Returns: string }
+      client_has_engagement: { Args: { _client_id: string }; Returns: boolean }
       couple_my_vendors: {
         Args: { _client_id: string }
         Returns: {
