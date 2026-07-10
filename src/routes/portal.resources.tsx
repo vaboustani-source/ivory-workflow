@@ -12,9 +12,10 @@ export const Route = createFileRoute("/portal/resources")({
     slug: typeof s.slug === "string" ? s.slug : undefined,
   }),
   component: () => (
-    <PortalGate>{({ client }) => <PortalResources status={client.status} />}</PortalGate>
+    <PortalGate>{({ clientId, client }) => <PortalResources clientId={clientId} status={client.status} />}</PortalGate>
   ),
 });
+
 
 interface Resource {
   id: string;
