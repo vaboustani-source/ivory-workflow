@@ -376,19 +376,44 @@ function ContractModal({ contract, signatures, onClose, onEdit }: { contract: Co
             {contract.signed_at && <span>Signed {shortDate(contract.signed_at)}</span>}
             <span>{contract.signature_required_role === "both_partners" ? "Both partners required" : "Single signer"}</span>
           </div>
-          {onEdit && (
-            <button
-              onClick={onEdit}
-              className="inline-flex items-center gap-1.5 border border-gold text-gold px-3 py-1.5 rounded-md text-xs hover:bg-gold/10"
-            >
-              <Pencil size={12} /> Edit
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {contract.file_url && (
+              <button
+                onClick={() => openSignedContractPdf(contract.file_url!)}
+                className="inline-flex items-center gap-1.5 border border-gold text-gold px-3 py-1.5 rounded-md text-xs hover:bg-gold/10"
+              >
+                <Download size={12} /> Download PDF
+              </button>
+            )}
+            {onEdit && (
+              <button
+                onClick={onEdit}
+                className="inline-flex items-center gap-1.5 border border-gold text-gold px-3 py-1.5 rounded-md text-xs hover:bg-gold/10"
+              >
+                <Pencil size={12} /> Edit
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="prose prose-sm max-w-none font-serif text-foreground">
-          {contract.content ? <ReactMarkdown>{contract.content}</ReactMarkdown> : <p className="text-muted-foreground italic">No content.</p>}
-        </div>
+        {contract.file_url ? (
+          <div className="bg-background-alt/40 rounded-md p-6 border border-border text-center">
+            <FileText size={32} className="mx-auto text-gold mb-3" />
+            <p className="font-serif italic text-primary text-lg">Uploaded signed contract</p>
+            <p className="text-sm text-muted-foreground mt-1">{contract.content || "Signed outside the app."}</p>
+            <button
+              onClick={() => openSignedContractPdf(contract.file_url!)}
+              className="mt-4 inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm hover:bg-primary/90"
+            >
+              <Download size={14} /> Open PDF
+            </button>
+          </div>
+        ) : (
+          <div className="prose prose-sm max-w-none font-serif text-foreground">
+            {contract.content ? <ReactMarkdown>{contract.content}</ReactMarkdown> : <p className="text-muted-foreground italic">No content.</p>}
+          </div>
+        )}
+
 
         <div className="border-t border-gold/30 pt-6">
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-3">Signatures ({signatures.length} of {required})</p>
