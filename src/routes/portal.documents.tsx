@@ -28,7 +28,9 @@ interface Contract {
   id: string; title: string | null; content: string | null; status: string;
   sent_at: string | null; signed_at: string | null;
   signature_required_role: string | null;
+  file_url: string | null;
 }
+
 interface Invoice {
   id: string; invoice_number: string | null; invoice_type: string | null;
   status: string; amount: number | null; due_date: string | null; paid_at: string | null;
