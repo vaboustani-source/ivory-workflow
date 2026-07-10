@@ -234,7 +234,19 @@ function ProposalCard({ proposal, onOpen }: { proposal: Proposal; onOpen: () => 
   );
 }
 
+async function openPortalSignedPdf(path: string) {
+  const { data, error } = await supabase.storage
+    .from("signed-contracts")
+    .createSignedUrl(path, 300);
+  if (error || !data?.signedUrl) {
+    toast.error(error?.message ?? "Could not open PDF.");
+    return;
+  }
+  window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+}
+
 function ContractCard({ contract, signatures, onOpen }: { contract: Contract; signatures: Signature[]; onOpen: () => void }) {
+  const isUpload = !!contract.file_url;
   const isSigned = contract.status === "signed" || signatures.length > 0;
   return (
     <div className="bg-surface rounded-lg shadow-soft p-6 border-t-2 border-gold flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -248,15 +260,26 @@ function ContractCard({ contract, signatures, onOpen }: { contract: Contract; si
           {contract.signed_at ? `Signed ${shortDate(contract.signed_at)}` : contract.sent_at ? `Sent ${shortDate(contract.sent_at)}` : "Draft"}
         </p>
       </div>
-      <button
-        onClick={onOpen}
-        className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm hover:bg-primary/90 self-start md:self-auto"
-      >
-        {isSigned ? "View signed contract" : "View contract"}
-      </button>
+      <div className="flex gap-2 self-start md:self-auto">
+        {isUpload && (
+          <button
+            onClick={() => contract.file_url && openPortalSignedPdf(contract.file_url)}
+            className="border border-gold text-gold px-4 py-2 rounded-md text-sm hover:bg-gold/10"
+          >
+            Download PDF
+          </button>
+        )}
+        <button
+          onClick={onOpen}
+          className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm hover:bg-primary/90"
+        >
+          {isUpload ? "View" : isSigned ? "View signed contract" : "View contract"}
+        </button>
+      </div>
     </div>
   );
 }
+
 
 function InvoiceCard({ invoice, onOpen }: { invoice: Invoice; onOpen: () => void }) {
   const label = invoice.invoice_type === "retainer" ? "Retainer invoice"
