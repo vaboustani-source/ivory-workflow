@@ -396,25 +396,26 @@ export function QuoteTab({ clientId, clientStatus }: { clientId: string; clientS
   }, [catalog, pickerQuery]);
 
   if (loading) {
-    return <p className="text-sm opacity-70">Loading quote…</p>;
+    return <p className="text-sm opacity-70">Loading {docLabelLower}…</p>;
   }
 
   if (!quote) {
     return (
       <div className="space-y-5">
-        <h2 className="font-serif italic text-[28px]" style={{ color: "var(--sbv-green)" }}>Quote</h2>
+        <h2 className="font-serif italic text-[28px]" style={{ color: "var(--sbv-green)" }}>{DOC_LABEL}</h2>
         <div
           className="rounded-sm p-10 text-center"
           style={{ background: "var(--sbv-pink-soft)" }}
         >
-          <p className="font-serif text-xl mb-4" style={{ color: "var(--sbv-green)" }}>No quote yet.</p>
+          <p className="font-serif text-xl mb-4" style={{ color: "var(--sbv-green)" }}>No {docLabelLower} yet.</p>
           <button
             onClick={buildQuote}
             className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-sm text-sm font-medium text-white"
             style={{ background: "var(--sbv-green)" }}
           >
-            <Plus size={16} /> Build quote
+            <Plus size={16} /> Build {docLabelLower}
           </button>
+
         </div>
       </div>
     );
