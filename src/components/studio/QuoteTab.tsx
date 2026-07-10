@@ -861,3 +861,140 @@ export function QuoteTab({ clientId }: { clientId: string }) {
     </div>
   );
 }
+
+const PAYMENT_METHODS = ["Cash", "Check", "Venmo", "Zelle", "Bank transfer", "Card", "Other"] as const;
+
+function RecordPaymentModal({
+  invoice,
+  onClose,
+  onSaved,
+}: {
+  invoice: Invoice;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const defaultAmount = ((invoice.total_cents ?? 0) / 100).toString();
+  const [amount, setAmount] = useState(defaultAmount);
+  const [paidOn, setPaidOn] = useState(new Date().toISOString().slice(0, 10));
+  const [method, setMethod] = useState<string>("Check");
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const submit = async () => {
+    const dollars = Number(amount);
+    if (!amount || Number.isNaN(dollars) || dollars <= 0) {
+      toast.error("Enter a valid amount");
+      return;
+    }
+    setSaving(true);
+    const { error } = await (supabase as any).rpc("record_manual_payment", {
+      p_invoice_id: invoice.id,
+      p_amount_cents: Math.round(dollars * 100),
+      p_paid_on: paidOn,
+      p_method: method,
+      p_note: note.trim() || null,
+    });
+    setSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Payment recorded");
+    onSaved();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.4)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-surface rounded-lg shadow-soft p-6 w-full max-w-md space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="font-serif italic text-xl" style={{ color: "var(--sbv-green)" }}>
+            Record payment
+          </h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-primary">
+            <X size={18} />
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {invoice.label ?? "Invoice"}
+          {invoice.due_date ? ` · Due ${shortDate(invoice.due_date)}` : ""}
+        </p>
+        <div className="space-y-3">
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground block mb-1">
+              Amount ($)
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full px-3 py-2 bg-surface border border-border rounded-md text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground block mb-1">
+              Date paid
+            </label>
+            <input
+              type="date"
+              value={paidOn}
+              onChange={(e) => setPaidOn(e.target.value)}
+              className="w-full px-3 py-2 bg-surface border border-border rounded-md text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground block mb-1">
+              Method
+            </label>
+            <select
+              value={method}
+              onChange={(e) => setMethod(e.target.value)}
+              className="w-full px-3 py-2 bg-surface border border-border rounded-md text-sm"
+            >
+              {PAYMENT_METHODS.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground block mb-1">
+              Note (optional)
+            </label>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 bg-surface border border-border rounded-md text-sm"
+              placeholder="e.g. check #1042"
+            />
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-muted-foreground hover:text-primary"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={submit}
+            disabled={saving}
+            className="px-4 py-2 text-sm rounded-md text-white disabled:opacity-60"
+            style={{ background: "var(--sbv-green)" }}
+          >
+            {saving ? "Saving…" : "Record payment"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
