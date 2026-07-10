@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { shortDate } from "@/lib/dates";
-import { X, ClipboardList } from "lucide-react";
+import { X, ClipboardList, Plus, Trash2 } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+
 
 interface QuestionDef {
   id: string;
@@ -43,23 +45,33 @@ function countAnswered(q: Questionnaire) {
 }
 
 export function StudioFormsTab({ clientId, openQuestionnaireId }: { clientId: string; openQuestionnaireId?: string }) {
+  const { roles } = useAuth();
+  const canManage = roles.includes("owner") || roles.includes("studio_manager");
   const [items, setItems] = useState<Questionnaire[]>([]);
+  const [templates, setTemplates] = useState<{ id: string; name: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<Questionnaire | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [addingId, setAddingId] = useState<string>("");
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
+  const load = async () => {
+    const [{ data: qs }, { data: tmpls }] = await Promise.all([
+      supabase
         .from("questionnaires")
         .select("id, status, responses, sent_at, completed_at, auto_saved_at, template:questionnaire_templates(id, name, description, schema)")
         .eq("client_id", clientId)
-        .order("status", { ascending: true });
-      if (cancelled) return;
-      setItems((data ?? []) as any);
-      setLoading(false);
-    })();
-    return () => { cancelled = true; };
+        .order("status", { ascending: true }),
+      supabase.from("questionnaire_templates").select("id, name").eq("is_active", true).order("name"),
+    ]);
+    setItems((qs ?? []) as any);
+    setTemplates((tmpls ?? []) as any);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId]);
 
   useEffect(() => {
@@ -68,18 +80,60 @@ export function StudioFormsTab({ clientId, openQuestionnaireId }: { clientId: st
     if (q) setOpen(q);
   }, [loading, openQuestionnaireId, items]);
 
+  const assignedTemplateIds = useMemo(() => new Set(items.map((i) => i.template?.id).filter(Boolean) as string[]), [items]);
+  const availableTemplates = useMemo(() => templates.filter((t) => !assignedTemplateIds.has(t.id)), [templates, assignedTemplateIds]);
+
+  const handleAdd = async () => {
+    if (!addingId) return;
+    const { error } = await supabase.from("questionnaires").insert({ client_id: clientId, template_id: addingId, status: "not_started" });
+    if (error) { alert(error.message); return; }
+    setAdding(false);
+    setAddingId("");
+    await load();
+  };
+
+  const handleRemove = async (q: Questionnaire) => {
+    if (!confirm(`Remove "${q.template?.name ?? "this form"}" from this couple?`)) return;
+    const { error } = await supabase.from("questionnaires").delete().eq("id", q.id);
+    if (error) { alert(error.message); return; }
+    await load();
+  };
+
   if (loading) return <p className="font-serif italic text-primary">Loading…</p>;
+
+  const AddControl = canManage ? (
+    <div className="flex items-center gap-2">
+      {adding ? (
+        <>
+          <select value={addingId} onChange={(e) => setAddingId(e.target.value)} className="border border-gold/40 rounded-md px-3 py-2 text-sm bg-surface">
+            <option value="">Select a form…</option>
+            {availableTemplates.map((t) => <option key={t.id} value={t.id}>{t.name ?? "Untitled"}</option>)}
+          </select>
+          <button onClick={handleAdd} disabled={!addingId} className="bg-gold text-plum px-4 py-2 rounded-md text-sm disabled:opacity-50">Assign</button>
+          <button onClick={() => { setAdding(false); setAddingId(""); }} className="text-muted-foreground text-sm">Cancel</button>
+        </>
+      ) : (
+        <button onClick={() => setAdding(true)} className="border border-gold text-gold px-4 py-2 rounded-md text-sm hover:bg-gold/10 flex items-center gap-2">
+          <Plus size={14} /> Add form
+        </button>
+      )}
+    </div>
+  ) : null;
 
   if (items.length === 0) {
     return (
-      <div className="bg-surface rounded-lg shadow-soft py-20 text-center border-t-2 border-gold">
-        <p className="font-serif italic text-2xl text-primary">No forms yet.</p>
+      <div className="space-y-4">
+        {canManage && <div className="flex justify-end">{AddControl}</div>}
+        <div className="bg-surface rounded-lg shadow-soft py-20 text-center border-t-2 border-gold">
+          <p className="font-serif italic text-2xl text-primary">No forms yet.</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
+      {canManage && <div className="flex justify-end">{AddControl}</div>}
       {items.map((q) => {
         const { answered, total } = countAnswered(q);
         const sub = q.status === "complete" && q.completed_at ? `Submitted ${shortDate(q.completed_at)}`
@@ -99,7 +153,12 @@ export function StudioFormsTab({ clientId, openQuestionnaireId }: { clientId: st
                 <p className="text-sm text-foreground mt-1">{answered} of {total} answered</p>
               )}
             </div>
-            <button onClick={() => setOpen(q)} className="border border-gold text-gold px-4 py-2 rounded-md text-sm hover:bg-gold/10 self-start md:self-auto">View responses</button>
+            <div className="flex items-center gap-2 self-start md:self-auto">
+              <button onClick={() => setOpen(q)} className="border border-gold text-gold px-4 py-2 rounded-md text-sm hover:bg-gold/10">View responses</button>
+              {canManage && q.status !== "complete" && (
+                <button onClick={() => handleRemove(q)} className="text-muted-foreground hover:text-magenta p-2" title="Remove form"><Trash2 size={16} /></button>
+              )}
+            </div>
           </div>
         );
       })}
@@ -111,6 +170,7 @@ export function StudioFormsTab({ clientId, openQuestionnaireId }: { clientId: st
 
 function ResponsesModal({ questionnaire, onClose }: { questionnaire: Questionnaire; onClose: () => void }) {
   const schema: QuestionDef[] = Array.isArray(questionnaire.template?.schema) ? questionnaire.template!.schema : [];
+
 
   useEffect(() => {
     const onEsc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
