@@ -38,13 +38,15 @@ export const sendFormLink = createServerFn({ method: "POST" })
       .select("id, client_id, template:questionnaire_templates(name)")
       .eq("id", data.questionnaire_id)
       .maybeSingle();
-    if (qErr || !q) return { ok: false, error: "Form not found." } as const;
+    if (qErr || !q || !q.client_id) return { ok: false, error: "Form not found." } as const;
+    const clientId = q.client_id;
 
     const { data: client } = await supabase
       .from("clients")
       .select("primary_email, couple_name_1, couple_name_2")
-      .eq("id", q.client_id)
+      .eq("id", clientId)
       .maybeSingle();
+
     if (!client) return { ok: false, error: "Client not found." } as const;
 
     const recipient = (data.to ?? client.primary_email ?? "").trim();
