@@ -145,6 +145,9 @@
   --sbv-fuchsia: #B41E64;
   --sbv-ivory: #EBDBC8;
   --sbv-pink: #F0A5BE;
+  /* 15% pink on white — used as the soft tint for large surfaces */
+  --sbv-pink-soft: #FCF6F8;
+
   --sbv-foil-1: #F4E2A1;
   --sbv-foil-2: #C9A24A;
   --sbv-foil-3: #8C6A1E;
