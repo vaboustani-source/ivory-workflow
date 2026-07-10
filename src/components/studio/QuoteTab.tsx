@@ -841,16 +841,16 @@ export function QuoteTab({ clientId, clientStatus }: { clientId: string; clientS
               />
             )}
 
-            {/* Quote vs schedule consistency check */}
+            {/* {DOC_LABEL} vs schedule consistency check */}
             {quote && (
               <div className="flex items-center gap-2 text-[12px]" style={{ color: "var(--sbv-purple)" }}>
-                <span>Quote total: {fmtMoney(quote.total_cents)}</span>
+                <span>{DOC_LABEL} total: {fmtMoney(quote.total_cents)}</span>
                 <span>·</span>
                 <span>Scheduled in payments: {fmtMoney(scheduledTotal)}</span>
                 {quote.total_cents === scheduledTotal ? (
                   <span className="ml-1" style={{ color: "#103200" }}>✓ matches</span>
                 ) : (
-                  <span className="ml-1 opacity-70">⚠ quote total and payment schedule differ</span>
+                  <span className="ml-1 opacity-70">⚠ {docLabelLower} total and payment schedule differ</span>
                 )}
               </div>
             )}
@@ -860,7 +860,8 @@ export function QuoteTab({ clientId, clientStatus }: { clientId: string; clientS
 
       {!isOwner && (
         <p className="text-[11px] italic opacity-60" style={{ color: "var(--sbv-purple)" }}>
-          Quote saved automatically.
+          {DOC_LABEL} saved automatically.
+
         </p>
       )}
     </div>
