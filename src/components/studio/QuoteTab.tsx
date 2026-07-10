@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Trash2, X, Pencil, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsOwner } from "@/lib/auth";
+import { useAuth, useIsOwner } from "@/lib/auth";
 import { logActivity } from "@/lib/activityLog";
 import type { Database } from "@/integrations/supabase/types";
 import { shortDate } from "@/lib/dates";
