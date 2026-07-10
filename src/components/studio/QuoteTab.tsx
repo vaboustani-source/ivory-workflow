@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Trash2, X, Pencil, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsOwner } from "@/lib/auth";
+import { useAuth, useIsOwner } from "@/lib/auth";
 import { logActivity } from "@/lib/activityLog";
 import type { Database } from "@/integrations/supabase/types";
 import { shortDate } from "@/lib/dates";
@@ -89,6 +89,8 @@ function StatusPill({ status }: { status: QuoteStatus }) {
 
 export function QuoteTab({ clientId }: { clientId: string }) {
   const isOwner = useIsOwner();
+  const { roles } = useAuth();
+  const canRecordPayment = roles.includes("owner") || roles.includes("studio_manager");
   const [loading, setLoading] = useState(true);
   const [quote, setQuote] = useState<Quote | null>(null);
   const [items, setItems] = useState<QuoteItem[]>([]);
@@ -100,6 +102,8 @@ export function QuoteTab({ clientId }: { clientId: string }) {
   const [discountInput, setDiscountInput] = useState("");
   const [notesInput, setNotesInput] = useState("");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [manualPaidIds, setManualPaidIds] = useState<Set<string>>(new Set());
+  const [recordingFor, setRecordingFor] = useState<Invoice | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadInclusions = async (itemIds: string[]) => {
@@ -150,7 +154,18 @@ export function QuoteTab({ clientId }: { clientId: string }) {
       setDiscountInput("");
       setNotesInput("");
     }
-    setInvoices((invs ?? []) as Invoice[]);
+    const invRows = (invs ?? []) as Invoice[];
+    setInvoices(invRows);
+    if (invRows.length > 0) {
+      const { data: pa } = await supabase
+        .from("payment_attempts")
+        .select("invoice_id, stripe_event_type")
+        .in("invoice_id", invRows.map((i) => i.id))
+        .eq("stripe_event_type", "manual");
+      setManualPaidIds(new Set((pa ?? []).map((r: any) => r.invoice_id as string)));
+    } else {
+      setManualPaidIds(new Set());
+    }
     const { data: si } = await supabase
       .from("service_items")
       .select("id,name,item_type,price_cents,unit,is_active")
@@ -784,11 +799,42 @@ export function QuoteTab({ clientId }: { clientId: string }) {
                       <span className="font-serif text-base" style={{ color: "var(--sbv-green)", minWidth: "80px", textAlign: "right" }}>
                         {fmtMoney(amount)}
                       </span>
+                      {canRecordPayment && !isCancelled && inv.status !== "paid" && (
+                        <button
+                          onClick={() => setRecordingFor(inv)}
+                          className="text-[11px] px-2 py-1 rounded-sm border hover:opacity-80"
+                          style={{ borderColor: "var(--sbv-green)", color: "var(--sbv-green)" }}
+                        >
+                          Record payment
+                        </button>
+                      )}
+                      {canRecordPayment && inv.status === "paid" && manualPaidIds.has(inv.id) && (
+                        <button
+                          onClick={async () => {
+                            if (!confirm("Undo this manual payment?")) return;
+                            const { error } = await (supabase as any).rpc("undo_manual_payment", { p_invoice_id: inv.id });
+                            if (error) { toast.error(error.message); return; }
+                            toast.success("Payment reverted");
+                            load();
+                          }}
+                          className="text-[11px] px-2 py-1 rounded-sm border hover:opacity-80"
+                          style={{ borderColor: "var(--sbv-purple)", color: "var(--sbv-purple)" }}
+                        >
+                          Undo
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
+            {recordingFor && (
+              <RecordPaymentModal
+                invoice={recordingFor}
+                onClose={() => setRecordingFor(null)}
+                onSaved={() => { setRecordingFor(null); load(); }}
+              />
+            )}
 
             {/* Quote vs schedule consistency check */}
             {quote && (
@@ -812,6 +858,143 @@ export function QuoteTab({ clientId }: { clientId: string }) {
           Quote saved automatically.
         </p>
       )}
+    </div>
+  );
+}
+
+const PAYMENT_METHODS = ["Cash", "Check", "Venmo", "Zelle", "Bank transfer", "Card", "Other"] as const;
+
+function RecordPaymentModal({
+  invoice,
+  onClose,
+  onSaved,
+}: {
+  invoice: Invoice;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const defaultAmount = ((invoice.total_cents ?? 0) / 100).toString();
+  const [amount, setAmount] = useState(defaultAmount);
+  const [paidOn, setPaidOn] = useState(new Date().toISOString().slice(0, 10));
+  const [method, setMethod] = useState<string>("Check");
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const submit = async () => {
+    const dollars = Number(amount);
+    if (!amount || Number.isNaN(dollars) || dollars <= 0) {
+      toast.error("Enter a valid amount");
+      return;
+    }
+    setSaving(true);
+    const { error } = await (supabase as any).rpc("record_manual_payment", {
+      p_invoice_id: invoice.id,
+      p_amount_cents: Math.round(dollars * 100),
+      p_paid_on: paidOn,
+      p_method: method,
+      p_note: note.trim() || null,
+    });
+    setSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Payment recorded");
+    onSaved();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.4)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-surface rounded-lg shadow-soft p-6 w-full max-w-md space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="font-serif italic text-xl" style={{ color: "var(--sbv-green)" }}>
+            Record payment
+          </h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-primary">
+            <X size={18} />
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {invoice.label ?? "Invoice"}
+          {invoice.due_date ? ` · Due ${shortDate(invoice.due_date)}` : ""}
+        </p>
+        <div className="space-y-3">
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground block mb-1">
+              Amount ($)
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full px-3 py-2 bg-surface border border-border rounded-md text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground block mb-1">
+              Date paid
+            </label>
+            <input
+              type="date"
+              value={paidOn}
+              onChange={(e) => setPaidOn(e.target.value)}
+              className="w-full px-3 py-2 bg-surface border border-border rounded-md text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground block mb-1">
+              Method
+            </label>
+            <select
+              value={method}
+              onChange={(e) => setMethod(e.target.value)}
+              className="w-full px-3 py-2 bg-surface border border-border rounded-md text-sm"
+            >
+              {PAYMENT_METHODS.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground block mb-1">
+              Note (optional)
+            </label>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 bg-surface border border-border rounded-md text-sm"
+              placeholder="e.g. check #1042"
+            />
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-muted-foreground hover:text-primary"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={submit}
+            disabled={saving}
+            className="px-4 py-2 text-sm rounded-md text-white disabled:opacity-60"
+            style={{ background: "var(--sbv-green)" }}
+          >
+            {saving ? "Saving…" : "Record payment"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

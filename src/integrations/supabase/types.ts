@@ -4956,6 +4956,16 @@ export type Database = {
         Args: { p_client_id: string }
         Returns: undefined
       }
+      record_manual_payment: {
+        Args: {
+          p_amount_cents: number
+          p_invoice_id: string
+          p_method: string
+          p_note: string
+          p_paid_on: string
+        }
+        Returns: undefined
+      }
       reject_pending_change: {
         Args: { p_id: string; p_note?: string }
         Returns: Json
@@ -4980,6 +4990,10 @@ export type Database = {
           p_event_metadata?: Json
           p_event_name: string
         }
+        Returns: undefined
+      }
+      undo_manual_payment: {
+        Args: { p_invoice_id: string }
         Returns: undefined
       }
     }
