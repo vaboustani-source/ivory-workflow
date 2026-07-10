@@ -168,7 +168,9 @@ export function StudioFormsTab({ clientId, openQuestionnaireId }: { clientId: st
   );
 }
 
+function ResponsesModal({ questionnaire, onClose }: { questionnaire: Questionnaire; onClose: () => void }) {
   const schema: QuestionDef[] = Array.isArray(questionnaire.template?.schema) ? questionnaire.template!.schema : [];
+
 
   useEffect(() => {
     const onEsc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
