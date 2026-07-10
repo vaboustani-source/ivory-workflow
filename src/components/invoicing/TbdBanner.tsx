@@ -27,7 +27,7 @@ export function TbdBanner({ clientId, coupleLabel, weddingDateISO, depositCents,
       <div
         className="rounded-sm px-6 py-5 mb-6 flex items-start justify-between gap-4"
         style={{
-          background: overdue ? "#E592AC" : "var(--sbv-pink, #F0A5BE)",
+          background: overdue ? "#E592AC" : "var(--sbv-pink-soft)",
           borderLeft: overdue ? "4px solid var(--sbv-green)" : undefined,
           boxShadow: overdue ? undefined : "inset 4px 0 0 0 transparent",
         }}
