@@ -141,15 +141,26 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
             title="Contracts"
             action={
               clientLite && (
-                <button
-                  onClick={() => setCreatingNewContract(true)}
-                  className="inline-flex items-center gap-1.5 text-xs text-gold hover:text-primary uppercase tracking-wider"
-                >
-                  <Plus size={12} /> New contract
-                </button>
+                <div className="flex items-center gap-3">
+                  {canUploadSigned && (
+                    <button
+                      onClick={() => setUploadingSigned(true)}
+                      className="inline-flex items-center gap-1.5 text-xs text-gold hover:text-primary uppercase tracking-wider"
+                    >
+                      <Upload size={12} /> Upload signed contract
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setCreatingNewContract(true)}
+                    className="inline-flex items-center gap-1.5 text-xs text-gold hover:text-primary uppercase tracking-wider"
+                  >
+                    <Plus size={12} /> New contract
+                  </button>
+                </div>
               )
             }
           >
+
             {contracts.length === 0 ? (
               <p className="text-sm text-muted-foreground italic">No contracts yet.</p>
             ) : contracts.map((c) => {
