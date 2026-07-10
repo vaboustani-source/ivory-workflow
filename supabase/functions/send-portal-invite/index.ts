@@ -12,7 +12,8 @@ const corsHeaders = {
 };
 
 const LOVABLE_PROJECT_ID = "e3bb35b0-f740-4259-80fa-567ec5c67321";
-const PUBLIC_APP_URL = `https://project--${LOVABLE_PROJECT_ID}.lovable.app`;
+const PUBLIC_APP_URL = "https://studio.victoriaboustani.com";
+
 
 function getPortalBaseUrl(req: Request): string {
   const candidate = req.headers.get("origin") || req.headers.get("referer") || "";
