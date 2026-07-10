@@ -58,24 +58,32 @@ function stageForStatus(status: string | null | undefined): string | null {
   return status;
 }
 
-function PortalResources({ status }: { status: string | null }) {
+function PortalResources({ clientId, status }: { clientId: string; status: string | null }) {
   const search = useSearch({ from: "/portal/resources" });
   const navigate = useNavigate();
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasEngagement, setHasEngagement] = useState<boolean>(false);
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("resources")
-        .select("id, slug, title, excerpt, content, content_type, category, featured_image_url, external_url, file_url, display_order, surface_in_stages")
-        .eq("is_published", true)
-        .order("display_order", { ascending: true, nullsFirst: false })
-        .order("title", { ascending: true });
-      setResources((data ?? []) as Resource[]);
+      const [{ data }, { data: eng }] = await Promise.all([
+        supabase
+          .from("resources")
+          .select("id, slug, title, excerpt, content, content_type, category, featured_image_url, external_url, file_url, display_order, surface_in_stages")
+          .eq("is_published", true)
+          .order("display_order", { ascending: true, nullsFirst: false })
+          .order("title", { ascending: true }),
+        supabase.rpc("client_has_engagement", { _client_id: clientId }),
+      ]);
+      const rows = (data ?? []) as Resource[];
+      const engaged = Boolean(eng);
+      setHasEngagement(engaged);
+      setResources(engaged ? rows : rows.filter((r) => r.category !== "engagement_session"));
       setLoading(false);
     })();
-  }, []);
+  }, [clientId]);
+
 
   const currentStage = stageForStatus(status);
 
