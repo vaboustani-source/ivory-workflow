@@ -154,8 +154,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    const portalUrlStudio = "https://storiesbyvictoria.lovable.app/studio/messages";
-    const portalUrlCouple = "https://storiesbyvictoria.lovable.app/portal/messages";
+    const portalUrlStudio = "https://studio.victoriaboustani.com/studio/messages";
+    const portalUrlCouple = "https://studio.victoriaboustani.com/portal/messages";
+
 
     const sent: string[] = [];
     const skipped: string[] = [];
