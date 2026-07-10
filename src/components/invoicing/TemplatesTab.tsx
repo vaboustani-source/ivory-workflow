@@ -100,7 +100,7 @@ export function TemplatesTab() {
             )}
           </div>
 
-          <div className="rounded-md overflow-hidden" style={{ background: "var(--sbv-pink)" }}>
+          <div className="rounded-md overflow-hidden" style={{ background: "var(--sbv-pink-soft)" }}>
             <div className="grid grid-cols-[2fr_1.4fr_1fr_auto] px-5 py-3 text-[11px] uppercase tracking-[0.14em]" style={{ color: "var(--sbv-purple)" }}>
               <span>Template</span>
               <span>Package</span>

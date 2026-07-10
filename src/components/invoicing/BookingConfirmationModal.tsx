@@ -229,7 +229,7 @@ export function BookingConfirmationModal({ open, clientId, coupleLabel, weddingD
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(15,15,15,0.45)" }} onClick={onClose}>
       <div
         className="w-full max-w-[760px] max-h-[90vh] overflow-y-auto rounded-md shadow-xl"
-        style={{ background: "var(--sbv-pink, #F0A5BE)" }}
+        style={{ background: "var(--sbv-pink-soft)" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between px-7 pt-6">

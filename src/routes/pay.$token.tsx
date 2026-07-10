@@ -271,7 +271,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-lg p-6" style={{ background: "var(--sbv-pink)", border: "1px solid rgba(65,25,40,0.1)" }}>
+    <div className="rounded-lg p-6" style={{ background: "var(--sbv-pink-soft)", border: "1px solid rgba(65,25,40,0.1)" }}>
       {children}
     </div>
   );
