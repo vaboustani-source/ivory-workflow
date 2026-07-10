@@ -426,7 +426,7 @@ export function QuoteTab({ clientId, clientStatus }: { clientId: string; clientS
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="font-serif italic text-[28px]" style={{ color: "var(--sbv-green)" }}>Quote</h2>
+          <h2 className="font-serif italic text-[28px]" style={{ color: "var(--sbv-green)" }}>{DOC_LABEL}</h2>
           <StatusPill status={quote.status} />
         </div>
         {quote.status === "sent" && quote.valid_until && (
