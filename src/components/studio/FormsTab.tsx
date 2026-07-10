@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { shortDate } from "@/lib/dates";
-import { X, ClipboardList } from "lucide-react";
+import { X, ClipboardList, Plus, Trash2 } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+
 
 interface QuestionDef {
   id: string;
