@@ -57,7 +57,7 @@ function ItemCard({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.6 : item.is_active ? 1 : 0.55,
-    background: "var(--sbv-pink)",
+    background: "var(--sbv-pink-soft)",
   };
   const marginPct =
     marginCents != null && item.price_cents && item.price_cents > 0
@@ -125,7 +125,7 @@ function RatePanel({
   return (
     <div
       className="rounded-sm px-5 py-4 mb-6"
-      style={{ background: "#F0A5BE" }}
+      style={{ background: "var(--sbv-pink-soft)" }}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">

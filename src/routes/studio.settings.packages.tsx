@@ -72,7 +72,7 @@ function PackagesPage() {
                 key={p.id}
                 onClick={() => setEditing(p)}
                 className="w-full text-left rounded-sm px-4 py-3 flex items-center justify-between hover:opacity-90 transition-opacity"
-                style={{ background: "var(--sbv-pink)" }}
+                style={{ background: "var(--sbv-pink-soft)" }}
               >
                 {meta}
               </button>
@@ -80,7 +80,7 @@ function PackagesPage() {
               <div
                 key={p.id}
                 className="w-full rounded-sm px-4 py-3 flex items-center justify-between"
-                style={{ background: "var(--sbv-pink)" }}
+                style={{ background: "var(--sbv-pink-soft)" }}
               >
                 {meta}
               </div>

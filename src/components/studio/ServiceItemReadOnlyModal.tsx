@@ -46,7 +46,7 @@ export function ServiceItemReadOnlyModal({ open, onClose, item }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(65,25,40,0.45)" }}>
-      <div className="w-full max-w-[640px] max-h-[90vh] overflow-y-auto rounded-lg" style={{ background: "var(--sbv-pink)" }}>
+      <div className="w-full max-w-[640px] max-h-[90vh] overflow-y-auto rounded-lg" style={{ background: "var(--sbv-pink-soft)" }}>
         <div className="flex items-center justify-between px-7 pt-6 pb-2">
           <h2 className="font-serif text-2xl" style={{ color: "var(--sbv-green)" }}>{item.name}</h2>
           <button onClick={onClose} aria-label="Close" style={{ color: "var(--sbv-purple)" }} className="opacity-70 hover:opacity-100">

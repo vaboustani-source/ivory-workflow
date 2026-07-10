@@ -502,7 +502,7 @@ function ClientDetail() {
             </div>
           </div>
         ) : tab === "Financials" ? (
-          <QuoteTab clientId={id} />
+          <QuoteTab clientId={id} clientStatus={client.status} />
         ) : tab === "Timeline" ? (
           <ClientTimelineTab clientId={id} />
         ) : tab === "Photography" ? (

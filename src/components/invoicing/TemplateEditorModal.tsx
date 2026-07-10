@@ -196,7 +196,7 @@ export function TemplateEditorModal({ open, onClose, onSaved, template, packages
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(65, 25, 40, 0.45)" }}>
       <div
         className="w-full max-w-[720px] max-h-[90vh] overflow-y-auto rounded-lg shadow-elevated"
-        style={{ background: "var(--sbv-pink)" }}
+        style={{ background: "var(--sbv-pink-soft)" }}
       >
         <div className="flex items-center justify-between px-7 pt-6 pb-2">
           <h2 className="font-serif text-2xl" style={{ color: "var(--sbv-green)" }}>

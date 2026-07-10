@@ -87,7 +87,11 @@ function StatusPill({ status }: { status: QuoteStatus }) {
   );
 }
 
-export function QuoteTab({ clientId }: { clientId: string }) {
+export function QuoteTab({ clientId, clientStatus }: { clientId: string; clientStatus?: string | null }) {
+  const isBooked = ["booked", "active", "delivered", "complete", "archived"].includes(String(clientStatus ?? ""));
+  const DOC_LABEL = isBooked ? "Invoice" : "Quote";
+  const docLabelLower = DOC_LABEL.toLowerCase();
+
   const isOwner = useIsOwner();
   const { roles } = useAuth();
   const canRecordPayment = roles.includes("owner") || roles.includes("studio_manager");
@@ -392,25 +396,26 @@ export function QuoteTab({ clientId }: { clientId: string }) {
   }, [catalog, pickerQuery]);
 
   if (loading) {
-    return <p className="text-sm opacity-70">Loading quote…</p>;
+    return <p className="text-sm opacity-70">Loading {docLabelLower}…</p>;
   }
 
   if (!quote) {
     return (
       <div className="space-y-5">
-        <h2 className="font-serif italic text-[28px]" style={{ color: "var(--sbv-green)" }}>Quote</h2>
+        <h2 className="font-serif italic text-[28px]" style={{ color: "var(--sbv-green)" }}>{DOC_LABEL}</h2>
         <div
           className="rounded-sm p-10 text-center"
-          style={{ background: "#F0A5BE" }}
+          style={{ background: "var(--sbv-pink-soft)" }}
         >
-          <p className="font-serif text-xl mb-4" style={{ color: "var(--sbv-green)" }}>No quote yet.</p>
+          <p className="font-serif text-xl mb-4" style={{ color: "var(--sbv-green)" }}>No {docLabelLower} yet.</p>
           <button
             onClick={buildQuote}
             className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-sm text-sm font-medium text-white"
             style={{ background: "var(--sbv-green)" }}
           >
-            <Plus size={16} /> Build quote
+            <Plus size={16} /> Build {docLabelLower}
           </button>
+
         </div>
       </div>
     );
@@ -421,7 +426,7 @@ export function QuoteTab({ clientId }: { clientId: string }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="font-serif italic text-[28px]" style={{ color: "var(--sbv-green)" }}>Quote</h2>
+          <h2 className="font-serif italic text-[28px]" style={{ color: "var(--sbv-green)" }}>{DOC_LABEL}</h2>
           <StatusPill status={quote.status} />
         </div>
         {quote.status === "sent" && quote.valid_until && (
@@ -445,7 +450,7 @@ export function QuoteTab({ clientId }: { clientId: string }) {
             <div
               key={it.id}
               className="rounded-sm px-4 py-3"
-              style={{ background: "#F0A5BE" }}
+              style={{ background: "var(--sbv-pink-soft)" }}
             >
               <div className="grid grid-cols-12 gap-3 items-center">
                 <div className="col-span-5">
@@ -671,7 +676,7 @@ export function QuoteTab({ clientId }: { clientId: string }) {
       {/* Totals */}
       <div
         className="rounded-sm p-5 space-y-3"
-        style={{ background: "#F0A5BE" }}
+        style={{ background: "var(--sbv-pink-soft)" }}
       >
         <div className="flex justify-between text-sm" style={{ color: "var(--sbv-purple)" }}>
           <span>Subtotal</span>
@@ -706,8 +711,8 @@ export function QuoteTab({ clientId }: { clientId: string }) {
           onChange={(e) => setNotesInput(e.target.value)}
           rows={3}
           className="w-full rounded-sm px-3 py-2 text-sm outline-none"
-          style={{ background: "#F0A5BE", color: "var(--sbv-purple)" }}
-          placeholder="Internal or client-facing notes for this quote…"
+          style={{ background: "var(--sbv-pink-soft)", color: "var(--sbv-purple)" }}
+          placeholder={`Internal or client-facing notes for this ${docLabelLower}…`}
         />
       </div>
 
@@ -717,7 +722,7 @@ export function QuoteTab({ clientId }: { clientId: string }) {
         {invoices.length === 0 ? (
           <div
             className="rounded-sm p-8 text-center"
-            style={{ background: "#F0A5BE" }}
+            style={{ background: "var(--sbv-pink-soft)" }}
           >
             <p className="font-serif text-base" style={{ color: "var(--sbv-green)" }}>No payment schedule yet.</p>
           </div>
@@ -726,7 +731,7 @@ export function QuoteTab({ clientId }: { clientId: string }) {
             {/* Summary strip */}
             <div
               className="rounded-sm px-5 py-4 flex items-center justify-between"
-              style={{ background: "#F0A5BE" }}
+              style={{ background: "var(--sbv-pink-soft)" }}
             >
               <div className="text-center flex-1">
                 <p className="text-[10px] uppercase tracking-wider opacity-70" style={{ color: "var(--sbv-purple)" }}>Total scheduled</p>
@@ -768,7 +773,7 @@ export function QuoteTab({ clientId }: { clientId: string }) {
                   <div
                     key={inv.id}
                     className={`rounded-sm px-4 py-3 flex items-center justify-between ${isCancelled ? "opacity-50" : ""}`}
-                    style={{ background: "#F0A5BE" }}
+                    style={{ background: "var(--sbv-pink-soft)" }}
                   >
                     <div className="flex items-center gap-3">
                       <span
@@ -836,16 +841,16 @@ export function QuoteTab({ clientId }: { clientId: string }) {
               />
             )}
 
-            {/* Quote vs schedule consistency check */}
+            {/* {DOC_LABEL} vs schedule consistency check */}
             {quote && (
               <div className="flex items-center gap-2 text-[12px]" style={{ color: "var(--sbv-purple)" }}>
-                <span>Quote total: {fmtMoney(quote.total_cents)}</span>
+                <span>{DOC_LABEL} total: {fmtMoney(quote.total_cents)}</span>
                 <span>·</span>
                 <span>Scheduled in payments: {fmtMoney(scheduledTotal)}</span>
                 {quote.total_cents === scheduledTotal ? (
                   <span className="ml-1" style={{ color: "#103200" }}>✓ matches</span>
                 ) : (
-                  <span className="ml-1 opacity-70">⚠ quote total and payment schedule differ</span>
+                  <span className="ml-1 opacity-70">⚠ {docLabelLower} total and payment schedule differ</span>
                 )}
               </div>
             )}
@@ -855,7 +860,8 @@ export function QuoteTab({ clientId }: { clientId: string }) {
 
       {!isOwner && (
         <p className="text-[11px] italic opacity-60" style={{ color: "var(--sbv-purple)" }}>
-          Quote saved automatically.
+          {DOC_LABEL} saved automatically.
+
         </p>
       )}
     </div>
