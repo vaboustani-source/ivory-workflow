@@ -71,7 +71,7 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
     (async () => {
       const [p, c, i, s, cl] = await Promise.all([
         supabase.from("proposals").select("id, status, sent_at, accepted_at, line_items, subtotal, total, discount, personal_note, valid_until").eq("client_id", clientId).order("created_at", { ascending: false }),
-        supabase.from("contracts").select("id, title, content, status, sent_at, signed_at, signature_required_role").eq("client_id", clientId).order("created_at", { ascending: false }),
+        supabase.from("contracts").select("id, title, content, status, sent_at, signed_at, signature_required_role, file_url, contract_kind").eq("client_id", clientId).order("created_at", { ascending: false }),
         supabase.from("invoices").select("id, invoice_number, invoice_type, status, amount, due_date, paid_at").eq("client_id", clientId).order("created_at", { ascending: false }),
         supabase.from("contract_signatures").select("id, contract_id, typed_name, signed_at, ip_address, user_agent, signed_by_user_id, contract_version_hash").eq("client_id", clientId),
         supabase.from("clients").select("id, couple_name_1, couple_name_2, wedding_date, venue_name, primary_email, primary_client_last_name, alternate_client_last_name, primary_client_phone, alternate_client_phone, shared_street_address, shared_city, shared_state, shared_zipcode").eq("id", clientId).maybeSingle(),
