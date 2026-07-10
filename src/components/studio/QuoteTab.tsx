@@ -89,6 +89,8 @@ function StatusPill({ status }: { status: QuoteStatus }) {
 
 export function QuoteTab({ clientId }: { clientId: string }) {
   const isOwner = useIsOwner();
+  const { roles } = useAuth();
+  const canRecordPayment = roles.includes("owner") || roles.includes("studio_manager");
   const [loading, setLoading] = useState(true);
   const [quote, setQuote] = useState<Quote | null>(null);
   const [items, setItems] = useState<QuoteItem[]>([]);
@@ -100,6 +102,8 @@ export function QuoteTab({ clientId }: { clientId: string }) {
   const [discountInput, setDiscountInput] = useState("");
   const [notesInput, setNotesInput] = useState("");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [manualPaidIds, setManualPaidIds] = useState<Set<string>>(new Set());
+  const [recordingFor, setRecordingFor] = useState<Invoice | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadInclusions = async (itemIds: string[]) => {
