@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { shortDate } from "@/lib/dates";
 import ReactMarkdown from "react-markdown";
-import { X, FileText, Receipt, ScrollText, Plus, Pencil } from "lucide-react";
+import { X, FileText, Receipt, ScrollText, Plus, Pencil, Download, Upload } from "lucide-react";
 import { ContractEditorModal } from "./ContractEditorModal";
+import { UploadSignedContractModal, openSignedContractPdf } from "./UploadSignedContractModal";
+import { useAuth } from "@/lib/auth";
 
 interface Proposal {
   id: string; status: string; sent_at: string | null; accepted_at: string | null;
@@ -14,7 +16,10 @@ interface Contract {
   id: string; title: string | null; content: string | null; status: string;
   sent_at: string | null; signed_at: string | null;
   signature_required_role: string | null;
+  file_url: string | null;
+  contract_kind: string;
 }
+
 interface Invoice {
   id: string; invoice_number: string | null; invoice_type: string | null;
   status: string; amount: number | null; due_date: string | null; paid_at: string | null;
