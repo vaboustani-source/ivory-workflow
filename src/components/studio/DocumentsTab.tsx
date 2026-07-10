@@ -415,28 +415,31 @@ function ContractModal({ contract, signatures, onClose, onEdit }: { contract: Co
         )}
 
 
-        <div className="border-t border-gold/30 pt-6">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-3">Signatures ({signatures.length} of {required})</p>
-          {signatures.length === 0 ? (
-            <p className="font-serif italic text-gold">Awaiting signature.</p>
-          ) : (
-            <div className="space-y-4">
-              {signatures.map((s) => (
-                <div key={s.id} className="bg-background-alt/40 rounded-md p-4 border border-border">
-                  <p className="font-serif italic text-lg text-primary">{s.typed_name}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {signers.get(s.signed_by_user_id)?.full_name ?? "—"} · Signed {new Date(s.signed_at).toLocaleString()}
-                  </p>
-                  <div className="mt-2 text-[11px] text-muted-foreground space-y-0.5 font-mono">
-                    {s.ip_address && <p>IP: {s.ip_address}</p>}
-                    <p className="break-all">Hash: {s.contract_version_hash}</p>
+        {!contract.file_url && (
+          <div className="border-t border-gold/30 pt-6">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-3">Signatures ({signatures.length} of {required})</p>
+            {signatures.length === 0 ? (
+              <p className="font-serif italic text-gold">Awaiting signature.</p>
+            ) : (
+              <div className="space-y-4">
+                {signatures.map((s) => (
+                  <div key={s.id} className="bg-background-alt/40 rounded-md p-4 border border-border">
+                    <p className="font-serif italic text-lg text-primary">{s.typed_name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {signers.get(s.signed_by_user_id)?.full_name ?? "—"} · Signed {new Date(s.signed_at).toLocaleString()}
+                    </p>
+                    <div className="mt-2 text-[11px] text-muted-foreground space-y-0.5 font-mono">
+                      {s.ip_address && <p>IP: {s.ip_address}</p>}
+                      <p className="break-all">Hash: {s.contract_version_hash}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-              {isAwaiting && <p className="font-serif italic text-gold text-sm">Still awaiting {required - signatures.length} more signature{required - signatures.length === 1 ? "" : "s"}.</p>}
-            </div>
-          )}
-        </div>
+                ))}
+                {isAwaiting && <p className="font-serif italic text-gold text-sm">Still awaiting {required - signatures.length} more signature{required - signatures.length === 1 ? "" : "s"}.</p>}
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </ModalShell>
   );
