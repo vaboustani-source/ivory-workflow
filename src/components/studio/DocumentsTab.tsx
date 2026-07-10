@@ -217,12 +217,20 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
           contract={openContract}
           signatures={sigsByContract.get(openContract.id) ?? []}
           onClose={() => setOpenContract(null)}
-          onEdit={openContract.status !== "signed" ? () => {
+          onEdit={openContract.status !== "signed" && !openContract.file_url ? () => {
             setEditorContractId(openContract.id);
             setOpenContract(null);
           } : undefined}
         />
       )}
+      {uploadingSigned && (
+        <UploadSignedContractModal
+          clientId={clientId}
+          onClose={() => setUploadingSigned(false)}
+          onSaved={refresh}
+        />
+      )}
+
       {openInvoice && <InvoiceModal invoice={openInvoice} onClose={() => setOpenInvoice(null)} />}
       {clientLite && creatingNewContract && (
         <ContractEditorModal
