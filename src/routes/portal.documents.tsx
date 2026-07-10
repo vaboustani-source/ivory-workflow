@@ -526,6 +526,29 @@ function ContractModal({
     }
   };
 
+  if (contract.file_url) {
+    return (
+      <ModalShell title={contract.title ?? "Your contract"} onClose={onClose}>
+        <div className="px-6 md:px-10 py-10 text-center space-y-4">
+          <FileText size={40} className="mx-auto text-gold" />
+          <p className="font-serif italic text-2xl text-primary">Your signed contract</p>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            This contract was signed outside the app. Download the PDF to view or save a copy.
+          </p>
+          {contract.signed_at && (
+            <p className="text-xs text-muted-foreground">Signed {shortDate(contract.signed_at)}</p>
+          )}
+          <button
+            onClick={() => contract.file_url && openPortalSignedPdf(contract.file_url)}
+            className="mt-2 inline-flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-md text-sm hover:bg-primary/90"
+          >
+            Download PDF
+          </button>
+        </div>
+      </ModalShell>
+    );
+  }
+
   return (
     <ModalShell title={contract.title ?? "Your contract"} onClose={onClose}>
       <div className="px-6 md:px-10 py-8 space-y-8">
@@ -537,6 +560,7 @@ function ContractModal({
             <p className="font-serif italic text-muted-foreground">Contract content is not available.</p>
           )}
         </article>
+
 
         {/* Existing signatures */}
         {signatures.length > 0 && (
