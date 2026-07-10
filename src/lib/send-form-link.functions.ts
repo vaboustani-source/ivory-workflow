@@ -38,8 +38,8 @@ export const sendFormLink = createServerFn({ method: "POST" })
       .select("id, client_id, template:questionnaire_templates(name)")
       .eq("id", data.questionnaire_id)
       .maybeSingle();
-    if (qErr || !q || !q.client_id) return { ok: false, error: "Form not found." } as const;
-    const clientId = q.client_id;
+    if (qErr || !q || !clientId) return { ok: false, error: "Form not found." } as const;
+    const clientId = clientId;
 
     const { data: client } = await supabase
       .from("clients")
@@ -84,7 +84,7 @@ export const sendFormLink = createServerFn({ method: "POST" })
       htmlBody,
       textBody,
       tag: "form_link",
-      metadata: { client_id: q.client_id, questionnaire_id: q.id },
+      metadata: { client_id: clientId, questionnaire_id: q.id },
     });
 
     const status = sendResult.success
@@ -100,7 +100,7 @@ export const sendFormLink = createServerFn({ method: "POST" })
       reply_to: POSTMARK_DEFAULTS.replyTo,
       subject,
       template_key: "form_link",
-      client_id: q.client_id,
+      client_id: clientId,
       postmark_message_id: sendResult.messageId ?? null,
       status,
       error_message: sendResult.error ?? null,
