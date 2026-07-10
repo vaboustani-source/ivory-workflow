@@ -87,7 +87,11 @@ function StatusPill({ status }: { status: QuoteStatus }) {
   );
 }
 
-export function QuoteTab({ clientId }: { clientId: string }) {
+export function QuoteTab({ clientId, clientStatus }: { clientId: string; clientStatus?: string | null }) {
+  const isBooked = ["booked", "active", "delivered", "complete", "archived"].includes(String(clientStatus ?? ""));
+  const DOC_LABEL = isBooked ? "Invoice" : "Quote";
+  const docLabelLower = DOC_LABEL.toLowerCase();
+
   const isOwner = useIsOwner();
   const { roles } = useAuth();
   const canRecordPayment = roles.includes("owner") || roles.includes("studio_manager");
