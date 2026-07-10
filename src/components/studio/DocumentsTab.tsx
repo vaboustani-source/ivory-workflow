@@ -166,20 +166,35 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
             ) : contracts.map((c) => {
               const sigs = sigsByContract.get(c.id) ?? [];
               const required = c.signature_required_role === "both_partners" ? 2 : 1;
+              const isUpload = !!c.file_url;
               return (
                 <Row key={c.id} icon={<FileText size={16} className="text-gold" />}
                   title={c.title ?? "Contract"} pill={<StatusPill status={c.status} tone={contractTone(c.status)} />}
                   meta={c.signed_at ? `Signed ${shortDate(c.signed_at)}` : c.sent_at ? `Sent ${shortDate(c.sent_at)}` : "Draft"}
                   extra={
-                    <span className="flex items-center gap-3">
-                      <span>{c.signature_required_role === "both_partners" ? "Both partners required" : "Single signer"}</span>
-                      <span className="text-muted-foreground">·</span>
-                      <span>{sigs.length} of {required} signed</span>
-                    </span>
+                    isUpload ? (
+                      <span className="flex items-center gap-3">
+                        <span className="inline-flex items-center gap-1 text-gold"><Upload size={12} /> Uploaded PDF</span>
+                        <span className="text-muted-foreground">·</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); if (c.file_url) openSignedContractPdf(c.file_url); }}
+                          className="inline-flex items-center gap-1 text-gold hover:text-primary"
+                        >
+                          <Download size={12} /> Download PDF
+                        </button>
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-3">
+                        <span>{c.signature_required_role === "both_partners" ? "Both partners required" : "Single signer"}</span>
+                        <span className="text-muted-foreground">·</span>
+                        <span>{sigs.length} of {required} signed</span>
+                      </span>
+                    )
                   }
                   onView={() => setOpenContract(c)} />
               );
             })}
+
           </Section>
           {invoices.length > 0 && (
             <Section title="Invoices">
