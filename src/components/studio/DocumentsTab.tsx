@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { shortDate } from "@/lib/dates";
 import ReactMarkdown from "react-markdown";
-import { X, FileText, Receipt, ScrollText, Plus, Pencil } from "lucide-react";
+import { X, FileText, Receipt, ScrollText, Plus, Pencil, Download, Upload } from "lucide-react";
 import { ContractEditorModal } from "./ContractEditorModal";
+import { UploadSignedContractModal, openSignedContractPdf } from "./UploadSignedContractModal";
+import { useAuth } from "@/lib/auth";
 
 interface Proposal {
   id: string; status: string; sent_at: string | null; accepted_at: string | null;
@@ -14,7 +16,10 @@ interface Contract {
   id: string; title: string | null; content: string | null; status: string;
   sent_at: string | null; signed_at: string | null;
   signature_required_role: string | null;
+  file_url: string | null;
+  contract_kind: string;
 }
+
 interface Invoice {
   id: string; invoice_number: string | null; invoice_type: string | null;
   status: string; amount: number | null; due_date: string | null; paid_at: string | null;
@@ -55,14 +60,18 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
   const [openInvoice, setOpenInvoice] = useState<Invoice | null>(null);
   const [editorContractId, setEditorContractId] = useState<string | null>(null);
   const [creatingNewContract, setCreatingNewContract] = useState(false);
+  const [uploadingSigned, setUploadingSigned] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const { roles } = useAuth();
+  const canUploadSigned = roles.includes("owner") || roles.includes("studio_manager");
+
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const [p, c, i, s, cl] = await Promise.all([
         supabase.from("proposals").select("id, status, sent_at, accepted_at, line_items, subtotal, total, discount, personal_note, valid_until").eq("client_id", clientId).order("created_at", { ascending: false }),
-        supabase.from("contracts").select("id, title, content, status, sent_at, signed_at, signature_required_role").eq("client_id", clientId).order("created_at", { ascending: false }),
+        supabase.from("contracts").select("id, title, content, status, sent_at, signed_at, signature_required_role, file_url, contract_kind").eq("client_id", clientId).order("created_at", { ascending: false }),
         supabase.from("invoices").select("id, invoice_number, invoice_type, status, amount, due_date, paid_at").eq("client_id", clientId).order("created_at", { ascending: false }),
         supabase.from("contract_signatures").select("id, contract_id, typed_name, signed_at, ip_address, user_agent, signed_by_user_id, contract_version_hash").eq("client_id", clientId),
         supabase.from("clients").select("id, couple_name_1, couple_name_2, wedding_date, venue_name, primary_email, primary_client_last_name, alternate_client_last_name, primary_client_phone, alternate_client_phone, shared_street_address, shared_city, shared_state, shared_zipcode").eq("id", clientId).maybeSingle(),
@@ -132,34 +141,60 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
             title="Contracts"
             action={
               clientLite && (
-                <button
-                  onClick={() => setCreatingNewContract(true)}
-                  className="inline-flex items-center gap-1.5 text-xs text-gold hover:text-primary uppercase tracking-wider"
-                >
-                  <Plus size={12} /> New contract
-                </button>
+                <div className="flex items-center gap-3">
+                  {canUploadSigned && (
+                    <button
+                      onClick={() => setUploadingSigned(true)}
+                      className="inline-flex items-center gap-1.5 text-xs text-gold hover:text-primary uppercase tracking-wider"
+                    >
+                      <Upload size={12} /> Upload signed contract
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setCreatingNewContract(true)}
+                    className="inline-flex items-center gap-1.5 text-xs text-gold hover:text-primary uppercase tracking-wider"
+                  >
+                    <Plus size={12} /> New contract
+                  </button>
+                </div>
               )
             }
           >
+
             {contracts.length === 0 ? (
               <p className="text-sm text-muted-foreground italic">No contracts yet.</p>
             ) : contracts.map((c) => {
               const sigs = sigsByContract.get(c.id) ?? [];
               const required = c.signature_required_role === "both_partners" ? 2 : 1;
+              const isUpload = !!c.file_url;
               return (
                 <Row key={c.id} icon={<FileText size={16} className="text-gold" />}
                   title={c.title ?? "Contract"} pill={<StatusPill status={c.status} tone={contractTone(c.status)} />}
                   meta={c.signed_at ? `Signed ${shortDate(c.signed_at)}` : c.sent_at ? `Sent ${shortDate(c.sent_at)}` : "Draft"}
                   extra={
-                    <span className="flex items-center gap-3">
-                      <span>{c.signature_required_role === "both_partners" ? "Both partners required" : "Single signer"}</span>
-                      <span className="text-muted-foreground">·</span>
-                      <span>{sigs.length} of {required} signed</span>
-                    </span>
+                    isUpload ? (
+                      <span className="flex items-center gap-3">
+                        <span className="inline-flex items-center gap-1 text-gold"><Upload size={12} /> Uploaded PDF</span>
+                        <span className="text-muted-foreground">·</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); if (c.file_url) openSignedContractPdf(c.file_url); }}
+                          className="inline-flex items-center gap-1 text-gold hover:text-primary"
+                        >
+                          <Download size={12} /> Download PDF
+                        </button>
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-3">
+                        <span>{c.signature_required_role === "both_partners" ? "Both partners required" : "Single signer"}</span>
+                        <span className="text-muted-foreground">·</span>
+                        <span>{sigs.length} of {required} signed</span>
+                      </span>
+                    )
                   }
                   onView={() => setOpenContract(c)} />
               );
             })}
+
           </Section>
           {invoices.length > 0 && (
             <Section title="Invoices">
@@ -182,12 +217,20 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
           contract={openContract}
           signatures={sigsByContract.get(openContract.id) ?? []}
           onClose={() => setOpenContract(null)}
-          onEdit={openContract.status !== "signed" ? () => {
+          onEdit={openContract.status !== "signed" && !openContract.file_url ? () => {
             setEditorContractId(openContract.id);
             setOpenContract(null);
           } : undefined}
         />
       )}
+      {uploadingSigned && (
+        <UploadSignedContractModal
+          clientId={clientId}
+          onClose={() => setUploadingSigned(false)}
+          onSaved={refresh}
+        />
+      )}
+
       {openInvoice && <InvoiceModal invoice={openInvoice} onClose={() => setOpenInvoice(null)} />}
       {clientLite && creatingNewContract && (
         <ContractEditorModal
@@ -333,42 +376,70 @@ function ContractModal({ contract, signatures, onClose, onEdit }: { contract: Co
             {contract.signed_at && <span>Signed {shortDate(contract.signed_at)}</span>}
             <span>{contract.signature_required_role === "both_partners" ? "Both partners required" : "Single signer"}</span>
           </div>
-          {onEdit && (
+          <div className="flex items-center gap-2">
+            {contract.file_url && (
+              <button
+                onClick={() => openSignedContractPdf(contract.file_url!)}
+                className="inline-flex items-center gap-1.5 border border-gold text-gold px-3 py-1.5 rounded-md text-xs hover:bg-gold/10"
+              >
+                <Download size={12} /> Download PDF
+              </button>
+            )}
+            {onEdit && (
+              <button
+                onClick={onEdit}
+                className="inline-flex items-center gap-1.5 border border-gold text-gold px-3 py-1.5 rounded-md text-xs hover:bg-gold/10"
+              >
+                <Pencil size={12} /> Edit
+              </button>
+            )}
+          </div>
+        </div>
+
+        {contract.file_url ? (
+          <div className="bg-background-alt/40 rounded-md p-6 border border-border text-center">
+            <FileText size={32} className="mx-auto text-gold mb-3" />
+            <p className="font-serif italic text-primary text-lg">Uploaded signed contract</p>
+            <p className="text-sm text-muted-foreground mt-1">{contract.content || "Signed outside the app."}</p>
             <button
-              onClick={onEdit}
-              className="inline-flex items-center gap-1.5 border border-gold text-gold px-3 py-1.5 rounded-md text-xs hover:bg-gold/10"
+              onClick={() => openSignedContractPdf(contract.file_url!)}
+              className="mt-4 inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm hover:bg-primary/90"
             >
-              <Pencil size={12} /> Edit
+              <Download size={14} /> Open PDF
             </button>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="prose prose-sm max-w-none font-serif text-foreground">
+            {contract.content ? <ReactMarkdown>{contract.content}</ReactMarkdown> : <p className="text-muted-foreground italic">No content.</p>}
+          </div>
+        )}
 
-        <div className="prose prose-sm max-w-none font-serif text-foreground">
-          {contract.content ? <ReactMarkdown>{contract.content}</ReactMarkdown> : <p className="text-muted-foreground italic">No content.</p>}
-        </div>
 
-        <div className="border-t border-gold/30 pt-6">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-3">Signatures ({signatures.length} of {required})</p>
-          {signatures.length === 0 ? (
-            <p className="font-serif italic text-gold">Awaiting signature.</p>
-          ) : (
-            <div className="space-y-4">
-              {signatures.map((s) => (
-                <div key={s.id} className="bg-background-alt/40 rounded-md p-4 border border-border">
-                  <p className="font-serif italic text-lg text-primary">{s.typed_name}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {signers.get(s.signed_by_user_id)?.full_name ?? "—"} · Signed {new Date(s.signed_at).toLocaleString()}
-                  </p>
-                  <div className="mt-2 text-[11px] text-muted-foreground space-y-0.5 font-mono">
-                    {s.ip_address && <p>IP: {s.ip_address}</p>}
-                    <p className="break-all">Hash: {s.contract_version_hash}</p>
+        {!contract.file_url && (
+          <div className="border-t border-gold/30 pt-6">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-3">Signatures ({signatures.length} of {required})</p>
+            {signatures.length === 0 ? (
+              <p className="font-serif italic text-gold">Awaiting signature.</p>
+            ) : (
+              <div className="space-y-4">
+                {signatures.map((s) => (
+                  <div key={s.id} className="bg-background-alt/40 rounded-md p-4 border border-border">
+                    <p className="font-serif italic text-lg text-primary">{s.typed_name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {signers.get(s.signed_by_user_id)?.full_name ?? "—"} · Signed {new Date(s.signed_at).toLocaleString()}
+                    </p>
+                    <div className="mt-2 text-[11px] text-muted-foreground space-y-0.5 font-mono">
+                      {s.ip_address && <p>IP: {s.ip_address}</p>}
+                      <p className="break-all">Hash: {s.contract_version_hash}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-              {isAwaiting && <p className="font-serif italic text-gold text-sm">Still awaiting {required - signatures.length} more signature{required - signatures.length === 1 ? "" : "s"}.</p>}
-            </div>
-          )}
-        </div>
+                ))}
+                {isAwaiting && <p className="font-serif italic text-gold text-sm">Still awaiting {required - signatures.length} more signature{required - signatures.length === 1 ? "" : "s"}.</p>}
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </ModalShell>
   );

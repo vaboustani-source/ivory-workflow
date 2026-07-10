@@ -28,7 +28,9 @@ interface Contract {
   id: string; title: string | null; content: string | null; status: string;
   sent_at: string | null; signed_at: string | null;
   signature_required_role: string | null;
+  file_url: string | null;
 }
+
 interface Invoice {
   id: string; invoice_number: string | null; invoice_type: string | null;
   status: string; amount: number | null; due_date: string | null; paid_at: string | null;
@@ -54,7 +56,7 @@ function PortalDocuments({ clientId, client }: { clientId: string; client: any }
   const load = async () => {
     const [p, c, i, s] = await Promise.all([
       supabase.from("proposals").select("id, status, sent_at, accepted_at, line_items, subtotal, total, discount, personal_note, valid_until").eq("client_id", clientId).order("created_at", { ascending: false }),
-      supabase.from("contracts").select("id, title, content, status, sent_at, signed_at, signature_required_role").eq("client_id", clientId).order("created_at", { ascending: false }),
+      supabase.from("contracts").select("id, title, content, status, sent_at, signed_at, signature_required_role, file_url").eq("client_id", clientId).order("created_at", { ascending: false }),
       supabase.from("invoices").select("id, invoice_number, invoice_type, status, amount, due_date, paid_at").eq("client_id", clientId).order("created_at", { ascending: false }),
       supabase.from("contract_signatures").select("id, contract_id, typed_name, signed_at, ip_address, signed_by_user_id").eq("client_id", clientId),
     ]);
@@ -232,7 +234,19 @@ function ProposalCard({ proposal, onOpen }: { proposal: Proposal; onOpen: () => 
   );
 }
 
+async function openPortalSignedPdf(path: string) {
+  const { data, error } = await supabase.storage
+    .from("signed-contracts")
+    .createSignedUrl(path, 300);
+  if (error || !data?.signedUrl) {
+    toast.error(error?.message ?? "Could not open PDF.");
+    return;
+  }
+  window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+}
+
 function ContractCard({ contract, signatures, onOpen }: { contract: Contract; signatures: Signature[]; onOpen: () => void }) {
+  const isUpload = !!contract.file_url;
   const isSigned = contract.status === "signed" || signatures.length > 0;
   return (
     <div className="bg-surface rounded-lg shadow-soft p-6 border-t-2 border-gold flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -246,15 +260,26 @@ function ContractCard({ contract, signatures, onOpen }: { contract: Contract; si
           {contract.signed_at ? `Signed ${shortDate(contract.signed_at)}` : contract.sent_at ? `Sent ${shortDate(contract.sent_at)}` : "Draft"}
         </p>
       </div>
-      <button
-        onClick={onOpen}
-        className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm hover:bg-primary/90 self-start md:self-auto"
-      >
-        {isSigned ? "View signed contract" : "View contract"}
-      </button>
+      <div className="flex gap-2 self-start md:self-auto">
+        {isUpload && (
+          <button
+            onClick={() => contract.file_url && openPortalSignedPdf(contract.file_url)}
+            className="border border-gold text-gold px-4 py-2 rounded-md text-sm hover:bg-gold/10"
+          >
+            Download PDF
+          </button>
+        )}
+        <button
+          onClick={onOpen}
+          className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm hover:bg-primary/90"
+        >
+          {isUpload ? "View" : isSigned ? "View signed contract" : "View contract"}
+        </button>
+      </div>
     </div>
   );
 }
+
 
 function InvoiceCard({ invoice, onOpen }: { invoice: Invoice; onOpen: () => void }) {
   const label = invoice.invoice_type === "retainer" ? "Retainer invoice"
@@ -501,6 +526,29 @@ function ContractModal({
     }
   };
 
+  if (contract.file_url) {
+    return (
+      <ModalShell title={contract.title ?? "Your contract"} onClose={onClose}>
+        <div className="px-6 md:px-10 py-10 text-center space-y-4">
+          <FileText size={40} className="mx-auto text-gold" />
+          <p className="font-serif italic text-2xl text-primary">Your signed contract</p>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            This contract was signed outside the app. Download the PDF to view or save a copy.
+          </p>
+          {contract.signed_at && (
+            <p className="text-xs text-muted-foreground">Signed {shortDate(contract.signed_at)}</p>
+          )}
+          <button
+            onClick={() => contract.file_url && openPortalSignedPdf(contract.file_url)}
+            className="mt-2 inline-flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-md text-sm hover:bg-primary/90"
+          >
+            Download PDF
+          </button>
+        </div>
+      </ModalShell>
+    );
+  }
+
   return (
     <ModalShell title={contract.title ?? "Your contract"} onClose={onClose}>
       <div className="px-6 md:px-10 py-8 space-y-8">
@@ -512,6 +560,7 @@ function ContractModal({
             <p className="font-serif italic text-muted-foreground">Contract content is not available.</p>
           )}
         </article>
+
 
         {/* Existing signatures */}
         {signatures.length > 0 && (
