@@ -15,7 +15,7 @@ const inputSchema = z.object({
 function getPortalBaseUrl(): string {
   const envBase = process.env.PUBLIC_APP_URL || process.env.VITE_PUBLIC_APP_URL;
   if (envBase) return envBase.replace(/\/$/, "");
-  return "https://ivory-workflow.lovable.app";
+  return "https://studio.victoriaboustani.com";
 }
 
 export const sendFormLink = createServerFn({ method: "POST" })
