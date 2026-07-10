@@ -154,7 +154,18 @@ export function QuoteTab({ clientId }: { clientId: string }) {
       setDiscountInput("");
       setNotesInput("");
     }
-    setInvoices((invs ?? []) as Invoice[]);
+    const invRows = (invs ?? []) as Invoice[];
+    setInvoices(invRows);
+    if (invRows.length > 0) {
+      const { data: pa } = await supabase
+        .from("payment_attempts")
+        .select("invoice_id, stripe_event_type")
+        .in("invoice_id", invRows.map((i) => i.id))
+        .eq("stripe_event_type", "manual");
+      setManualPaidIds(new Set((pa ?? []).map((r: any) => r.invoice_id as string)));
+    } else {
+      setManualPaidIds(new Set());
+    }
     const { data: si } = await supabase
       .from("service_items")
       .select("id,name,item_type,price_cents,unit,is_active")
