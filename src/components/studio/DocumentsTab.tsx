@@ -60,7 +60,11 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
   const [openInvoice, setOpenInvoice] = useState<Invoice | null>(null);
   const [editorContractId, setEditorContractId] = useState<string | null>(null);
   const [creatingNewContract, setCreatingNewContract] = useState(false);
+  const [uploadingSigned, setUploadingSigned] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const { roles } = useAuth();
+  const canUploadSigned = roles.includes("owner") || roles.includes("studio_manager");
+
 
   useEffect(() => {
     let cancelled = false;
