@@ -38,8 +38,9 @@ export const sendFormLink = createServerFn({ method: "POST" })
       .select("id, client_id, template:questionnaire_templates(name)")
       .eq("id", data.questionnaire_id)
       .maybeSingle();
-    if (qErr || !q || !clientId) return { ok: false, error: "Form not found." } as const;
-    const clientId = clientId;
+    if (qErr || !q || !q.client_id) return { ok: false, error: "Form not found." } as const;
+    const clientId: string = q.client_id;
+
 
     const { data: client } = await supabase
       .from("clients")
