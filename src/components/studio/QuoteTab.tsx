@@ -799,11 +799,42 @@ export function QuoteTab({ clientId }: { clientId: string }) {
                       <span className="font-serif text-base" style={{ color: "var(--sbv-green)", minWidth: "80px", textAlign: "right" }}>
                         {fmtMoney(amount)}
                       </span>
+                      {canRecordPayment && !isCancelled && inv.status !== "paid" && (
+                        <button
+                          onClick={() => setRecordingFor(inv)}
+                          className="text-[11px] px-2 py-1 rounded-sm border hover:opacity-80"
+                          style={{ borderColor: "var(--sbv-green)", color: "var(--sbv-green)" }}
+                        >
+                          Record payment
+                        </button>
+                      )}
+                      {canRecordPayment && inv.status === "paid" && manualPaidIds.has(inv.id) && (
+                        <button
+                          onClick={async () => {
+                            if (!confirm("Undo this manual payment?")) return;
+                            const { error } = await (supabase as any).rpc("undo_manual_payment", { p_invoice_id: inv.id });
+                            if (error) { toast.error(error.message); return; }
+                            toast.success("Payment reverted");
+                            load();
+                          }}
+                          className="text-[11px] px-2 py-1 rounded-sm border hover:opacity-80"
+                          style={{ borderColor: "var(--sbv-purple)", color: "var(--sbv-purple)" }}
+                        >
+                          Undo
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
+            {recordingFor && (
+              <RecordPaymentModal
+                invoice={recordingFor}
+                onClose={() => setRecordingFor(null)}
+                onSaved={() => { setRecordingFor(null); load(); }}
+              />
+            )}
 
             {/* Quote vs schedule consistency check */}
             {quote && (
