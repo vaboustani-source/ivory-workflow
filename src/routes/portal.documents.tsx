@@ -56,7 +56,7 @@ function PortalDocuments({ clientId, client }: { clientId: string; client: any }
   const load = async () => {
     const [p, c, i, s] = await Promise.all([
       supabase.from("proposals").select("id, status, sent_at, accepted_at, line_items, subtotal, total, discount, personal_note, valid_until").eq("client_id", clientId).order("created_at", { ascending: false }),
-      supabase.from("contracts").select("id, title, content, status, sent_at, signed_at, signature_required_role").eq("client_id", clientId).order("created_at", { ascending: false }),
+      supabase.from("contracts").select("id, title, content, status, sent_at, signed_at, signature_required_role, file_url").eq("client_id", clientId).order("created_at", { ascending: false }),
       supabase.from("invoices").select("id, invoice_number, invoice_type, status, amount, due_date, paid_at").eq("client_id", clientId).order("created_at", { ascending: false }),
       supabase.from("contract_signatures").select("id, contract_id, typed_name, signed_at, ip_address, signed_by_user_id").eq("client_id", clientId),
     ]);
