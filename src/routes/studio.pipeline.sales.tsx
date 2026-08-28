@@ -104,7 +104,14 @@ function PipelinePage() {
     setLeads(filtered);
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  // Re-run when the session profile resolves: on a hard refresh the auth
+  // token restores asynchronously, and a query fired before that returns
+  // zero rows under RLS, leaving the board empty until in-app navigation.
+  useEffect(() => {
+    if (!profile?.id) return;
+    load();
+    /* eslint-disable-next-line */
+  }, [profile?.id]);
 
   const grouped = useMemo(() => {
     const map: Record<ColumnId, { lead: Lead; sinceISO: string }[]> = {
