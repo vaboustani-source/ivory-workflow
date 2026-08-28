@@ -324,12 +324,12 @@ function ClientDetail() {
 
       {/* Tabs */}
       <div className="px-8 border-b border-primary/20 bg-background">
-        <div className="flex gap-1 -mb-px">
+        <div className="flex gap-1 -mb-px overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {TABS.map((t) => (
             <button
               key={t}
               onClick={() => changeTab(t)}
-              className={`px-4 py-3 text-sm transition-colors border-b-[3px] ${
+              className={`px-4 py-3 text-sm transition-colors border-b-[3px] shrink-0 ${
                 tab === t ? "text-primary border-primary" : "text-muted-foreground border-transparent hover:text-primary"
               }`}
             >
