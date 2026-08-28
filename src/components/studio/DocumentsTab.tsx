@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { shortDate } from "@/lib/dates";
 import ReactMarkdown from "react-markdown";
-import { X, FileText, Receipt, ScrollText, Plus, Pencil, Download, Upload } from "lucide-react";
+import { X, FileText, Receipt, ScrollText, Plus, Pencil, Download, Upload, Eye } from "lucide-react";
 import { ContractEditorModal } from "./ContractEditorModal";
 import { UploadSignedContractModal, openSignedContractPdf } from "./UploadSignedContractModal";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { ProposalExperience } from "@/components/ProposalExperience";
 
 interface ProposalOption {
   key: string; name: string; description?: string;
@@ -70,6 +71,7 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
   const [editorContractId, setEditorContractId] = useState<string | null>(null);
   const [creatingNewContract, setCreatingNewContract] = useState(false);
   const [editingProposal, setEditingProposal] = useState<Proposal | "new" | null>(null);
+  const [previewProposal, setPreviewProposal] = useState<Proposal | null>(null);
   const [uploadingSigned, setUploadingSigned] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const { roles } = useAuth();
@@ -271,7 +273,13 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
           proposal={openProposal}
           onClose={() => setOpenProposal(null)}
           onEdit={openProposal.status !== "accepted" ? () => { setEditingProposal(openProposal); setOpenProposal(null); } : undefined}
+          onPreview={() => { setPreviewProposal(openProposal); setOpenProposal(null); }}
         />
+      )}
+      {previewProposal && (
+        <ModalShell title="Couple view (preview)" onClose={() => setPreviewProposal(null)}>
+          <ProposalExperience proposal={previewProposal as any} client={clientLite} preview />
+        </ModalShell>
       )}
       {editingProposal && clientLite && (
         <ProposalEditorModal
@@ -374,7 +382,7 @@ function ModalShell({ children, onClose, title }: { children: React.ReactNode; o
   );
 }
 
-function ProposalModal({ proposal, onClose, onEdit }: { proposal: Proposal; onClose: () => void; onEdit?: () => void }) {
+function ProposalModal({ proposal, onClose, onEdit, onPreview }: { proposal: Proposal; onClose: () => void; onEdit?: () => void; onPreview?: () => void }) {
   const items: Array<{ label: string; amount: number }> = Array.isArray(proposal.line_items) ? proposal.line_items : [];
   const options: ProposalOption[] = Array.isArray(proposal.options) ? proposal.options : [];
   return (
@@ -387,11 +395,18 @@ function ProposalModal({ proposal, onClose, onEdit }: { proposal: Proposal; onCl
             {proposal.accepted_at && <span>Accepted {shortDate(proposal.accepted_at)}</span>}
             {proposal.valid_until && <span>Valid until {shortDate(proposal.valid_until)}</span>}
           </div>
-          {onEdit && (
-            <button onClick={onEdit} className="inline-flex items-center gap-1.5 text-xs text-gold hover:text-primary uppercase tracking-wider">
-              <Pencil size={12} /> Edit
-            </button>
-          )}
+          <div className="flex items-center gap-4">
+            {onPreview && (
+              <button onClick={onPreview} className="inline-flex items-center gap-1.5 text-xs text-gold hover:text-primary uppercase tracking-wider">
+                <Eye size={12} /> Preview couple view
+              </button>
+            )}
+            {onEdit && (
+              <button onClick={onEdit} className="inline-flex items-center gap-1.5 text-xs text-gold hover:text-primary uppercase tracking-wider">
+                <Pencil size={12} /> Edit
+              </button>
+            )}
+          </div>
         </div>
         {proposal.acceptance_note && (
           <div className="rounded-md border border-sage/40 bg-sage/5 p-4">
