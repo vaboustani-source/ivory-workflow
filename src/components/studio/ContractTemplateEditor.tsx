@@ -1,4 +1,5 @@
 import { useEditor, EditorContent } from "@tiptap/react";
+import { RESOURCE_PROSE_CSS } from "@/lib/resourceProseStyles";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -203,10 +204,13 @@ export function ContractTemplateEditor({ initialContent, templateType, onChange 
               {showRaw ? (
                 <pre className="text-xs whitespace-pre-wrap font-mono text-foreground">{resolvePlaceholdersWithMarkers(html, SAMPLE_CONTEXT)}</pre>
               ) : (
-                <div
-                  className="prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: resolvePlaceholdersWithMarkers(html, SAMPLE_CONTEXT) }}
-                />
+                <>
+                  <style>{RESOURCE_PROSE_CSS}</style>
+                  <div
+                    className="resource-prose max-w-none"
+                    dangerouslySetInnerHTML={{ __html: resolvePlaceholdersWithMarkers(html, SAMPLE_CONTEXT) }}
+                  />
+                </>
               )}
             </div>
           </div>
