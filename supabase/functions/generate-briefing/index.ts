@@ -312,8 +312,8 @@ async function generateAISummary(data: BriefingData): Promise<string | null> {
 }
 
 const BRIEFING_EMAIL_COLORS = {
-  bg: "#FBF6EE", surface: "#FFFFFF", primary: "#5B0E1A", accent: "#C73E5C",
-  gold: "#C9A24A", muted: "#8A7E72", text: "#2A1E1A", border: "#E8DDC9",
+  bg: "#F6EFE3", surface: "#FFFFFF", primary: "#4A1D31", accent: "#B41E64",
+  gold: "#C9A24A", muted: "#7C6A72", text: "#2A1A22", border: "#E7DCD2",
 };
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));

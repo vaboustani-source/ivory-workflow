@@ -4,16 +4,16 @@
 
 export const BRAND = {
   // Colors
-  cream: "#F5EDE6",
-  blush: "#F2DCDC",
-  burgundy: "#6B1F2A",
-  plum: "#4A1F3D",
-  magenta: "#C5266F",
-  gold: "#B8924A",
-  sage: "#5A7A4A",
-  textPrimary: "#2A1820",
-  textSecondary: "#7A6B70",
-  hairline: "#E8DAD9",
+  cream: "#F6EFE3",
+  blush: "#F9E7EE",
+  burgundy: "#4A1D31",
+  plum: "#411928",
+  magenta: "#B41E64",
+  gold: "#C9A24A",
+  sage: "#4C6B2B",
+  textPrimary: "#2A1A22",
+  textSecondary: "#7C6A72",
+  hairline: "#E7DCD2",
 
   // Layout
   emailMaxWidth: 600,

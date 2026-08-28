@@ -4,14 +4,14 @@ import type { BriefingData } from "./briefings";
 import { fmtDateRange, fmtMoney } from "./briefings";
 
 const COLORS = {
-  bg: "#FBF6EE",        // cream
+  bg: "#F6EFE3",        // cream
   surface: "#FFFFFF",
-  primary: "#5B0E1A",   // burgundy
-  accent: "#C73E5C",    // magenta
+  primary: "#4A1D31",   // wine plum
+  accent: "#B41E64",    // brand fuchsia
   gold: "#C9A24A",
-  muted: "#8A7E72",
-  text: "#2A1E1A",
-  border: "#E8DDC9",
+  muted: "#7C6A72",
+  text: "#2A1A22",
+  border: "#E7DCD2",
 };
 
 function escapeHtml(s: string): string {

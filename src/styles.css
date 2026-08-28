@@ -58,47 +58,50 @@
 :root {
   --radius: 8px;
 
-  /* SBV palette in oklch */
-  --background: oklch(0.948 0.018 60);          /* #F5EDE6 warm cream */
-  --background-alt: oklch(0.910 0.030 18);      /* #F2DCDC soft blush */
+  /* SBV palette in oklch — from the brand moodboard:
+     wine plum (velvet/envelope) is the ink, fuchsia the accent,
+     foil gold the highlight, cream the ground, blush the soft alt,
+     greige canvas for hairlines, forest green for success. */
+  --background: oklch(0.954 0.018 81);           /* #F6EFE3 warm cream */
+  --background-alt: oklch(0.944 0.022 352);      /* #F9E7EE soft blush (pink, not red) */
   --surface: oklch(1 0 0);                       /* #FFFFFF */
-  --foreground: oklch(0.220 0.022 12);           /* #2A1A1F */
-  --muted: oklch(0.948 0.018 60);
-  --muted-foreground: oklch(0.490 0.014 10);     /* #7A6A6E */
+  --foreground: oklch(0.242 0.029 348);          /* #2A1A22 plum-black */
+  --muted: oklch(0.954 0.018 81);
+  --muted-foreground: oklch(0.544 0.026 349);    /* #7C6A72 warm plum-gray */
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.220 0.022 12);
+  --card-foreground: oklch(0.242 0.029 348);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.220 0.022 12);
+  --popover-foreground: oklch(0.242 0.029 348);
 
-  --primary: oklch(0.350 0.108 18);              /* #6B1F2A burgundy */
-  --primary-foreground: oklch(0.964 0.018 60);
-  --secondary: oklch(0.948 0.018 60);
-  --secondary-foreground: oklch(0.350 0.108 18);
+  --primary: oklch(0.304 0.073 354.5);           /* #4A1D31 wine plum */
+  --primary-foreground: oklch(0.954 0.018 81);
+  --secondary: oklch(0.954 0.018 81);
+  --secondary-foreground: oklch(0.304 0.073 354.5);
 
-  --plum: oklch(0.293 0.082 340);                /* #4A1F3D aubergine */
-  --magenta: oklch(0.522 0.220 0.5);             /* #C5266F */
-  --gold: oklch(0.660 0.090 80);                 /* #B8924A antique gold */
-  --sage: oklch(0.530 0.063 130);                /* #5A7A4A */
+  --plum: oklch(0.279 0.065 358.6);              /* #411928 brand plum */
+  --magenta: oklch(0.512 0.189 359);             /* #B41E64 brand fuchsia */
+  --gold: oklch(0.731 0.115 85);                 /* #C9A24A foil gold */
+  --sage: oklch(0.488 0.099 131);                /* #4C6B2B forest green */
 
-  --accent: oklch(0.910 0.030 18);
-  --accent-foreground: oklch(0.350 0.108 18);
+  --accent: oklch(0.944 0.022 352);
+  --accent-foreground: oklch(0.304 0.073 354.5);
 
-  --destructive: oklch(0.420 0.155 25);          /* #8B2820 */
+  --destructive: oklch(0.420 0.155 25);          /* #8B2820 functional error red */
   --destructive-foreground: oklch(1 0 0);
 
-  --border: oklch(0.890 0.012 18);               /* #E8DAD9 */
-  --input: oklch(0.890 0.012 18);
-  --ring: oklch(0.350 0.108 18);
+  --border: oklch(0.901 0.018 65);               /* #E7DCD2 greige hairline */
+  --input: oklch(0.901 0.018 65);
+  --ring: oklch(0.304 0.073 354.5);
 
-  --sidebar: oklch(0.293 0.082 340);             /* plum */
-  --sidebar-foreground: oklch(0.948 0.018 60);
-  --sidebar-primary: oklch(0.660 0.090 80);
-  --sidebar-primary-foreground: oklch(0.220 0.022 12);
-  --sidebar-accent: oklch(0.350 0.075 340);
-  --sidebar-accent-foreground: oklch(0.948 0.018 60);
-  --sidebar-border: oklch(0.350 0.075 340);
-  --sidebar-ring: oklch(0.660 0.090 80);
+  --sidebar: oklch(0.279 0.065 358.6);           /* brand plum */
+  --sidebar-foreground: oklch(0.954 0.018 81);
+  --sidebar-primary: oklch(0.731 0.115 85);      /* foil gold */
+  --sidebar-primary-foreground: oklch(0.242 0.029 348);
+  --sidebar-accent: oklch(0.324 0.077 355);      /* #512136 hover plum */
+  --sidebar-accent-foreground: oklch(0.954 0.018 81);
+  --sidebar-border: oklch(0.324 0.077 355);
+  --sidebar-ring: oklch(0.731 0.115 85);
 }
 
 .dark {

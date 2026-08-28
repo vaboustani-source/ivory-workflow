@@ -244,7 +244,7 @@ export function BookingConfirmationModal({ open, clientId, coupleLabel, weddingD
 
         <div className="px-7 py-5 space-y-6">
           {loading && <p className="text-sm italic" style={{ color: "var(--sbv-purple)" }}>Loading…</p>}
-          {error && <p className="text-sm" style={{ color: "#7a1c1c" }}>{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           {bundle && !loading && (
             <>
@@ -304,7 +304,7 @@ export function BookingConfirmationModal({ open, clientId, coupleLabel, weddingD
                     </section>
                   )}
 
-                  {calcError && <p className="text-sm" style={{ color: "#7a1c1c" }}>{calcError}</p>}
+                  {calcError && <p className="text-sm text-destructive">{calcError}</p>}
 
                   {calcArr && (
                     <ScheduleTable bundle={bundle} calcArr={calcArr} studioReceives={studioReceives} clientPays={clientPays} />
@@ -348,7 +348,7 @@ export function BookingConfirmationModal({ open, clientId, coupleLabel, weddingD
                   <section>
                     <h3 className="font-serif text-xl mb-2" style={{ color: "var(--sbv-green)" }}>Date hold details</h3>
                     {!weddingDateISO ? (
-                      <p className="text-sm" style={{ color: "#7a1c1c" }}>Set a wedding date before creating a date hold.</p>
+                      <p className="text-sm text-destructive">Set a wedding date before creating a date hold.</p>
                     ) : (
                       <div className="space-y-3">
                         <p className="text-sm" style={{ color: "var(--sbv-purple)" }}>
