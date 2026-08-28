@@ -119,6 +119,8 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
           }
           const { error } = await supabaseAdmin.from("proposals").update(patch).eq("id", proposal.id);
           if (error) return Response.json({ error: "save_failed" }, { status: 500 });
+          // Cascade the agreed numbers to the quote, client package price, and flags.
+          await supabaseAdmin.rpc("sync_accepted_proposal", { p_proposal_id: proposal.id });
           await notifyStudio(
             proposal.client_id, "proposal_accepted", "Proposal accepted",
             couple + (chosenName ? ` accepted "${chosenName}"` : " accepted their proposal")

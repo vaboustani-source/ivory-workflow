@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { RESOURCE_PROSE_CSS } from "@/lib/resourceProseStyles";
+import { substituteForClient } from "@/lib/mergeFields";
 
 type SearchSchema = { slug?: string };
 
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/portal/resources")({
     slug: typeof s.slug === "string" ? s.slug : undefined,
   }),
   component: () => (
-    <PortalGate>{({ clientId, client }) => <PortalResources clientId={clientId} status={client.status} />}</PortalGate>
+    <PortalGate>{({ clientId, client }) => <PortalResources clientId={clientId} status={client.status} client={client} />}</PortalGate>
   ),
 });
 
@@ -85,7 +86,7 @@ function stageForStatus(status: string | null | undefined): string | null {
   return status;
 }
 
-function PortalResources({ clientId, status }: { clientId: string; status: string | null }) {
+function PortalResources({ clientId, status, client }: { clientId: string; status: string | null; client: any }) {
   const search = useSearch({ from: "/portal/resources" });
   const navigate = useNavigate();
   const [resources, setResources] = useState<Resource[]>([]);
@@ -142,7 +143,7 @@ function PortalResources({ clientId, status }: { clientId: string; status: strin
   }
 
   if (openResource) {
-    return <ResourceReader resource={openResource} onBack={() => navigate({ to: "/portal/resources", search: {} })} />;
+    return <ResourceReader resource={openResource} client={client} onBack={() => navigate({ to: "/portal/resources", search: {} })} />;
   }
 
   return (
@@ -250,7 +251,7 @@ function ResourceCard({ resource, onOpen }: { resource: Resource; onOpen: () => 
         </h3>
         {resource.excerpt && (
           <p className="mt-3 text-[14px] text-foreground/70 leading-relaxed line-clamp-3 font-serif italic">
-            {resource.excerpt}
+            {merged(resource.excerpt)}
           </p>
         )}
         <span className="mt-6 inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.2em] text-primary/70 group-hover:text-magenta transition-colors">
@@ -262,7 +263,8 @@ function ResourceCard({ resource, onOpen }: { resource: Resource; onOpen: () => 
   );
 }
 
-function ResourceReader({ resource, onBack }: { resource: Resource; onBack: () => void }) {
+function ResourceReader({ resource, client, onBack }: { resource: Resource; client: any; onBack: () => void }) {
+  const merged = (t: string | null) => substituteForClient(t ?? "", client);
   return (
     <article className="max-w-[720px] mx-auto pt-6 pb-16">
       <button
@@ -286,10 +288,10 @@ function ResourceReader({ resource, onBack }: { resource: Resource; onBack: () =
         <p className="text-[10px] uppercase tracking-[0.28em] text-gold mb-5">
           {CATEGORY_LABELS[resource.category ?? ""] ?? resource.category ?? ""}
         </p>
-        <h1 className="font-serif italic text-[42px] leading-[1.1] text-primary">{resource.title}</h1>
+        <h1 className="font-serif italic text-[42px] leading-[1.1] text-primary">{merged(resource.title)}</h1>
         {resource.excerpt && (
           <p className="mt-6 text-[18px] text-foreground/70 leading-relaxed font-serif italic max-w-[560px] mx-auto">
-            {resource.excerpt}
+            {merged(resource.excerpt)}
           </p>
         )}
         <div className="mt-10 flex items-center justify-center gap-3" aria-hidden>
@@ -339,7 +341,7 @@ function ResourceReader({ resource, onBack }: { resource: Resource; onBack: () =
       {resource.content && (
         <div
           className="resource-prose"
-          dangerouslySetInnerHTML={{ __html: resource.content }}
+          dangerouslySetInnerHTML={{ __html: merged(resource.content) }}
         />
       )}
 

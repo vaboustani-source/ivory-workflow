@@ -328,7 +328,7 @@ export function PortalGate({
       }
       const { data: client } = await supabase
         .from("clients")
-        .select("id, couple_name_1, couple_name_2, wedding_date, status, portal_login_mode, manager_id, photographer_id")
+        .select("id, couple_name_1, couple_name_2, wedding_date, venue_name, status, portal_login_mode, manager_id, photographer_id")
         .eq("id", cu.client_id)
         .maybeSingle();
       if (cancelled) return;
