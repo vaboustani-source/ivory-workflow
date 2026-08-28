@@ -7,10 +7,17 @@ import { ContractEditorModal } from "./ContractEditorModal";
 import { UploadSignedContractModal, openSignedContractPdf } from "./UploadSignedContractModal";
 import { useAuth } from "@/lib/auth";
 
+interface ProposalOption {
+  key: string; name: string; description?: string;
+  line_items: Array<{ label: string; amount: number }>;
+  subtotal?: number; discount?: number; total: number;
+}
 interface Proposal {
   id: string; status: string; sent_at: string | null; accepted_at: string | null;
   line_items: any; subtotal: number | null; total: number | null; discount: number | null;
   personal_note: string | null; valid_until: string | null;
+  options: ProposalOption[] | null; selected_option: string | null;
+  change_request: string | null; change_requested_at: string | null;
 }
 interface Contract {
   id: string; title: string | null; content: string | null; status: string;
@@ -70,7 +77,7 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
     let cancelled = false;
     (async () => {
       const [p, c, i, s, cl] = await Promise.all([
-        supabase.from("proposals").select("id, status, sent_at, accepted_at, line_items, subtotal, total, discount, personal_note, valid_until").eq("client_id", clientId).order("created_at", { ascending: false }),
+        supabase.from("proposals").select("id, status, sent_at, accepted_at, line_items, subtotal, total, discount, personal_note, valid_until, options, selected_option, change_request, change_requested_at").eq("client_id", clientId).order("created_at", { ascending: false }),
         supabase.from("contracts").select("id, title, content, status, sent_at, signed_at, signature_required_role, file_url, contract_kind").eq("client_id", clientId).order("created_at", { ascending: false }),
         supabase.from("invoices").select("id, invoice_number, invoice_type, status, amount, due_date, paid_at").eq("client_id", clientId).order("created_at", { ascending: false }),
         supabase.from("contract_signatures").select("id, contract_id, typed_name, signed_at, ip_address, user_agent, signed_by_user_id, contract_version_hash").eq("client_id", clientId),
@@ -138,13 +145,29 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
         <>
           {proposals.length > 0 && (
             <Section title="Proposals">
-              {proposals.map((p) => (
-                <Row key={p.id} icon={<ScrollText size={16} className="text-gold" />}
-                  title="Proposal" pill={<StatusPill status={p.status} tone={proposalTone(p.status)} />}
-                  meta={p.accepted_at ? `Accepted ${shortDate(p.accepted_at)}` : p.sent_at ? `Sent ${shortDate(p.sent_at)}` : "Draft"}
-                  extra={p.total != null ? `Total: $${Number(p.total).toLocaleString()}` : null}
-                  onView={() => setOpenProposal(p)} />
-              ))}
+              {proposals.map((p) => {
+                const selectedOpt = (p.options ?? []).find((o) => o.key === p.selected_option);
+                const pendingChange = !!p.change_request && p.status !== "accepted";
+                return (
+                  <Row key={p.id} icon={<ScrollText size={16} className="text-gold" />}
+                    title="Proposal"
+                    pill={
+                      <span className="inline-flex items-center gap-2">
+                        <StatusPill status={p.status} tone={proposalTone(p.status)} />
+                        {pendingChange && <StatusPill status="change requested" tone="warn" />}
+                      </span>
+                    }
+                    meta={p.accepted_at ? `Accepted ${shortDate(p.accepted_at)}${selectedOpt ? ` — "${selectedOpt.name}"` : ""}` : p.sent_at ? `Sent ${shortDate(p.sent_at)}` : "Draft"}
+                    extra={
+                      p.status === "accepted" && p.total != null
+                        ? `Total: $${Number(p.total).toLocaleString()}`
+                        : (p.options?.length ?? 0) > 0
+                          ? (p.options ?? []).map((o) => `${o.name}: $${Number(o.total).toLocaleString()}`).join(" · ")
+                          : p.total != null ? `Total: $${Number(p.total).toLocaleString()}` : null
+                    }
+                    onView={() => setOpenProposal(p)} />
+                );
+              })}
             </Section>
           )}
           <Section
@@ -316,6 +339,7 @@ function ModalShell({ children, onClose, title }: { children: React.ReactNode; o
 
 function ProposalModal({ proposal, onClose }: { proposal: Proposal; onClose: () => void }) {
   const items: Array<{ label: string; amount: number }> = Array.isArray(proposal.line_items) ? proposal.line_items : [];
+  const options: ProposalOption[] = Array.isArray(proposal.options) ? proposal.options : [];
   return (
     <ModalShell title="Proposal" onClose={onClose}>
       <div className="px-6 md:px-10 py-8 space-y-8">
@@ -325,35 +349,71 @@ function ProposalModal({ proposal, onClose }: { proposal: Proposal; onClose: () 
           {proposal.accepted_at && <span>Accepted {shortDate(proposal.accepted_at)}</span>}
           {proposal.valid_until && <span>Valid until {shortDate(proposal.valid_until)}</span>}
         </div>
+        {proposal.change_request && (
+          <div className="rounded-md border border-magenta/40 bg-magenta/5 p-4">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-magenta mb-1">
+              Change requested{proposal.change_requested_at ? ` · ${shortDate(proposal.change_requested_at)}` : ""}
+            </p>
+            <p className="text-sm text-foreground whitespace-pre-wrap">{proposal.change_request}</p>
+          </div>
+        )}
         {proposal.personal_note && (
           <div>
             <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Personal note</p>
             <p className="font-serif italic text-lg text-primary/90 whitespace-pre-wrap">{proposal.personal_note}</p>
           </div>
         )}
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-3">Line items</p>
-          <table className="w-full">
-            <tbody>
-              {items.map((it, idx) => (
-                <tr key={idx} className="border-b border-border/50">
-                  <td className="py-3 text-sm text-foreground">{it.label}</td>
-                  <td className="py-3 text-sm text-foreground text-right">${Number(it.amount).toLocaleString()}</td>
-                </tr>
+        {options.length > 0 && (
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-3">Options presented</p>
+            <div className="grid md:grid-cols-2 gap-4">
+              {options.map((o) => (
+                <div key={o.key} className={`rounded-lg border p-4 ${proposal.selected_option === o.key ? "border-gold ring-2 ring-gold/40" : "border-border"}`}>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <h4 className="font-serif italic text-lg text-primary">{o.name}</h4>
+                    {proposal.selected_option === o.key && <StatusPill status="chosen" tone="ok" />}
+                  </div>
+                  <p className="text-xl text-foreground font-medium mb-2">${Number(o.total).toLocaleString()}</p>
+                  <ul className="space-y-1">
+                    {(o.line_items ?? []).map((it, idx) => (
+                      <li key={idx} className="flex justify-between gap-3 text-xs text-muted-foreground">
+                        <span>{it.label}</span>
+                        <span className="whitespace-nowrap">${Number(it.amount).toLocaleString()}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-              {proposal.discount && Number(proposal.discount) > 0 && (
-                <tr className="border-b border-border/50">
-                  <td className="py-3 text-sm text-muted-foreground">Discount</td>
-                  <td className="py-3 text-sm text-muted-foreground text-right">−${Number(proposal.discount).toLocaleString()}</td>
+            </div>
+          </div>
+        )}
+        {(options.length === 0 || proposal.status === "accepted") && (
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-3">
+              {options.length > 0 ? "Agreed line items" : "Line items"}
+            </p>
+            <table className="w-full">
+              <tbody>
+                {items.map((it, idx) => (
+                  <tr key={idx} className="border-b border-border/50">
+                    <td className="py-3 text-sm text-foreground">{it.label}</td>
+                    <td className="py-3 text-sm text-foreground text-right">${Number(it.amount).toLocaleString()}</td>
+                  </tr>
+                ))}
+                {proposal.discount && Number(proposal.discount) > 0 && (
+                  <tr className="border-b border-border/50">
+                    <td className="py-3 text-sm text-muted-foreground">Discount</td>
+                    <td className="py-3 text-sm text-muted-foreground text-right">−${Number(proposal.discount).toLocaleString()}</td>
+                  </tr>
+                )}
+                <tr>
+                  <td className="pt-4 font-serif italic text-lg text-primary">Total</td>
+                  <td className="pt-4 font-serif italic text-lg text-primary text-right">${Number(proposal.total ?? 0).toLocaleString()}</td>
                 </tr>
-              )}
-              <tr>
-                <td className="pt-4 font-serif italic text-lg text-primary">Total</td>
-                <td className="pt-4 font-serif italic text-lg text-primary text-right">${Number(proposal.total ?? 0).toLocaleString()}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </ModalShell>
   );

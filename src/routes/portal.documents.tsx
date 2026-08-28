@@ -19,10 +19,17 @@ export const Route = createFileRoute("/portal/documents")({
   component: () => <PortalGate>{({ clientId, client }) => <PortalDocuments clientId={clientId} client={client} />}</PortalGate>,
 });
 
+interface ProposalOption {
+  key: string; name: string; description?: string;
+  line_items: Array<{ label: string; amount: number }>;
+  subtotal?: number; discount?: number; total: number;
+}
 interface Proposal {
   id: string; status: string; sent_at: string | null; accepted_at: string | null;
   line_items: any; subtotal: number | null; total: number | null; discount: number | null;
   personal_note: string | null; valid_until: string | null;
+  options: ProposalOption[] | null; selected_option: string | null;
+  change_request: string | null; change_requested_at: string | null;
 }
 interface Contract {
   id: string; title: string | null; content: string | null; status: string;
@@ -55,7 +62,7 @@ function PortalDocuments({ clientId, client }: { clientId: string; client: any }
 
   const load = async () => {
     const [p, c, i, s] = await Promise.all([
-      supabase.from("proposals").select("id, status, sent_at, accepted_at, line_items, subtotal, total, discount, personal_note, valid_until").eq("client_id", clientId).order("created_at", { ascending: false }),
+      supabase.from("proposals").select("id, status, sent_at, accepted_at, line_items, subtotal, total, discount, personal_note, valid_until, options, selected_option, change_request, change_requested_at").eq("client_id", clientId).order("created_at", { ascending: false }),
       supabase.from("contracts").select("id, title, content, status, sent_at, signed_at, signature_required_role, file_url").eq("client_id", clientId).order("created_at", { ascending: false }),
       supabase.from("invoices").select("id, invoice_number, invoice_type, status, amount, due_date, paid_at").eq("client_id", clientId).order("created_at", { ascending: false }),
       supabase.from("contract_signatures").select("id, contract_id, typed_name, signed_at, ip_address, signed_by_user_id").eq("client_id", clientId),
@@ -339,14 +346,32 @@ function ModalShell({ children, onClose, title }: { children: React.ReactNode; o
 
 function ProposalModal({ proposal, onClose, onAccepted }: { proposal: Proposal; onClose: () => void; onAccepted: () => Promise<void> }) {
   const [accepting, setAccepting] = useState(false);
+  const options: ProposalOption[] = Array.isArray(proposal.options) ? proposal.options : [];
+  const hasOptions = options.length > 0;
+  const isAccepted = proposal.status === "accepted";
+  const [selectedKey, setSelectedKey] = useState<string | null>(
+    proposal.selected_option ?? (options.length === 1 ? options[0].key : null),
+  );
+  const selected = options.find((o) => o.key === selectedKey) ?? null;
+
+  const [showChange, setShowChange] = useState(false);
+  const [changeNote, setChangeNote] = useState("");
+  const [sendingChange, setSendingChange] = useState(false);
+  const [changeSent, setChangeSent] = useState(false);
+  const changeRequested = changeSent || !!proposal.change_request;
+
   const items: Array<{ label: string; amount: number }> = Array.isArray(proposal.line_items) ? proposal.line_items : [];
 
   const accept = async () => {
+    if (hasOptions && !selected) {
+      toast.error("Choose an option first.");
+      return;
+    }
     setAccepting(true);
-    const { error } = await supabase
-      .from("proposals")
-      .update({ status: "accepted", accepted_at: new Date().toISOString() })
-      .eq("id", proposal.id);
+    const { error } = await supabase.rpc("accept_proposal", {
+      p_proposal_id: proposal.id,
+      p_option_key: selected?.key ?? null,
+    });
     if (error) {
       toast.error(error.message);
       setAccepting(false);
@@ -356,7 +381,30 @@ function ProposalModal({ proposal, onClose, onAccepted }: { proposal: Proposal; 
     setAccepting(false);
   };
 
-  const isAccepted = proposal.status === "accepted";
+  const sendChange = async () => {
+    const note = changeNote.trim();
+    if (!note) {
+      toast.error("Tell us what you'd like adjusted.");
+      return;
+    }
+    setSendingChange(true);
+    const { error } = await supabase.rpc("request_proposal_change", {
+      p_proposal_id: proposal.id,
+      p_note: note,
+    });
+    if (error) {
+      toast.error(error.message);
+      setSendingChange(false);
+      return;
+    }
+    setSendingChange(false);
+    setChangeSent(true);
+    setShowChange(false);
+    toast.success("Request sent — Victoria will follow up shortly.");
+  };
+
+  const optionHighlighted = (o: ProposalOption) =>
+    isAccepted ? proposal.selected_option === o.key : selectedKey === o.key;
 
   return (
     <ModalShell title="Your proposal" onClose={onClose}>
@@ -365,48 +413,141 @@ function ProposalModal({ proposal, onClose, onAccepted }: { proposal: Proposal; 
           <p className="font-serif italic text-lg text-primary/90 whitespace-pre-wrap">{proposal.personal_note}</p>
         )}
 
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-3">Investment summary</p>
-          <table className="w-full">
-            <tbody>
-              {items.map((it, idx) => (
-                <tr key={idx} className="border-b border-border/50">
-                  <td className="py-3 text-sm text-foreground">{it.label}</td>
-                  <td className="py-3 text-sm text-foreground text-right">${Number(it.amount).toLocaleString()}</td>
-                </tr>
+        {hasOptions ? (
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-3">
+              {isAccepted ? "Your selection" : "Choose your experience"}
+            </p>
+            <div className="grid md:grid-cols-2 gap-4">
+              {options.map((o) => (
+                <button
+                  key={o.key}
+                  type="button"
+                  onClick={() => { if (!isAccepted) setSelectedKey(o.key); }}
+                  className={`text-left rounded-lg border p-5 transition flex flex-col gap-3 ${
+                    optionHighlighted(o)
+                      ? "border-gold ring-2 ring-gold/40 bg-accent/40"
+                      : "border-border bg-surface hover:border-gold/60"
+                  } ${isAccepted && proposal.selected_option !== o.key ? "opacity-40" : ""}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <h4 className="font-serif italic text-xl text-primary">{o.name}</h4>
+                    <span
+                      className={`mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                        optionHighlighted(o) ? "border-gold bg-gold text-surface" : "border-border"
+                      }`}
+                    >
+                      {optionHighlighted(o) && <Check size={12} />}
+                    </span>
+                  </div>
+                  <p className="text-2xl text-foreground font-medium">${Number(o.total).toLocaleString()}</p>
+                  {o.description && <p className="text-sm text-muted-foreground">{o.description}</p>}
+                  <ul className="space-y-1.5 mt-1">
+                    {(o.line_items ?? []).map((it, idx) => (
+                      <li key={idx} className="flex justify-between gap-3 text-sm text-foreground border-b border-border/40 pb-1.5">
+                        <span>{it.label}</span>
+                        <span className="whitespace-nowrap">${Number(it.amount).toLocaleString()}</span>
+                      </li>
+                    ))}
+                    {o.discount != null && Number(o.discount) > 0 && (
+                      <li className="flex justify-between gap-3 text-sm text-muted-foreground">
+                        <span>Included savings</span>
+                        <span>−${Number(o.discount).toLocaleString()}</span>
+                      </li>
+                    )}
+                  </ul>
+                </button>
               ))}
-              {proposal.discount && Number(proposal.discount) > 0 && (
-                <tr className="border-b border-border/50">
-                  <td className="py-3 text-sm text-muted-foreground">Discount</td>
-                  <td className="py-3 text-sm text-muted-foreground text-right">−${Number(proposal.discount).toLocaleString()}</td>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-3">Investment summary</p>
+            <table className="w-full">
+              <tbody>
+                {items.map((it, idx) => (
+                  <tr key={idx} className="border-b border-border/50">
+                    <td className="py-3 text-sm text-foreground">{it.label}</td>
+                    <td className="py-3 text-sm text-foreground text-right">${Number(it.amount).toLocaleString()}</td>
+                  </tr>
+                ))}
+                {proposal.discount && Number(proposal.discount) > 0 && (
+                  <tr className="border-b border-border/50">
+                    <td className="py-3 text-sm text-muted-foreground">Discount</td>
+                    <td className="py-3 text-sm text-muted-foreground text-right">−${Number(proposal.discount).toLocaleString()}</td>
+                  </tr>
+                )}
+                <tr>
+                  <td className="pt-4 font-serif italic text-lg text-primary">Total</td>
+                  <td className="pt-4 font-serif italic text-lg text-primary text-right">${Number(proposal.total ?? 0).toLocaleString()}</td>
                 </tr>
-              )}
-              <tr>
-                <td className="pt-4 font-serif italic text-lg text-primary">Total</td>
-                <td className="pt-4 font-serif italic text-lg text-primary text-right">${Number(proposal.total ?? 0).toLocaleString()}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {proposal.valid_until && (
           <p className="text-xs text-muted-foreground">Valid until {shortDate(proposal.valid_until)}.</p>
         )}
 
-        <div className="border-t border-gold/30 pt-6">
+        <div className="border-t border-gold/30 pt-6 space-y-4">
           {isAccepted ? (
             <div className="flex items-center gap-2 text-sage">
               <Check size={16} />
-              <span className="font-serif italic text-lg text-primary">Proposal accepted{proposal.accepted_at ? ` on ${shortDate(proposal.accepted_at)}` : ""}.</span>
+              <span className="font-serif italic text-lg text-primary">
+                {selected ? `"${selected.name}" accepted` : "Proposal accepted"}
+                {proposal.accepted_at ? ` on ${shortDate(proposal.accepted_at)}` : ""}.
+              </span>
             </div>
           ) : (
-            <button
-              onClick={accept}
-              disabled={accepting}
-              className="bg-primary text-primary-foreground px-6 py-2.5 rounded-md text-sm hover:bg-primary/90 disabled:opacity-50"
-            >
-              {accepting ? "Accepting…" : "I accept this proposal"}
-            </button>
+            <>
+              <button
+                onClick={accept}
+                disabled={accepting || (hasOptions && !selected)}
+                className="bg-primary text-primary-foreground px-6 py-2.5 rounded-md text-sm hover:bg-primary/90 disabled:opacity-50"
+              >
+                {accepting
+                  ? "Accepting…"
+                  : hasOptions
+                    ? selected
+                      ? `Accept "${selected.name}" — $${Number(selected.total).toLocaleString()}`
+                      : "Select an option above"
+                    : "I accept this proposal"}
+              </button>
+
+              {changeRequested ? (
+                <p className="text-sm text-muted-foreground">
+                  Your change request has been sent — Victoria will follow up shortly. You can still accept an option above at any time.
+                </p>
+              ) : showChange ? (
+                <div className="space-y-2">
+                  <textarea
+                    value={changeNote}
+                    onChange={(e) => setChangeNote(e.target.value)}
+                    rows={3}
+                    maxLength={2000}
+                    placeholder="Tell us what you'd like adjusted — coverage, timing, packaging, anything."
+                    className="input"
+                  />
+                  <div className="flex gap-3">
+                    <button
+                      onClick={sendChange}
+                      disabled={sendingChange}
+                      className="border border-gold text-gold px-4 py-2 rounded-md text-sm hover:bg-gold/10 disabled:opacity-50"
+                    >
+                      {sendingChange ? "Sending…" : "Send request"}
+                    </button>
+                    <button onClick={() => setShowChange(false)} className="text-sm text-muted-foreground hover:text-magenta">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button onClick={() => setShowChange(true)} className="text-sm text-gold hover:text-magenta underline underline-offset-4">
+                  Not quite right? Request a change
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
