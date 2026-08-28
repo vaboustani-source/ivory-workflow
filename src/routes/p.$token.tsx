@@ -74,8 +74,8 @@ function PublicProposalPage() {
         <ProposalExperience
           proposal={data.proposal}
           client={data.client}
-          onAccept={async (key, note) => {
-            const ok = await post({ action: "accept", option_key: key, note });
+          onAccept={async (key, note, addons) => {
+            const ok = await post({ action: "accept", option_key: key, note, addons: addons.map((a) => a.label) });
             if (ok) { toast.success("Proposal accepted. Victoria will be in touch within a day."); await load(); }
             return ok;
           }}

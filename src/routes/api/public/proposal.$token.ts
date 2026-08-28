@@ -5,6 +5,16 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 // Leads open their proposal from an email link with no account or password;
 // the portal login only enters the picture after they book.
 
+// Server-side canonical add-on prices; client-sent prices are never trusted.
+const ADDON_CATALOG: Record<string, number> = {
+  "Heirloom wedding album": 1133,
+  "Parent albums": 721,
+  "Rehearsal dinner coverage": 1545,
+  "35mm film add-on": 412,
+  "Second videographer": 1030,
+  "Additional event coverage": 824,
+};
+
 function badToken() {
   return Response.json({ error: "invalid_token" }, { status: 404 });
 }
@@ -76,6 +86,12 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
           if (proposal.valid_until && proposal.valid_until < new Date().toISOString().slice(0, 10)) {
             return Response.json({ error: "expired" }, { status: 409 });
           }
+          const addonNames: string[] = Array.isArray(body?.addons)
+            ? body.addons.filter((n: unknown): n is string => typeof n === "string" && n in ADDON_CATALOG)
+            : [];
+          const addonItems = addonNames.map((n) => ({ label: `Add-on: ${n}`, amount: ADDON_CATALOG[n] }));
+          const addonSum = addonItems.reduce((t, it) => t + it.amount, 0);
+
           const options: any[] = Array.isArray(proposal.options) ? proposal.options : [];
           const patch: Record<string, unknown> = {
             status: "accepted",
@@ -83,23 +99,31 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
             acceptance_note: note || null,
           };
           let chosenName: string | null = null;
-          let chosenTotal: string | null = null;
+          let grandTotal: number | null = null;
           if (options.length > 0) {
             const opt = options.find((o) => o?.key === body?.option_key);
             if (!opt) return Response.json({ error: "option_required" }, { status: 400 });
             patch.selected_option = opt.key;
-            patch.line_items = opt.line_items ?? proposal.line_items;
-            patch.subtotal = opt.subtotal ?? opt.total ?? proposal.subtotal;
+            patch.line_items = [...(opt.line_items ?? []), ...addonItems];
+            patch.subtotal = Number(opt.subtotal ?? opt.total ?? 0) + addonSum;
             patch.discount = opt.discount ?? 0;
-            patch.total = opt.total ?? proposal.total;
+            grandTotal = Number(opt.total ?? 0) + addonSum;
+            patch.total = grandTotal;
             chosenName = opt.name ?? opt.key;
-            chosenTotal = String(opt.total ?? "");
+          } else if (addonItems.length > 0) {
+            const base: any[] = Array.isArray(proposal.line_items) ? proposal.line_items : [];
+            patch.line_items = [...base, ...addonItems];
+            grandTotal = Number(proposal.total ?? 0) + addonSum;
+            patch.subtotal = Number(proposal.subtotal ?? proposal.total ?? 0) + addonSum;
+            patch.total = grandTotal;
           }
           const { error } = await supabaseAdmin.from("proposals").update(patch).eq("id", proposal.id);
           if (error) return Response.json({ error: "save_failed" }, { status: 500 });
           await notifyStudio(
             proposal.client_id, "proposal_accepted", "Proposal accepted",
-            couple + (chosenName ? ` accepted "${chosenName}" at $${chosenTotal}` : " accepted their proposal")
+            couple + (chosenName ? ` accepted "${chosenName}"` : " accepted their proposal")
+              + (addonNames.length ? ` with ${addonNames.length} add-on${addonNames.length > 1 ? "s" : ""} (${addonNames.join(", ")})` : "")
+              + (grandTotal != null ? ` at $${grandTotal.toLocaleString()}` : "")
               + (note ? `. Note: "${note.slice(0, 140)}"` : ""),
           );
           return Response.json({ ok: true });

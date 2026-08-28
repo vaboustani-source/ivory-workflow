@@ -352,11 +352,16 @@ function ProposalModal({ proposal, client, onClose, onAccepted }: { proposal: Pr
       <ProposalExperience
         proposal={proposal}
         client={client}
-        onAccept={async (key, note) => {
+        onAccept={async (key, note, addons) => {
+          let fullNote = note ?? "";
+          if (addons.length > 0) {
+            const names = addons.map((a) => a.label).join(", ");
+            fullNote = fullNote ? `${fullNote}\n\nInterested in add-ons: ${names}` : `Interested in add-ons: ${names}`;
+          }
           const { error } = await supabase.rpc("accept_proposal", {
             p_proposal_id: proposal.id,
             p_option_key: key,
-            p_note: note,
+            p_note: fullNote || null,
           });
           if (error) { toast.error(error.message); return false; }
           await onAccepted();

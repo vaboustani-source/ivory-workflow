@@ -74,7 +74,7 @@ export function ProposalExperience({ proposal, client, preview, onAccept, onRequ
   proposal: ProposalData;
   client: CoupleLite | null;
   preview?: boolean;
-  onAccept?: (optionKey: string | null, note: string | null) => Promise<boolean>;
+  onAccept?: (optionKey: string | null, note: string | null, addons: Array<{ label: string; amount: number }>) => Promise<boolean>;
   onRequestChange?: (note: string) => Promise<boolean>;
 }) {
   const options: ProposalOptionData[] = Array.isArray(proposal.options) ? proposal.options : [];
@@ -109,12 +109,8 @@ export function ProposalExperience({ proposal, client, preview, onAccept, onRequ
     if (preview || !onAccept) { toast("Preview only. This is exactly what your couple sees."); return; }
     if (hasOptions && !selected) { toast.error("Choose an option first."); return; }
     setAccepting(true);
-    let note = acceptNote.trim();
-    if (pickedAddons.size > 0) {
-      const names = [...pickedAddons].map((i) => ADDONS[i].n).join(", ");
-      note = note ? `${note}\n\nInterested in add-ons: ${names}` : `Interested in add-ons: ${names}`;
-    }
-    await onAccept(selected?.key ?? null, note || null);
+    const addons = [...pickedAddons].map((i) => ({ label: ADDONS[i].n, amount: ADDONS[i].p }));
+    await onAccept(selected?.key ?? null, acceptNote.trim() || null, addons);
     setAccepting(false);
   };
 
@@ -360,9 +356,13 @@ export function ProposalExperience({ proposal, client, preview, onAccept, onRequ
                   ? "Accepting…"
                   : hasOptions
                     ? selected
-                      ? `Accept "${selected.name}" — $${Number(selected.total).toLocaleString()}`
+                      ? pickedAddons.size > 0
+                        ? `Accept "${selected.name}" + ${pickedAddons.size} add-on${pickedAddons.size > 1 ? "s" : ""} — $${(Number(selected.total) + addonSum).toLocaleString()}`
+                        : `Accept "${selected.name}" — $${Number(selected.total).toLocaleString()}`
                       : "Select an option above"
-                    : "I accept this proposal"}
+                    : pickedAddons.size > 0
+                      ? `I accept this proposal + ${pickedAddons.size} add-on${pickedAddons.size > 1 ? "s" : ""}`
+                      : "I accept this proposal"}
               </button>
 
               {changeRequested ? (
