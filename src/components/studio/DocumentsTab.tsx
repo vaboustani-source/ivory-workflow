@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { shortDate } from "@/lib/dates";
 import ReactMarkdown from "react-markdown";
-import { X, FileText, Receipt, ScrollText, Plus, Pencil, Download, Upload, Eye } from "lucide-react";
+import { X, FileText, Receipt, ScrollText, Plus, Pencil, Download, Upload, Eye, Link as LinkIcon } from "lucide-react";
 import { ContractEditorModal } from "./ContractEditorModal";
 import { UploadSignedContractModal, openSignedContractPdf } from "./UploadSignedContractModal";
 import { useAuth } from "@/lib/auth";
@@ -21,6 +21,7 @@ interface Proposal {
   options: ProposalOption[] | null; selected_option: string | null;
   change_request: string | null; change_requested_at: string | null;
   acceptance_note: string | null;
+  view_token: string | null;
 }
 interface Contract {
   id: string; title: string | null; content: string | null; status: string;
@@ -82,7 +83,7 @@ export function StudioDocumentsTab({ clientId, openContractId }: { clientId: str
     let cancelled = false;
     (async () => {
       const [p, c, i, s, cl] = await Promise.all([
-        supabase.from("proposals").select("id, status, sent_at, accepted_at, line_items, subtotal, total, discount, personal_note, valid_until, options, selected_option, change_request, change_requested_at, acceptance_note").eq("client_id", clientId).order("created_at", { ascending: false }),
+        supabase.from("proposals").select("id, status, sent_at, accepted_at, line_items, subtotal, total, discount, personal_note, valid_until, options, selected_option, change_request, change_requested_at, acceptance_note, view_token").eq("client_id", clientId).order("created_at", { ascending: false }),
         supabase.from("contracts").select("id, title, content, status, sent_at, signed_at, signature_required_role, file_url, contract_kind").eq("client_id", clientId).order("created_at", { ascending: false }),
         supabase.from("invoices").select("id, invoice_number, invoice_type, status, amount, due_date, paid_at").eq("client_id", clientId).order("created_at", { ascending: false }),
         supabase.from("contract_signatures").select("id, contract_id, typed_name, signed_at, ip_address, user_agent, signed_by_user_id, contract_version_hash").eq("client_id", clientId),
@@ -396,6 +397,17 @@ function ProposalModal({ proposal, onClose, onEdit, onPreview }: { proposal: Pro
             {proposal.valid_until && <span>Valid until {shortDate(proposal.valid_until)}</span>}
           </div>
           <div className="flex items-center gap-4">
+            {proposal.view_token && proposal.status !== "draft" && (
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/p/${proposal.view_token}`);
+                  toast.success("Client link copied. No login needed on their end.");
+                }}
+                className="inline-flex items-center gap-1.5 text-xs text-gold hover:text-primary uppercase tracking-wider"
+              >
+                <LinkIcon size={12} /> Copy client link
+              </button>
+            )}
             {onPreview && (
               <button onClick={onPreview} className="inline-flex items-center gap-1.5 text-xs text-gold hover:text-primary uppercase tracking-wider">
                 <Eye size={12} /> Preview couple view
