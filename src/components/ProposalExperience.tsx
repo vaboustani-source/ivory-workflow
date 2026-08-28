@@ -156,7 +156,7 @@ export function ProposalExperience({ proposal, client, preview, onAccept, onRequ
           <section>
             <SectionH n="01" eyebrow="A note from Victoria" title="Written for you." />
             <div className="bg-surface rounded-lg border-t-2 border-gold shadow-soft p-7 md:p-9 mt-4">
-              <p className="font-serif italic text-lg text-primary/90 whitespace-pre-wrap">{proposal.personal_note}</p>
+              <p className="text-[15px] leading-relaxed text-foreground whitespace-pre-wrap">{proposal.personal_note}</p>
             </div>
           </section>
         )}

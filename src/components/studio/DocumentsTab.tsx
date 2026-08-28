@@ -437,7 +437,7 @@ function ProposalModal({ proposal, onClose, onEdit, onPreview }: { proposal: Pro
         {proposal.personal_note && (
           <div>
             <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Personal note</p>
-            <p className="font-serif italic text-lg text-primary/90 whitespace-pre-wrap">{proposal.personal_note}</p>
+            <p className="text-[15px] leading-relaxed text-foreground whitespace-pre-wrap">{proposal.personal_note}</p>
           </div>
         )}
         {options.length > 0 && (
@@ -626,7 +626,7 @@ function proposalTemplate(client: { couple_name_1: string; couple_name_2: string
     personal_note:
       `${names}, thank you for reaching out. ${dateTxt} is open, and it's yours if you want it.\n\n` +
       `I've shaped two versions of your day. Choose whichever feels right.\n\n` +
-      `Every proposal is flexible. Packaging can always be adjusted to your preferences. If neither option is quite right, use "Request a change" below and tell me what you'd shift. Warmly, Victoria`,
+      `Every proposal is flexible. Packaging can always be adjusted to your preferences. If neither option is quite right, use "Request a change" below and tell me what you'd shift.\n\nWarmly,\nVictoria`,
     valid_until: validUntil.toISOString().slice(0, 10),
     options: [
       {
