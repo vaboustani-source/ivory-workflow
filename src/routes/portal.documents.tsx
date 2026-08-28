@@ -62,7 +62,7 @@ function PortalDocuments({ clientId, client }: { clientId: string; client: any }
 
   const load = async () => {
     const [p, c, i, s] = await Promise.all([
-      supabase.from("proposals").select("id, status, sent_at, accepted_at, line_items, subtotal, total, discount, personal_note, valid_until, options, selected_option, change_request, change_requested_at").eq("client_id", clientId).order("created_at", { ascending: false }),
+      supabase.from("proposals").select("id, status, sent_at, accepted_at, line_items, subtotal, total, discount, personal_note, valid_until, options, selected_option, change_request, change_requested_at").eq("client_id", clientId).neq("status", "draft").order("created_at", { ascending: false }),
       supabase.from("contracts").select("id, title, content, status, sent_at, signed_at, signature_required_role, file_url").eq("client_id", clientId).order("created_at", { ascending: false }),
       supabase.from("invoices").select("id, invoice_number, invoice_type, status, amount, due_date, paid_at").eq("client_id", clientId).order("created_at", { ascending: false }),
       supabase.from("contract_signatures").select("id, contract_id, typed_name, signed_at, ip_address, signed_by_user_id").eq("client_id", clientId),
@@ -354,6 +354,7 @@ function ProposalModal({ proposal, onClose, onAccepted }: { proposal: Proposal; 
   );
   const selected = options.find((o) => o.key === selectedKey) ?? null;
 
+  const [acceptNote, setAcceptNote] = useState("");
   const [showChange, setShowChange] = useState(false);
   const [changeNote, setChangeNote] = useState("");
   const [sendingChange, setSendingChange] = useState(false);
@@ -371,6 +372,7 @@ function ProposalModal({ proposal, onClose, onAccepted }: { proposal: Proposal; 
     const { error } = await supabase.rpc("accept_proposal", {
       p_proposal_id: proposal.id,
       p_option_key: selected?.key ?? null,
+      p_note: acceptNote.trim() || null,
     });
     if (error) {
       toast.error(error.message);
@@ -501,6 +503,14 @@ function ProposalModal({ proposal, onClose, onAccepted }: { proposal: Proposal; 
             </div>
           ) : (
             <>
+              <textarea
+                value={acceptNote}
+                onChange={(e) => setAcceptNote(e.target.value)}
+                rows={2}
+                maxLength={2000}
+                placeholder="Optional: add a note for Victoria along with your acceptance."
+                className="input"
+              />
               <button
                 onClick={accept}
                 disabled={accepting || (hasOptions && !selected)}
@@ -526,7 +536,7 @@ function ProposalModal({ proposal, onClose, onAccepted }: { proposal: Proposal; 
                     onChange={(e) => setChangeNote(e.target.value)}
                     rows={3}
                     maxLength={2000}
-                    placeholder="Tell us what you'd like adjusted — coverage, timing, packaging, anything."
+                    placeholder="Tell me what you'd like different: coverage, timing, packaging, or something else entirely. I'll revise and send it back."
                     className="input"
                   />
                   <div className="flex gap-3">
@@ -544,7 +554,7 @@ function ProposalModal({ proposal, onClose, onAccepted }: { proposal: Proposal; 
                 </div>
               ) : (
                 <button onClick={() => setShowChange(true)} className="text-sm text-gold hover:text-magenta underline underline-offset-4">
-                  Not quite right? Request a change
+                  These options not quite right? Ask for something different
                 </button>
               )}
             </>
